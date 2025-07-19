@@ -4,7 +4,7 @@ import { useApiStore } from '@renderer/stores/apiStore'
 import { TabBar } from './TabBar'
 
 // Zustandストアをモック
-vi.mock('@/stores/apiStore')
+vi.mock('@renderer/stores/apiStore')
 
 const mockUseApiStore = vi.mocked(useApiStore)
 
@@ -53,7 +53,7 @@ describe('TabBar', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUseApiStore.mockReturnValue(mockStore as any)
+    mockUseApiStore.mockImplementation(() => mockStore as any)
   })
 
   it('should render all tabs', () => {
@@ -120,7 +120,7 @@ describe('TabBar', () => {
       ...mockStore,
       tabs: [mockStore.tabs[0]]
     }
-    mockUseApiStore.mockReturnValue(singleTabStore as any)
+    mockUseApiStore.mockImplementation(() => singleTabStore as any)
 
     render(<TabBar />)
 
@@ -159,7 +159,7 @@ describe('TabBar', () => {
         }
       ]
     }
-    mockUseApiStore.mockReturnValue(storeWithoutTitle as any)
+    mockUseApiStore.mockImplementation(() => storeWithoutTitle as any)
 
     render(<TabBar />)
 

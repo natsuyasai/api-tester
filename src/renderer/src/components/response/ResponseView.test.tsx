@@ -5,7 +5,7 @@ import { ApiResponse } from '@/types/types'
 import { ResponseView } from './ResponseView'
 
 // Zustandストアをモック
-vi.mock('@/stores/apiStore')
+vi.mock('@renderer/stores/apiStore')
 
 const mockUseApiStore = vi.mocked(useApiStore)
 
@@ -51,7 +51,7 @@ describe('ResponseView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUseApiStore.mockReturnValue(mockStore as any)
+    mockUseApiStore.mockImplementation(() => mockStore as any)
   })
 
   it('should display "No Response" when there is no response', () => {
@@ -63,7 +63,7 @@ describe('ResponseView', () => {
         }
       ]
     }
-    mockUseApiStore.mockReturnValue(storeWithoutResponse as any)
+    mockUseApiStore.mockImplementation(() => storeWithoutResponse as any)
 
     render(<ResponseView tabId="tab-1" />)
 
@@ -91,7 +91,7 @@ describe('ResponseView', () => {
         }
       ]
     }
-    mockUseApiStore.mockReturnValue(storeWithSlowResponse as any)
+    mockUseApiStore.mockImplementation(() => storeWithSlowResponse as any)
 
     render(<ResponseView tabId="tab-1" />)
 
@@ -118,7 +118,7 @@ describe('ResponseView', () => {
         }
       ]
     }
-    mockUseApiStore.mockReturnValue(storeWithErrorResponse as any)
+    mockUseApiStore.mockImplementation(() => storeWithErrorResponse as any)
 
     render(<ResponseView tabId="tab-1" />)
 
@@ -139,7 +139,7 @@ describe('ResponseView', () => {
         }
       ]
     }
-    mockUseApiStore.mockReturnValue(storeWithRedirectResponse as any)
+    mockUseApiStore.mockImplementation(() => storeWithRedirectResponse as any)
 
     render(<ResponseView tabId="tab-1" />)
 
@@ -208,7 +208,7 @@ describe('ResponseView', () => {
         }
       ]
     }
-    mockUseApiStore.mockReturnValue(storeWithTextResponse as any)
+    mockUseApiStore.mockImplementation(() => storeWithTextResponse as any)
 
     render(<ResponseView tabId="tab-1" />)
 
@@ -227,7 +227,7 @@ describe('ResponseView', () => {
         }
       ]
     }
-    mockUseApiStore.mockReturnValue(storeWithBadData as any)
+    mockUseApiStore.mockImplementation(() => storeWithBadData as any)
 
     expect(() => {
       render(<ResponseView tabId="tab-1" />)
