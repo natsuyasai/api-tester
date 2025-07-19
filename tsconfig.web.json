@@ -10,8 +10,9 @@
     "src/renderer/src/stores/**/*",
     "src/services/**/*",
     "src/test/**/*",
+    "src/mocks/**/*",
     "src/vite-env.d.ts",
-    ".storybook/**/*",
+    ".storybook/**/*"
   ],
   "compilerOptions": {
     "composite": true,

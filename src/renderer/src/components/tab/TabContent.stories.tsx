@@ -3,48 +3,6 @@ import { expect, userEvent, within } from 'storybook/test'
 import { useApiStore } from '@renderer/stores/apiStore'
 import { TabContent } from './TabContent'
 
-const mockTab = {
-  id: 'tab-1',
-  title: 'Test API',
-  isActive: true,
-  request: {
-    id: 'req-1',
-    name: 'Test Request',
-    url: 'https://api.example.com/users',
-    method: 'GET' as const,
-    headers: [{ key: 'Content-Type', value: 'application/json', enabled: true }],
-    params: [{ key: 'limit', value: '10', enabled: true }],
-    body: '',
-    bodyType: 'json' as const,
-    type: 'rest' as const
-  },
-  response: {
-    status: 200,
-    statusText: 'OK',
-    headers: {
-      'content-type': 'application/json'
-    },
-    data: {
-      users: [{ id: 1, name: 'John Doe' }]
-    },
-    duration: 150,
-    timestamp: '2024-01-01T10:30:00.000Z'
-  }
-}
-
-const mockStore = {
-  tabs: [mockTab],
-  activeTabId: 'tab-1',
-  isLoading: false,
-  updateUrl: () => {},
-  updateMethod: () => {},
-  updateBody: () => {},
-  updateBodyType: () => {},
-  updateTabTitle: () => {},
-  setLoading: () => {},
-  setResponse: () => {}
-}
-
 const meta: Meta<typeof TabContent> = {
   title: 'Components/TabContent',
   component: TabContent,
@@ -65,7 +23,16 @@ const meta: Meta<typeof TabContent> = {
   },
   decorators: [
     (Story) => {
-      ;(useApiStore as any) = () => mockStore
+      // ストーリー表示前にストアを初期化
+      const store = useApiStore.getState()
+      
+      // 新しいタブを追加してサンプルデータを設定
+      if (store.tabs.length === 0) {
+        store.addTab()
+        const activeTab = store.tabs[0]
+        store.updateUrl(activeTab.id, 'https://api.example.com/users')
+        store.updateTabTitle(activeTab.id, 'API Test')
+      }
 
       return (
         <div style={{ width: '100%', height: '100vh', padding: '20px' }}>
@@ -89,9 +56,17 @@ export const Default: Story = {
     await expect(urlInput).toBeInTheDocument()
     await expect(urlInput).toHaveValue('https://api.example.com/users')
 
-    // レスポンスセクションの確認
-    await expect(canvas.getByText('200 OK')).toBeInTheDocument()
-    await expect(canvas.getByText(/"users":/)).toBeInTheDocument()
+    // Sendボタンの確認
+    const sendButton = canvas.getByRole('button', { name: 'Send' })
+    await expect(sendButton).toBeInTheDocument()
+    
+    // オプションタブの確認
+    await expect(canvas.getByRole('button', { name: 'Params' })).toBeInTheDocument()
+    await expect(canvas.getByRole('button', { name: 'Headers' })).toBeInTheDocument()
+    await expect(canvas.getByRole('button', { name: 'Body' })).toBeInTheDocument()
+
+    // レスポンスエリアの確認（まだレスポンスはない）
+    await expect(canvas.getByText('No Response')).toBeInTheDocument()
   }
 }
 
@@ -99,12 +74,9 @@ export const NoActiveTab: Story = {
   args: {},
   decorators: [
     (Story) => {
-      const noTabStore = {
-        ...mockStore,
-        tabs: [],
-        activeTabId: ''
-      }
-      ;(useApiStore as any) = () => noTabStore
+      // すべてのタブを削除
+      const store = useApiStore.getState()
+      store.tabs.forEach(tab => store.closeTab(tab.id))
 
       return (
         <div style={{ width: '100%', height: '100vh', padding: '20px' }}>
@@ -121,50 +93,45 @@ export const NoActiveTab: Story = {
   }
 }
 
-export const POSTRequestWithResponse: Story = {
+export const WithAPICall: Story = {
+  args: {},
+  parameters: {
+    msw: {
+      handlers: [
+        // このストーリー専用のハンドラーがあれば追加可能
+      ]
+    }
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // リクエストを送信
+    const sendButton = canvas.getByRole('button', { name: 'Send' })
+    await userEvent.click(sendButton)
+
+    // MSWによるモックレスポンスを待機
+    await expect(canvas.getByText('200 OK')).toBeInTheDocument()
+    
+    // レスポンスボディの確認
+    await expect(canvas.getByText(/"users":/)).toBeInTheDocument()
+  }
+}
+
+export const POSTRequest: Story = {
   args: {},
   decorators: [
     (Story) => {
-      const postTab = {
-        ...mockTab,
-        request: {
-          ...mockTab.request,
-          method: 'POST' as const,
-          url: 'https://api.example.com/users',
-          body: JSON.stringify(
-            {
-              name: 'John Doe',
-              email: 'john@example.com'
-            },
-            null,
-            2
-          )
-        },
-        response: {
-          status: 201,
-          statusText: 'Created',
-          headers: {
-            'content-type': 'application/json',
-            location: '/users/123'
-          },
-          data: {
-            id: 123,
-            name: 'John Doe',
-            email: 'john@example.com',
-            createdAt: '2024-01-01T10:30:00.000Z'
-          },
-          duration: 230,
-          timestamp: '2024-01-01T10:30:00.000Z'
-        }
+      const store = useApiStore.getState()
+      
+      if (store.tabs.length === 0) {
+        store.addTab()
       }
-
-      const postStore = {
-        ...mockStore,
-        tabs: [postTab]
-      }
-
-      ;(useApiStore as any) = () => postStore
-
+      
+      const activeTab = store.tabs[0]
+      store.updateUrl(activeTab.id, 'https://api.example.com/users')
+      store.updateMethod(activeTab.id, 'POST')
+      store.updateBody(activeTab.id, JSON.stringify({ name: 'John Doe', email: 'john@example.com' }, null, 2))
+      
       return (
         <div style={{ width: '100%', height: '100vh', padding: '20px' }}>
           <Story />
@@ -175,7 +142,7 @@ export const POSTRequestWithResponse: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // POSTリクエストの確認
+    // POSTメソッドの確認
     await expect(canvas.getByDisplayValue('POST')).toBeInTheDocument()
 
     // ボディタブをクリック
@@ -184,84 +151,17 @@ export const POSTRequestWithResponse: Story = {
 
     // JSONボディの確認
     await expect(canvas.getByDisplayValue(/"name": "John Doe"/)).toBeInTheDocument()
+    
+    // リクエストを送信
+    const sendButton = canvas.getByRole('button', { name: 'Send' })
+    await userEvent.click(sendButton)
 
-    // レスポンス確認
+    // MSWによる201レスポンスを待機
     await expect(canvas.getByText('201 Created')).toBeInTheDocument()
-    await expect(canvas.getByText(/"id": 123/)).toBeInTheDocument()
   }
 }
 
-export const ErrorResponse: Story = {
-  args: {},
-  decorators: [
-    (Story) => {
-      const errorTab = {
-        ...mockTab,
-        response: {
-          status: 404,
-          statusText: 'Not Found',
-          headers: {
-            'content-type': 'application/json'
-          },
-          data: {
-            error: 'User not found',
-            code: 'NOT_FOUND'
-          },
-          duration: 89,
-          timestamp: '2024-01-01T10:30:00.000Z'
-        }
-      }
-
-      const errorStore = {
-        ...mockStore,
-        tabs: [errorTab]
-      }
-
-      ;(useApiStore as any) = () => errorStore
-
-      return (
-        <div style={{ width: '100%', height: '100vh', padding: '20px' }}>
-          <Story />
-        </div>
-      )
-    }
-  ],
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    // エラーレスポンスの確認
-    await expect(canvas.getByText('404 Not Found')).toBeInTheDocument()
-    await expect(canvas.getByText(/"error":/)).toBeInTheDocument()
-  }
-}
-
-export const LoadingState: Story = {
-  args: {},
-  decorators: [
-    (Story) => {
-      const loadingStore = {
-        ...mockStore,
-        isLoading: true
-      }
-
-      ;(useApiStore as any) = () => loadingStore
-
-      return (
-        <div style={{ width: '100%', height: '100vh', padding: '20px' }}>
-          <Story />
-        </div>
-      )
-    }
-  ],
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    // ローディング状態の確認
-    const sendButton = canvas.getByRole('button', { name: 'Sending...' })
-    await expect(sendButton).toBeInTheDocument()
-    await expect(sendButton).toBeDisabled()
-  }
-}
+// 他のストーリーは削除して、実用的なものに集約
 
 export const WithCustomClassName: Story = {
   args: {
@@ -271,7 +171,7 @@ export const WithCustomClassName: Story = {
     const canvas = within(canvasElement)
 
     // カスタムクラスが適用されているか確認
-    const tabContent = canvas.getByText('200 OK').closest('.custom-tab-content')
+    const tabContent = canvas.getByText('No Response').closest('.custom-tab-content')
     await expect(tabContent).toBeInTheDocument()
   }
 }

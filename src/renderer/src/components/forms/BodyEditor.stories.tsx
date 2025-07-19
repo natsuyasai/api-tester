@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { userEvent, within } from 'storybook/test'
+import { expect, userEvent, within } from 'storybook/test'
 import { BodyEditor } from './BodyEditor'
 
 const meta: Meta<typeof BodyEditor> = {

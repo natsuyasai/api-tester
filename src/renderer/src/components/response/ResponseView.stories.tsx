@@ -4,49 +4,45 @@ import { useApiStore } from '@renderer/stores/apiStore'
 import { ApiResponse } from '@/types/types'
 import { ResponseView } from './ResponseView'
 
-const successResponse: ApiResponse = {
+// Sample responses are now handled by MSW
+
+const successResponse = {
   status: 200,
   statusText: 'OK',
   headers: {
     'content-type': 'application/json',
-    'x-ratelimit-remaining': '99',
-    'cache-control': 'no-cache'
+    'x-ratelimit-remaining': '99'
   },
   data: {
     users: [
       { id: 1, name: 'John Doe', email: 'john@example.com' },
       { id: 2, name: 'Jane Smith', email: 'jane@example.com' }
-    ],
-    total: 2,
-    page: 1
+    ]
   },
-  duration: 150,
-  timestamp: '2024-01-01T10:30:00.000Z'
+  duration: 150
 }
 
-const errorResponse: ApiResponse = {
+const errorResponse = {
   status: 404,
   statusText: 'Not Found',
   headers: {
     'content-type': 'application/json'
   },
   data: {
-    error: 'Resource not found',
-    code: 'NOT_FOUND'
+    error: 'User not found',
+    message: 'The requested user does not exist'
   },
-  duration: 89,
-  timestamp: '2024-01-01T10:30:00.000Z'
+  duration: 120
 }
 
-const textResponse: ApiResponse = {
+const textResponse = {
   status: 200,
   statusText: 'OK',
   headers: {
     'content-type': 'text/plain'
   },
   data: 'This is a plain text response from the server.',
-  duration: 75,
-  timestamp: '2024-01-01T10:30:00.000Z'
+  duration: 89
 }
 
 const meta: Meta<typeof ResponseView> = {
@@ -66,7 +62,25 @@ const meta: Meta<typeof ResponseView> = {
       description: 'タブのID',
       control: 'text'
     }
-  }
+  },
+  decorators: [
+    (Story) => {
+      const store = useApiStore.getState()
+      
+      // タブがない場合は作成
+      if (store.tabs.length === 0) {
+        store.addTab()
+        const activeTab = store.tabs[0]
+        store.updateUrl(activeTab.id, 'https://api.example.com/users')
+      }
+
+      return (
+        <div style={{ width: '100%', height: '500px', padding: '20px' }}>
+          <Story />
+        </div>
+      )
+    }
+  ]
 }
 
 export default meta
@@ -76,41 +90,9 @@ export const NoResponse: Story = {
   args: {
     tabId: 'tab-1'
   },
-  decorators: [
-    (Story) => {
-      const storeWithoutResponse = {
-        tabs: [
-          {
-            id: 'tab-1',
-            title: 'Test Tab',
-            isActive: true,
-            request: {
-              id: 'req-1',
-              name: 'Test Request',
-              url: '',
-              method: 'GET' as const,
-              headers: [],
-              params: [],
-              body: '',
-              bodyType: 'json' as const,
-              type: 'rest' as const
-            },
-            response: null
-          }
-        ]
-      }
-      ;(useApiStore as any) = () => storeWithoutResponse
-
-      return (
-        <div style={{ width: '100%', height: '400px' }}>
-          <Story />
-        </div>
-      )
-    }
-  ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-
+    
     await expect(canvas.getByText('No Response')).toBeInTheDocument()
     await expect(canvas.getByText('Send a request to see the response here')).toBeInTheDocument()
   }
@@ -122,28 +104,15 @@ export const SuccessResponse: Story = {
   },
   decorators: [
     (Story) => {
-      const storeWithResponse = {
-        tabs: [
-          {
-            id: 'tab-1',
-            title: 'Test Tab',
-            isActive: true,
-            request: {
-              id: 'req-1',
-              name: 'Test Request',
-              url: 'https://api.example.com/users',
-              method: 'GET' as const,
-              headers: [],
-              params: [],
-              body: '',
-              bodyType: 'json' as const,
-              type: 'rest' as const
-            },
-            response: successResponse
-          }
-        ]
+      const store = useApiStore.getState()
+      
+      if (store.tabs.length === 0) {
+        store.addTab()
       }
-      ;(useApiStore as any) = () => storeWithResponse
+      
+      const activeTab = store.tabs[0]
+      store.updateUrl(activeTab.id, 'https://api.example.com/users')
+      store.setResponse(activeTab.id, successResponse)
 
       return (
         <div style={{ width: '100%', height: '500px' }}>
@@ -175,28 +144,15 @@ export const ErrorResponse: Story = {
   },
   decorators: [
     (Story) => {
-      const storeWithErrorResponse = {
-        tabs: [
-          {
-            id: 'tab-1',
-            title: 'Test Tab',
-            isActive: true,
-            request: {
-              id: 'req-1',
-              name: 'Test Request',
-              url: 'https://api.example.com/users/999',
-              method: 'GET' as const,
-              headers: [],
-              params: [],
-              body: '',
-              bodyType: 'json' as const,
-              type: 'rest' as const
-            },
-            response: errorResponse
-          }
-        ]
+      const store = useApiStore.getState()
+      
+      if (store.tabs.length === 0) {
+        store.addTab()
       }
-      ;(useApiStore as any) = () => storeWithErrorResponse
+      
+      const activeTab = store.tabs[0]
+      store.updateUrl(activeTab.id, 'https://api.example.com/users/999')
+      store.setResponse(activeTab.id, errorResponse)
 
       return (
         <div style={{ width: '100%', height: '500px' }}>
@@ -222,28 +178,15 @@ export const TextResponse: Story = {
   },
   decorators: [
     (Story) => {
-      const storeWithTextResponse = {
-        tabs: [
-          {
-            id: 'tab-1',
-            title: 'Test Tab',
-            isActive: true,
-            request: {
-              id: 'req-1',
-              name: 'Test Request',
-              url: 'https://api.example.com/health',
-              method: 'GET' as const,
-              headers: [],
-              params: [],
-              body: '',
-              bodyType: 'json' as const,
-              type: 'rest' as const
-            },
-            response: textResponse
-          }
-        ]
+      const store = useApiStore.getState()
+      
+      if (store.tabs.length === 0) {
+        store.addTab()
       }
-      ;(useApiStore as any) = () => storeWithTextResponse
+      
+      const activeTab = store.tabs[0]
+      store.updateUrl(activeTab.id, 'https://api.example.com/health')
+      store.setResponse(activeTab.id, textResponse)
 
       return (
         <div style={{ width: '100%', height: '500px' }}>
@@ -268,28 +211,15 @@ export const HeadersView: Story = {
   },
   decorators: [
     (Story) => {
-      const storeWithResponse = {
-        tabs: [
-          {
-            id: 'tab-1',
-            title: 'Test Tab',
-            isActive: true,
-            request: {
-              id: 'req-1',
-              name: 'Test Request',
-              url: 'https://api.example.com/users',
-              method: 'GET' as const,
-              headers: [],
-              params: [],
-              body: '',
-              bodyType: 'json' as const,
-              type: 'rest' as const
-            },
-            response: successResponse
-          }
-        ]
+      const store = useApiStore.getState()
+      
+      if (store.tabs.length === 0) {
+        store.addTab()
       }
-      ;(useApiStore as any) = () => storeWithResponse
+      
+      const activeTab = store.tabs[0]
+      store.updateUrl(activeTab.id, 'https://api.example.com/users')
+      store.setResponse(activeTab.id, successResponse)
 
       return (
         <div style={{ width: '100%', height: '500px' }}>
@@ -319,33 +249,20 @@ export const SlowResponse: Story = {
   },
   decorators: [
     (Story) => {
+      const store = useApiStore.getState()
+      
+      if (store.tabs.length === 0) {
+        store.addTab()
+      }
+      
+      const activeTab = store.tabs[0]
+      store.updateUrl(activeTab.id, 'https://api.example.com/slow')
+      
       const slowResponse = {
         ...successResponse,
         duration: 2500
       }
-
-      const storeWithSlowResponse = {
-        tabs: [
-          {
-            id: 'tab-1',
-            title: 'Test Tab',
-            isActive: true,
-            request: {
-              id: 'req-1',
-              name: 'Test Request',
-              url: 'https://api.example.com/slow',
-              method: 'GET' as const,
-              headers: [],
-              params: [],
-              body: '',
-              bodyType: 'json' as const,
-              type: 'rest' as const
-            },
-            response: slowResponse
-          }
-        ]
-      }
-      ;(useApiStore as any) = () => storeWithSlowResponse
+      store.setResponse(activeTab.id, slowResponse)
 
       return (
         <div style={{ width: '100%', height: '500px' }}>
