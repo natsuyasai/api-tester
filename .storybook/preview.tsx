@@ -19,11 +19,6 @@ const preview: Preview = {
   decorators: [
     (Story) => (
       <div>
-        <link
-          rel="stylesheet"
-          href="../node_modules/@vscode/codicons/dist/codicon.css"
-          id="vscode-codicon-stylesheet"
-        ></link>
         <Story />
       </div>
     )
