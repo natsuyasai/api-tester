@@ -74,7 +74,6 @@ export const TabContent = ({ className }: TabContentProps): JSX.Element => {
     return <div className={styles.noTab}>No active tab</div>
   }
 
-
   return (
     <div
       ref={containerRef}
@@ -96,7 +95,10 @@ export const TabContent = ({ className }: TabContentProps): JSX.Element => {
           if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
             e.preventDefault()
             const delta = e.key === 'ArrowUp' ? -10 : 10
-            const newHeight = Math.max(200, Math.min(requestHeight + delta, (containerRef.current?.offsetHeight || 600) - 200))
+            const newHeight = Math.max(
+              200,
+              Math.min(requestHeight + delta, (containerRef.current?.offsetHeight || 600) - 200)
+            )
             setRequestHeight(newHeight)
           }
         }}

@@ -306,7 +306,11 @@ export class YamlService {
     if (yamlRequest.body !== undefined) {
       if (typeof yamlRequest.body === 'object' && yamlRequest.body !== null) {
         body = JSON.stringify(yamlRequest.body, null, 2)
-      } else if (typeof yamlRequest.body === 'string' || typeof yamlRequest.body === 'number' || typeof yamlRequest.body === 'boolean') {
+      } else if (
+        typeof yamlRequest.body === 'string' ||
+        typeof yamlRequest.body === 'number' ||
+        typeof yamlRequest.body === 'boolean'
+      ) {
         body = String(yamlRequest.body)
       } else {
         body = JSON.stringify(yamlRequest.body)

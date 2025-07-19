@@ -44,7 +44,9 @@ export const GraphQLVariablesEditor = ({
   return (
     <div className={styles.variablesEditor}>
       <div className={styles.header}>
-        <label htmlFor="variables-textarea" className={styles.label}>Variables (JSON)</label>
+        <label htmlFor="variables-textarea" className={styles.label}>
+          Variables (JSON)
+        </label>
         <button
           onClick={handleFormatVariables}
           className={styles.formatButton}
