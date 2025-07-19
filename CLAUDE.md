@@ -11,6 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 実装完了時に必ず「npm run lint」と「npm run test」を実行し、エラーや警告がない状態としてください。
 - 実装時は可能な限りテストコードも作成してください
   - UIに関するテストはStorybookのPlayFunctionを用いて作成してください
+- 実装時は適宜コミットを行ってください
 
 ## Project Overview
 
