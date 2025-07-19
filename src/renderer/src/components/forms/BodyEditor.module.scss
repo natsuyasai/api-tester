@@ -132,3 +132,38 @@
   color: #6c757d;
   font-style: italic;
 }
+
+.graphqlEditor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.querySection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.variablesSection {
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionHeader {
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.sectionLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  margin: 0;
+}

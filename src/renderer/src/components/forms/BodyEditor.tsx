@@ -1,20 +1,25 @@
 import { JSX, useState } from 'react'
 import { BodyType } from '@/types/types'
+import { GraphQLVariablesEditor } from './GraphQLVariablesEditor'
 import styles from './BodyEditor.module.scss'
 
 interface BodyEditorProps {
   tabId: string
   body: string
   bodyType: BodyType
+  variables?: Record<string, unknown>
   onBodyChange: (body: string) => void
   onBodyTypeChange: (bodyType: BodyType) => void
+  onVariablesChange?: (variables: Record<string, unknown>) => void
 }
 
 export const BodyEditor = ({ 
   body, 
   bodyType, 
+  variables = {},
   onBodyChange, 
-  onBodyTypeChange 
+  onBodyTypeChange,
+  onVariablesChange
 }: BodyEditorProps): JSX.Element => {
   const [inputMode, setInputMode] = useState<'raw' | 'json'>('json')
 
@@ -92,14 +97,44 @@ export const BodyEditor = ({
               Form data editor will be implemented here
             </div>
           </div>
+        ) : bodyType === 'graphql' ? (
+          <div className={styles.graphqlEditor}>
+            <div className={styles.querySection}>
+              <div className={styles.sectionHeader}>
+                <label className={styles.sectionLabel}>Query</label>
+              </div>
+              <textarea
+                value={body}
+                onChange={(e) => onBodyChange(e.target.value)}
+                placeholder="query {\n  users {\n    id\n    name\n    email\n  }\n}"
+                className={styles.textarea}
+                spellCheck={false}
+              />
+            </div>
+            <div className={styles.variablesSection}>
+              {onVariablesChange && (
+                <GraphQLVariablesEditor
+                  variables={JSON.stringify(variables, null, 2)}
+                  onVariablesChange={(variablesStr) => {
+                    try {
+                      const parsedVariables = variablesStr.trim() 
+                        ? JSON.parse(variablesStr) 
+                        : {}
+                      onVariablesChange(parsedVariables)
+                    } catch {
+                      // 無効なJSONの場合は何もしない
+                    }
+                  }}
+                />
+              )}
+            </div>
+          </div>
         ) : (
           <textarea
             value={body}
             onChange={(e) => onBodyChange(e.target.value)}
             placeholder={
-              bodyType === 'graphql' 
-                ? 'Enter GraphQL query...\n\nquery {\n  users {\n    id\n    name\n  }\n}'
-                : bodyType === 'json'
+              bodyType === 'json'
                 ? 'Enter JSON body...\n\n{\n  "key": "value"\n}'
                 : 'Enter raw body...'
             }

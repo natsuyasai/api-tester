@@ -22,7 +22,17 @@ export class ApiService {
       // リクエストボディの処理
       let body: string | undefined = undefined
       if (['POST', 'PUT', 'PATCH'].includes(request.method) && request.body) {
-        body = request.body
+        if (request.bodyType === 'graphql') {
+          // GraphQLの場合、クエリと変数を適切なフォーマットに変換
+          const graphqlPayload = {
+            query: request.body,
+            variables: request.variables || {},
+            operationName: this.extractOperationName(request.body)
+          }
+          body = JSON.stringify(graphqlPayload)
+        } else {
+          body = request.body
+        }
         
         // Content-Typeの自動設定
         if (!headers.has('Content-Type')) {
@@ -129,6 +139,31 @@ export class ApiService {
       }
     }
 
+    if (request.bodyType === 'graphql') {
+      if (!request.body.trim()) {
+        errors.push('GraphQL query is required')
+      } else {
+        const trimmedQuery = request.body.trim()
+        const validStarters = ['query', 'mutation', 'subscription', '{']
+        const hasValidStart = validStarters.some(starter => 
+          trimmedQuery.toLowerCase().startsWith(starter) || trimmedQuery.startsWith('{')
+        )
+
+        if (!hasValidStart) {
+          errors.push('GraphQL query must start with query, mutation, subscription, or {')
+        }
+      }
+
+      // 変数の妥当性チェック
+      if (request.variables) {
+        try {
+          JSON.stringify(request.variables)
+        } catch {
+          errors.push('GraphQL variables must be valid JSON')
+        }
+      }
+    }
+
     return errors
   }
 
@@ -149,11 +184,32 @@ export class ApiService {
 
     // ボディの追加
     if (['POST', 'PUT', 'PATCH'].includes(request.method) && request.body) {
-      command += ` -d '${request.body}'`
+      if (request.bodyType === 'graphql') {
+        const graphqlPayload = {
+          query: request.body,
+          variables: request.variables || {},
+          operationName: this.extractOperationName(request.body)
+        }
+        command += ` -d '${JSON.stringify(graphqlPayload)}'`
+      } else {
+        command += ` -d '${request.body}'`
+      }
     }
 
     command += ` "${url.toString()}"`
 
     return command
+  }
+
+  private static extractOperationName(query: string): string | undefined {
+    const trimmedQuery = query.trim()
+    
+    // query OperationName や mutation OperationName の形式をチェック
+    const operationMatch = trimmedQuery.match(/^(query|mutation|subscription)\s+(\w+)/i)
+    if (operationMatch) {
+      return operationMatch[2]
+    }
+
+    return undefined
   }
 }

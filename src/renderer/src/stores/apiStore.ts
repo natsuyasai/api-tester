@@ -33,6 +33,9 @@ interface ApiActions {
   updateParam: (tabId: string, index: number, param: Partial<KeyValuePair>) => void
   removeParam: (tabId: string, index: number) => void
   
+  // GraphQL変数関連
+  updateGraphQLVariables: (tabId: string, variables: Record<string, unknown>) => void
+  
   // レスポンス関連
   setResponse: (tabId: string, response: ApiResponse) => void
   clearResponse: (tabId: string) => void
@@ -265,6 +268,23 @@ export const useApiStore = create<ApiState & ApiActions>()(
               : tab
           )
         }), false, 'removeParam')
+      },
+      
+      // GraphQL変数関連のアクション
+      updateGraphQLVariables: (tabId: string, variables: Record<string, unknown>) => {
+        set((state) => ({
+          tabs: state.tabs.map(tab =>
+            tab.id === tabId
+              ? {
+                  ...tab,
+                  request: {
+                    ...tab.request,
+                    variables
+                  }
+                }
+              : tab
+          )
+        }), false, 'updateGraphQLVariables')
       },
       
       // レスポンス関連のアクション

@@ -18,6 +18,7 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
     updateBody,
     updateBodyType,
     updateTabTitle,
+    updateGraphQLVariables,
     setLoading,
     setResponse,
     isLoading
@@ -161,8 +162,10 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
               tabId={tabId}
               body={request.body}
               bodyType={request.bodyType}
+              variables={request.variables}
               onBodyChange={(body) => updateBody(tabId, body)}
               onBodyTypeChange={(bodyType) => updateBodyType(tabId, bodyType)}
+              onVariablesChange={(variables) => updateGraphQLVariables(tabId, variables)}
             />
           )}
         </div>

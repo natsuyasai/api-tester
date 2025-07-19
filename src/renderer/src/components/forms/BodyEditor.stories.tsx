@@ -122,8 +122,10 @@ export const GraphQLWithQuery: Story = {
     tabId: 'tab-1',
     body: 'query GetUsers($limit: Int) {\n  users(limit: $limit) {\n    id\n    name\n    email\n    createdAt\n  }\n}',
     bodyType: 'graphql',
+    variables: { limit: 10, offset: 0 },
     onBodyChange: () => {},
-    onBodyTypeChange: () => {}
+    onBodyTypeChange: () => {},
+    onVariablesChange: () => {}
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -131,6 +133,10 @@ export const GraphQLWithQuery: Story = {
     // GraphQLクエリの確認
     const textarea = canvas.getByDisplayValue(/query GetUsers/)
     await expect(textarea).toBeInTheDocument()
+    
+    // 変数エディターの確認
+    await expect(canvas.getByText('Variables (JSON)')).toBeInTheDocument()
+    await expect(canvas.getByDisplayValue(/\"limit\": 10/)).toBeInTheDocument()
   }
 }
 
