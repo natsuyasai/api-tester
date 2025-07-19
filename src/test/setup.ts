@@ -1,4 +1,6 @@
 import '@testing-library/jest-dom'
+import { vi, beforeEach, afterEach } from 'vitest'
+import { cleanup } from '@testing-library/react'
 
 // グローバルモック設定
 global.fetch = vi.fn()
@@ -11,4 +13,5 @@ beforeEach(() => {
 // テスト後のクリーンアップ
 afterEach(() => {
   vi.restoreAllMocks()
+  cleanup()
 })

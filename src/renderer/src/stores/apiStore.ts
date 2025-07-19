@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { ApiTab, ApiRequest, ApiResponse, KeyValuePair, HttpMethod, BodyType } from '@/types/types'
+import { YamlService } from '@/services/yamlService'
 
 // ストアの状態の型定義
 interface ApiState {
@@ -46,6 +47,8 @@ interface ApiActions {
   // データ操作
   exportConfig: () => string
   importConfig: (configJson: string) => void
+  exportYaml: () => string
+  importYaml: (yamlContent: string) => void
   resetStore: () => void
 }
 
@@ -369,6 +372,29 @@ export const useApiStore = create<ApiState & ApiActions>()(
           }
         } catch (error) {
           console.error('Failed to import config:', error)
+          throw error
+        }
+      },
+      
+      exportYaml: () => {
+        const state = get()
+        return YamlService.exportToYaml(state.tabs)
+      },
+      
+      importYaml: (yamlContent: string) => {
+        try {
+          const importedTabs = YamlService.importFromYaml(yamlContent)
+          
+          if (importedTabs.length > 0) {
+            importedTabs[0].isActive = true
+            set({
+              tabs: importedTabs,
+              activeTabId: importedTabs[0].id,
+              isLoading: false
+            }, false, 'importYaml')
+          }
+        } catch (error) {
+          console.error('Failed to import YAML:', error)
           throw error
         }
       },
