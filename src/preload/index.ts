@@ -1,6 +1,5 @@
-import { MessageBoxOptions, OpenDialogOptions, contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { LizardParameter } from '../types/types'
+import { MessageBoxOptions, OpenDialogOptions, contextBridge, ipcRenderer } from 'electron'
 
 // Custom APIs for renderer
 const api = {}
@@ -17,15 +16,14 @@ if (process.contextIsolated) {
       showModalMessageBox: (options: MessageBoxOptions) =>
         ipcRenderer.invoke('showModalMessageBox', options)
     })
-    contextBridge.exposeInMainWorld('lizard', {
-      execute: (parameter: LizardParameter) => ipcRenderer.invoke('lizardExecute', parameter)
-    })
   } catch (error) {
     console.error(error)
   }
 } else {
-  // @ts-ignore (define in dts)
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   window.electron = electronAPI
-  // @ts-ignore (define in dts)
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   window.api = api
 }
