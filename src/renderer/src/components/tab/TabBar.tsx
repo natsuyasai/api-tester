@@ -1,5 +1,6 @@
 import { JSX, useState, useRef, useEffect } from 'react'
 import { useApiStore } from '@renderer/stores/apiStore'
+import { useThemeStore } from '@renderer/stores/themeStore'
 import styles from './TabBar.module.scss'
 
 interface TabBarProps {
@@ -7,7 +8,8 @@ interface TabBarProps {
 }
 
 export const TabBar = ({ className }: TabBarProps): JSX.Element => {
-  const { tabs, addTab, closeTab, setActiveTab, updateTabTitle } = useApiStore()
+  const { tabs, addTab, closeTab, setActiveTab, updateTabTitle, saveToFile, loadFromFile } = useApiStore()
+  const { theme, toggleTheme } = useThemeStore()
   const [editingTabId, setEditingTabId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -23,6 +25,26 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
 
   const handleAddTab = () => {
     addTab()
+  }
+
+  const handleSaveFile = async () => {
+    try {
+      await saveToFile()
+    } catch (error) {
+      console.error('Failed to save file:', error)
+    }
+  }
+
+  const handleLoadFile = async () => {
+    try {
+      await loadFromFile()
+    } catch (error) {
+      console.error('Failed to load file:', error)
+    }
+  }
+
+  const handleToggleTheme = () => {
+    toggleTheme()
   }
 
   const handleDoubleClick = (tabId: string, currentTitle: string) => {
@@ -99,14 +121,43 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
           </div>
         ))}
       </div>
-      <button
-        className={styles.addButton}
-        onClick={handleAddTab}
-        aria-label="Add new tab"
-        type="button"
-      >
-        +
-      </button>
+      <div className={styles.controls}>
+        <button
+          className={styles.fileButton}
+          onClick={handleLoadFile}
+          aria-label="Load collection from file"
+          type="button"
+          title="Load"
+        >
+          📁
+        </button>
+        <button
+          className={styles.fileButton}
+          onClick={handleSaveFile}
+          aria-label="Save collection to file"
+          type="button"
+          title="Save"
+        >
+          💾
+        </button>
+        <button
+          className={styles.themeButton}
+          onClick={handleToggleTheme}
+          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+          type="button"
+          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+        >
+          {theme === 'light' ? '🌙' : '☀️'}
+        </button>
+        <button
+          className={styles.addButton}
+          onClick={handleAddTab}
+          aria-label="Add new tab"
+          type="button"
+        >
+          +
+        </button>
+      </div>
     </div>
   )
 }

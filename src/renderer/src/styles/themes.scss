@@ -1,0 +1,112 @@
+/* CSS カスタムプロパティによるテーマ変数 */
+
+:root {
+  /* ライトテーマ (デフォルト) */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8f9fa;
+  --color-bg-tertiary: #e9ecef;
+  --color-bg-accent: #007bff;
+  --color-bg-hover: #e9ecef;
+  --color-bg-active: #ffffff;
+  
+  --color-text-primary: #495057;
+  --color-text-secondary: #6c757d;
+  --color-text-accent: #007bff;
+  --color-text-inverse: #ffffff;
+  --color-text-muted: #6c757d;
+  
+  --color-border-primary: #dee2e6;
+  --color-border-secondary: #ced4da;
+  --color-border-accent: #007bff;
+  --color-border-focus: #80bdff;
+  
+  --color-success: #28a745;
+  --color-warning: #ffc107;
+  --color-error: #dc3545;
+  --color-info: #17a2b8;
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-focus: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  
+  --transition-base: all 0.2s ease;
+  --border-radius: 4px;
+}
+
+/* ダークテーマ */
+[data-theme='dark'] {
+  --color-bg-primary: #1a1a1a;
+  --color-bg-secondary: #2d2d2d;
+  --color-bg-tertiary: #404040;
+  --color-bg-accent: #0d6efd;
+  --color-bg-hover: #404040;
+  --color-bg-active: #1a1a1a;
+  
+  --color-text-primary: #e9ecef;
+  --color-text-secondary: #adb5bd;
+  --color-text-accent: #4dabf7;
+  --color-text-inverse: #1a1a1a;
+  --color-text-muted: #6c757d;
+  
+  --color-border-primary: #404040;
+  --color-border-secondary: #525252;
+  --color-border-accent: #0d6efd;
+  --color-border-focus: #4dabf7;
+  
+  --color-success: #51cf66;
+  --color-warning: #ffd43b;
+  --color-error: #ff6b6b;
+  --color-info: #22b8cf;
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --shadow-focus: 0 0 0 2px rgba(77, 171, 247, 0.25);
+}
+
+/* 基本的なスタイルの適用 */
+html[data-theme] {
+  color-scheme: light;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: var(--transition-base);
+}
+
+/* フォーカス可能な要素の基本スタイル */
+*:focus {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* スクロールバーのスタイル (Webkit) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-secondary);
+  border-radius: var(--border-radius);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+/* 選択テキストのスタイル */
+::selection {
+  background-color: var(--color-bg-accent);
+  color: var(--color-text-inverse);
+}

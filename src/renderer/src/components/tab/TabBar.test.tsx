@@ -2,12 +2,15 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import { useApiStore } from '@renderer/stores/apiStore'
+import { useThemeStore } from '@renderer/stores/themeStore'
 import { TabBar } from './TabBar'
 
 // Zustandストアをモック
 vi.mock('@renderer/stores/apiStore')
+vi.mock('@renderer/stores/themeStore')
 
 const mockUseApiStore = vi.mocked(useApiStore)
+const mockUseThemeStore = vi.mocked(useThemeStore)
 
 describe('TabBar', () => {
   const mockStore = {
@@ -50,12 +53,21 @@ describe('TabBar', () => {
     addTab: vi.fn(),
     closeTab: vi.fn(),
     setActiveTab: vi.fn(),
-    updateTabTitle: vi.fn()
+    updateTabTitle: vi.fn(),
+    saveToFile: vi.fn(),
+    loadFromFile: vi.fn()
+  }
+
+  const mockThemeStore = {
+    theme: 'light' as const,
+    setTheme: vi.fn(),
+    toggleTheme: vi.fn()
   }
 
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseApiStore.mockImplementation(() => mockStore as any)
+    mockUseThemeStore.mockImplementation(() => mockThemeStore as any)
   })
 
   it('should render all tabs', () => {
@@ -232,5 +244,63 @@ describe('TabBar', () => {
     await user.click(addButton)
 
     expect(mockStore.updateTabTitle).toHaveBeenCalledWith('tab-1', 'Blurred Title')
+  })
+
+  it('should render file operation buttons', () => {
+    render(<TabBar />)
+
+    expect(screen.getByLabelText('Load collection from file')).toBeInTheDocument()
+    expect(screen.getByLabelText('Save collection to file')).toBeInTheDocument()
+  })
+
+  it('should call saveToFile when save button is clicked', async () => {
+    const user = userEvent.setup()
+    render(<TabBar />)
+
+    const saveButton = screen.getByLabelText('Save collection to file')
+    await user.click(saveButton)
+
+    expect(mockStore.saveToFile).toHaveBeenCalled()
+  })
+
+  it('should call loadFromFile when load button is clicked', async () => {
+    const user = userEvent.setup()
+    render(<TabBar />)
+
+    const loadButton = screen.getByLabelText('Load collection from file')
+    await user.click(loadButton)
+
+    expect(mockStore.loadFromFile).toHaveBeenCalled()
+  })
+
+  it('should render theme toggle button', () => {
+    render(<TabBar />)
+
+    expect(screen.getByLabelText('Switch to dark theme')).toBeInTheDocument()
+  })
+
+  it('should call toggleTheme when theme button is clicked', async () => {
+    const user = userEvent.setup()
+    render(<TabBar />)
+
+    const themeButton = screen.getByLabelText('Switch to dark theme')
+    await user.click(themeButton)
+
+    expect(mockThemeStore.toggleTheme).toHaveBeenCalled()
+  })
+
+  it('should show correct theme icon based on current theme', () => {
+    render(<TabBar />)
+
+    const themeButton = screen.getByLabelText('Switch to dark theme')
+    expect(themeButton.textContent).toBe('🌙')
+
+    // ダークテーマの場合
+    mockThemeStore.theme = 'dark'
+    mockUseThemeStore.mockImplementation(() => mockThemeStore as any)
+    
+    render(<TabBar />)
+    const lightThemeButton = screen.getByLabelText('Switch to light theme')
+    expect(lightThemeButton.textContent).toBe('☀️')
   })
 })

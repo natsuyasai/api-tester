@@ -7,13 +7,13 @@
 
 .requestSection {
   overflow-y: auto;
-  background-color: #ffffff;
+  background-color: var(--color-bg-primary);
   min-height: 200px;
 }
 
 .responseSection {
   overflow-y: auto;
-  background-color: #ffffff;
+  background-color: var(--color-bg-primary);
   min-height: 200px;
 }
 
@@ -22,25 +22,25 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #6c757d;
+  color: var(--color-text-secondary);
   font-size: 16px;
 }
 
 .resizeHandle {
-  background: linear-gradient(to bottom, transparent 20%, #dee2e6 50%, transparent 80%);
+  background: linear-gradient(to bottom, transparent 20%, var(--color-border-primary) 50%, transparent 80%);
   cursor: row-resize;
-  transition: all 0.2s ease;
+  transition: var(--transition-base);
   user-select: none;
   
   &:hover {
-    background: linear-gradient(to bottom, transparent 20%, #007bff 50%, transparent 80%);
+    background: linear-gradient(to bottom, transparent 20%, var(--color-border-accent) 50%, transparent 80%);
   }
   
   &.dragging {
-    background: linear-gradient(to bottom, transparent 20%, #0056b3 50%, transparent 80%);
+    background: linear-gradient(to bottom, transparent 20%, var(--color-border-focus) 50%, transparent 80%);
   }
   
   &:active {
-    background: linear-gradient(to bottom, transparent 20%, #0056b3 50%, transparent 80%);
+    background: linear-gradient(to bottom, transparent 20%, var(--color-border-focus) 50%, transparent 80%);
   }
 }

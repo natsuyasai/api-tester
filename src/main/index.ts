@@ -1,4 +1,5 @@
 import { join } from 'path'
+import { promises as fs } from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import {
   app,
@@ -7,6 +8,7 @@ import {
   ipcMain,
   dialog,
   OpenDialogOptions,
+  SaveDialogOptions,
   MessageBoxOptions
 } from 'electron'
 import icon from '../../resources/icon.png?asset'
@@ -105,4 +107,39 @@ ipcMain.handle('showModalMessageBox', async (_event, option: MessageBoxOptions) 
     return await dialog.showMessageBox(focusedWindows, option)
   }
   return await dialog.showMessageBox(option)
+})
+
+// ファイル保存ダイアログ
+ipcMain.handle('showSaveDialog', async (_event, options: SaveDialogOptions) => {
+  const focusedWindow = BrowserWindow.getFocusedWindow()
+  if (focusedWindow) {
+    return await dialog.showSaveDialog(focusedWindow, options)
+  }
+  return await dialog.showSaveDialog(options)
+})
+
+// ファイル読み込み
+ipcMain.handle('readFile', async (_event, filePath: string) => {
+  try {
+    const data = await fs.readFile(filePath, 'utf-8')
+    return { success: true, data }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    }
+  }
+})
+
+// ファイル書き込み
+ipcMain.handle('writeFile', async (_event, filePath: string, data: string) => {
+  try {
+    await fs.writeFile(filePath, data, 'utf-8')
+    return { success: true }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    }
+  }
 })

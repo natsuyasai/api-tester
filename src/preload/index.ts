@@ -1,5 +1,5 @@
 import { electronAPI } from '@electron-toolkit/preload'
-import { MessageBoxOptions, OpenDialogOptions, contextBridge, ipcRenderer } from 'electron'
+import { MessageBoxOptions, OpenDialogOptions, SaveDialogOptions, contextBridge, ipcRenderer } from 'electron'
 
 // Custom APIs for renderer
 const api = {}
@@ -13,8 +13,13 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('api', api)
     contextBridge.exposeInMainWorld('dialogAPI', {
       showOpenDialog: (options: OpenDialogOptions) => ipcRenderer.invoke('showOpenDialog', options),
+      showSaveDialog: (options: SaveDialogOptions) => ipcRenderer.invoke('showSaveDialog', options),
       showModalMessageBox: (options: MessageBoxOptions) =>
         ipcRenderer.invoke('showModalMessageBox', options)
+    })
+    contextBridge.exposeInMainWorld('fileAPI', {
+      readFile: (filePath: string) => ipcRenderer.invoke('readFile', filePath),
+      writeFile: (filePath: string, data: string) => ipcRenderer.invoke('writeFile', filePath, data)
     })
   } catch (error) {
     console.error(error)

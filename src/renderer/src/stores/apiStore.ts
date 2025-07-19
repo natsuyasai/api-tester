@@ -50,6 +50,10 @@ interface ApiActions {
   exportYaml: () => string
   importYaml: (yamlContent: string) => void
   resetStore: () => void
+  
+  // ファイル操作
+  saveToFile: () => Promise<void>
+  loadFromFile: () => Promise<void>
 }
 
 // 初期状態の定義
@@ -406,6 +410,58 @@ export const useApiStore = create<ApiState & ApiActions>()(
           activeTabId: newTab.id,
           isLoading: false
         }, false, 'resetStore')
+      },
+      
+      // ファイル操作
+      saveToFile: async () => {
+        try {
+          const yamlContent = get().exportYaml()
+          const result = await window.dialogAPI.showSaveDialog({
+            title: 'Save API Collection',
+            defaultPath: 'api-collection.yaml',
+            filters: [
+              { name: 'YAML Files', extensions: ['yaml', 'yml'] },
+              { name: 'All Files', extensions: ['*'] }
+            ]
+          })
+          
+          if (!result.canceled && result.filePath) {
+            const writeResult = await window.fileAPI.writeFile(result.filePath, yamlContent)
+            if (!writeResult.success) {
+              throw new Error(writeResult.error || 'Failed to save file')
+            }
+          }
+        } catch (error) {
+          console.error('Failed to save file:', error)
+          throw error
+        }
+      },
+      
+      loadFromFile: async () => {
+        try {
+          const result = await window.dialogAPI.showOpenDialog({
+            title: 'Load API Collection',
+            filters: [
+              { name: 'YAML Files', extensions: ['yaml', 'yml'] },
+              { name: 'All Files', extensions: ['*'] }
+            ],
+            properties: ['openFile']
+          })
+          
+          if (!result.canceled && result.filePaths.length > 0) {
+            const readResult = await window.fileAPI.readFile(result.filePaths[0])
+            if (!readResult.success) {
+              throw new Error(readResult.error || 'Failed to read file')
+            }
+            
+            if (readResult.data) {
+              get().importYaml(readResult.data)
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load file:', error)
+          throw error
+        }
       }
     }),
     {
