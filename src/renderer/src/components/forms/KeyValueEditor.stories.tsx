@@ -33,12 +33,12 @@ const meta: Meta<typeof KeyValueEditor> = {
     (Story) => {
       // ストーリー用にタブを初期化
       const store = useApiStore.getState()
-      
+
       // クリーンな状態から開始
       if (store.tabs.length === 0) {
         store.addTab()
       }
-      
+
       return (
         <div style={{ width: '100%', height: '400px', padding: '20px' }}>
           <Story />

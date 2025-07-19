@@ -35,11 +35,11 @@ export const Empty: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // エディターの基本要素が表示されることを確認
     await expect(canvas.getByText('Variables (JSON)')).toBeInTheDocument()
     await expect(canvas.getByRole('textbox')).toBeInTheDocument()
-    
+
     // 空の場合はフォーマットボタンが無効
     const formatButton = canvas.getByRole('button', { name: 'Format' })
     await expect(formatButton).toBeDisabled()
@@ -53,12 +53,12 @@ export const WithValidJSON: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // 有効なJSONが表示されることを確認
     const textarea = canvas.getByDisplayValue(/\"limit\": 10/)
     await expect(textarea).toBeInTheDocument()
     await expect(textarea).not.toHaveClass('error')
-    
+
     // フォーマットボタンが有効
     const formatButton = canvas.getByRole('button', { name: 'Format' })
     await expect(formatButton).not.toBeDisabled()
@@ -72,7 +72,7 @@ export const WithInvalidJSON: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // 無効なJSONでエラーが表示されることを確認
     const textarea = canvas.getByDisplayValue('{ invalid: json }')
     await expect(textarea).toHaveClass('error')
@@ -87,12 +87,12 @@ export const InteractiveEditing: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // テキストエリアに入力
     const textarea = canvas.getByRole('textbox')
     await userEvent.clear(textarea)
     await userEvent.type(textarea, '{"userId": 123, "includeDetails": true}')
-    
+
     // フォーマットボタンをクリック
     const formatButton = canvas.getByRole('button', { name: 'Format' })
     await userEvent.click(formatButton)
@@ -101,17 +101,18 @@ export const InteractiveEditing: Story = {
 
 export const ComplexVariables: Story = {
   args: {
-    variables: '{\n  "pagination": {\n    "limit": 50,\n    "offset": 0\n  },\n  "filters": {\n    "status": ["active", "pending"],\n    "dateRange": {\n      "start": "2024-01-01",\n      "end": "2024-12-31"\n    }\n  },\n  "sorting": {\n    "field": "createdAt",\n    "direction": "DESC"\n  }\n}',
+    variables:
+      '{\n  "pagination": {\n    "limit": 50,\n    "offset": 0\n  },\n  "filters": {\n    "status": ["active", "pending"],\n    "dateRange": {\n      "start": "2024-01-01",\n      "end": "2024-12-31"\n    }\n  },\n  "sorting": {\n    "field": "createdAt",\n    "direction": "DESC"\n  }\n}',
     onVariablesChange: () => {}
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // 複雑なJSONが適切に表示されることを確認
     await expect(canvas.getByDisplayValue(/\"pagination\":/)).toBeInTheDocument()
     await expect(canvas.getByDisplayValue(/\"filters\":/)).toBeInTheDocument()
     await expect(canvas.getByDisplayValue(/\"sorting\":/)).toBeInTheDocument()
-    
+
     // フォーマットボタンが有効
     const formatButton = canvas.getByRole('button', { name: 'Format' })
     await expect(formatButton).not.toBeDisabled()
@@ -125,23 +126,23 @@ export const ErrorRecovery: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // 最初は有効なJSON
     let textarea = canvas.getByRole('textbox')
     await expect(textarea).not.toHaveClass('error')
-    
+
     // 無効なJSONに変更
     await userEvent.clear(textarea)
     await userEvent.type(textarea, 'invalid json')
-    
+
     // エラーが表示される
     await expect(textarea).toHaveClass('error')
     await expect(canvas.getByText('Invalid JSON format')).toBeInTheDocument()
-    
+
     // 再び有効なJSONに修正
     await userEvent.clear(textarea)
     await userEvent.type(textarea, '{"fixed": true}')
-    
+
     // エラーが消える
     textarea = canvas.getByRole('textbox')
     await expect(textarea).not.toHaveClass('error')

@@ -3,19 +3,19 @@ import { ApiRequest, ApiResponse } from '@/types/types'
 export class ApiService {
   static async executeRequest(request: ApiRequest): Promise<ApiResponse> {
     const startTime = Date.now()
-    
+
     try {
       // URLパラメータの構築
       const url = new URL(request.url)
-      const enabledParams = request.params.filter(param => param.enabled && param.key)
-      enabledParams.forEach(param => {
+      const enabledParams = request.params.filter((param) => param.enabled && param.key)
+      enabledParams.forEach((param) => {
         url.searchParams.set(param.key, param.value)
       })
 
       // ヘッダーの構築
       const headers = new Headers()
-      const enabledHeaders = request.headers.filter(header => header.enabled && header.key)
-      enabledHeaders.forEach(header => {
+      const enabledHeaders = request.headers.filter((header) => header.enabled && header.key)
+      enabledHeaders.forEach((header) => {
         headers.set(header.key, header.value)
       })
 
@@ -33,7 +33,7 @@ export class ApiService {
         } else {
           body = request.body
         }
-        
+
         // Content-Typeの自動設定
         if (!headers.has('Content-Type')) {
           switch (request.bodyType) {
@@ -72,7 +72,7 @@ export class ApiService {
       // レスポンスボディの取得
       let responseData: unknown
       const contentType = response.headers.get('content-type') || ''
-      
+
       if (contentType.includes('application/json')) {
         try {
           responseData = await response.json()
@@ -99,7 +99,6 @@ export class ApiService {
         duration,
         timestamp: new Date().toISOString()
       }
-
     } catch (error) {
       const endTime = Date.now()
       const duration = endTime - startTime
@@ -145,8 +144,9 @@ export class ApiService {
       } else {
         const trimmedQuery = request.body.trim()
         const validStarters = ['query', 'mutation', 'subscription', '{']
-        const hasValidStart = validStarters.some(starter => 
-          trimmedQuery.toLowerCase().startsWith(starter) || trimmedQuery.startsWith('{')
+        const hasValidStart = validStarters.some(
+          (starter) =>
+            trimmedQuery.toLowerCase().startsWith(starter) || trimmedQuery.startsWith('{')
         )
 
         if (!hasValidStart) {
@@ -169,16 +169,16 @@ export class ApiService {
 
   static buildCurlCommand(request: ApiRequest): string {
     const url = new URL(request.url)
-    const enabledParams = request.params.filter(param => param.enabled && param.key)
-    enabledParams.forEach(param => {
+    const enabledParams = request.params.filter((param) => param.enabled && param.key)
+    enabledParams.forEach((param) => {
       url.searchParams.set(param.key, param.value)
     })
 
     let command = `curl -X ${request.method}`
-    
+
     // ヘッダーの追加
-    const enabledHeaders = request.headers.filter(header => header.enabled && header.key)
-    enabledHeaders.forEach(header => {
+    const enabledHeaders = request.headers.filter((header) => header.enabled && header.key)
+    enabledHeaders.forEach((header) => {
       command += ` -H "${header.key}: ${header.value}"`
     })
 
@@ -203,7 +203,7 @@ export class ApiService {
 
   private static extractOperationName(query: string): string | undefined {
     const trimmedQuery = query.trim()
-    
+
     // query OperationName や mutation OperationName の形式をチェック
     const operationMatch = trimmedQuery.match(/^(query|mutation|subscription)\s+(\w+)/i)
     if (operationMatch) {

@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
-import { vi, beforeEach, afterEach } from 'vitest'
 import { cleanup } from '@testing-library/react'
+import { vi, beforeEach, afterEach } from 'vitest'
 
 // グローバルモック設定
 global.fetch = vi.fn()

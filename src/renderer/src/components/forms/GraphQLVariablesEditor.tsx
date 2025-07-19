@@ -6,15 +6,15 @@ interface GraphQLVariablesEditorProps {
   onVariablesChange: (variables: string) => void
 }
 
-export const GraphQLVariablesEditor = ({ 
-  variables, 
-  onVariablesChange 
+export const GraphQLVariablesEditor = ({
+  variables,
+  onVariablesChange
 }: GraphQLVariablesEditorProps): JSX.Element => {
   const [error, setError] = useState<string | null>(null)
 
   const handleVariablesChange = (value: string) => {
     onVariablesChange(value)
-    
+
     // JSONの妥当性をチェック
     if (value.trim()) {
       try {
@@ -54,7 +54,7 @@ export const GraphQLVariablesEditor = ({
           Format
         </button>
       </div>
-      
+
       <div className={styles.editorContainer}>
         <textarea
           value={variables}
@@ -63,11 +63,7 @@ export const GraphQLVariablesEditor = ({
           className={`${styles.textarea} ${error ? styles.error : ''}`}
           spellCheck={false}
         />
-        {error && (
-          <div className={styles.errorMessage}>
-            {error}
-          </div>
-        )}
+        {error && <div className={styles.errorMessage}>{error}</div>}
       </div>
     </div>
   )

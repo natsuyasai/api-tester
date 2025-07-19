@@ -53,8 +53,8 @@ export class GraphQLService {
     // 基本的なGraphQLクエリの構文チェック
     const trimmedQuery = query.trim()
     const validStarters = ['query', 'mutation', 'subscription', '{']
-    const hasValidStart = validStarters.some(starter => 
-      trimmedQuery.toLowerCase().startsWith(starter) || trimmedQuery.startsWith('{')
+    const hasValidStart = validStarters.some(
+      (starter) => trimmedQuery.toLowerCase().startsWith(starter) || trimmedQuery.startsWith('{')
     )
 
     if (!hasValidStart) {
@@ -78,7 +78,7 @@ export class GraphQLService {
    */
   static extractOperationName(query: string): string | undefined {
     const trimmedQuery = query.trim()
-    
+
     // query OperationName や mutation OperationName の形式をチェック
     const operationMatch = trimmedQuery.match(/^(query|mutation|subscription)\s+(\w+)/i)
     if (operationMatch) {
@@ -94,7 +94,7 @@ export class GraphQLService {
   static formatGraphQLQuery(query: string): string {
     try {
       // 基本的な整形：改行とインデントを適切に設定
-      let formatted = query
+      const formatted = query
         .replace(/\s*{\s*/g, ' {\n  ')
         .replace(/\s*}\s*/g, '\n}')
         .replace(/\s*,\s*/g, ',\n  ')

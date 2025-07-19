@@ -21,7 +21,7 @@
   background-color: var(--color-bg-primary);
   font-size: 14px;
   color: var(--color-text-primary);
-  
+
   &:focus {
     outline: none;
     border-color: var(--color-border-focus);
@@ -50,16 +50,16 @@
   color: var(--color-text-primary);
   cursor: pointer;
   transition: var(--transition-base);
-  
+
   &:hover {
     background-color: var(--color-bg-hover);
   }
-  
+
   &.active {
     background-color: var(--color-bg-accent);
     color: var(--color-text-inverse);
   }
-  
+
   &:focus {
     outline: none;
     box-shadow: inset var(--shadow-focus);
@@ -75,11 +75,11 @@
   font-size: 12px;
   cursor: pointer;
   transition: var(--transition-base);
-  
+
   &:hover {
     background-color: var(--color-text-primary);
   }
-  
+
   &:focus {
     outline: none;
     box-shadow: var(--shadow-focus);
@@ -104,13 +104,13 @@
   color: var(--color-text-primary);
   background-color: var(--color-bg-primary);
   resize: vertical;
-  
+
   &:focus {
     outline: none;
     border-color: var(--color-border-focus);
     box-shadow: var(--shadow-focus);
   }
-  
+
   &::placeholder {
     color: var(--color-text-muted);
     font-style: italic;

@@ -1,8 +1,8 @@
 import { JSX, useState } from 'react'
 import { BodyType, KeyValuePair } from '@/types/types'
-import { GraphQLVariablesEditor } from './GraphQLVariablesEditor'
-import { FormDataEditor } from './FormDataEditor'
 import styles from './BodyEditor.module.scss'
+import { FormDataEditor } from './FormDataEditor'
+import { GraphQLVariablesEditor } from './GraphQLVariablesEditor'
 
 interface BodyEditorProps {
   tabId: string
@@ -14,11 +14,11 @@ interface BodyEditorProps {
   onVariablesChange?: (variables: Record<string, unknown>) => void
 }
 
-export const BodyEditor = ({ 
-  body, 
-  bodyType, 
+export const BodyEditor = ({
+  body,
+  bodyType,
   variables = {},
-  onBodyChange, 
+  onBodyChange,
   onBodyTypeChange,
   onVariablesChange
 }: BodyEditorProps): JSX.Element => {
@@ -28,11 +28,11 @@ export const BodyEditor = ({
   // bodyをform-dataとして解析する関数
   const parseFormData = (bodyString: string): KeyValuePair[] => {
     if (!bodyString.trim()) return []
-    
+
     try {
       const lines = bodyString.split('\n')
       return lines
-        .map(line => {
+        .map((line) => {
           const [key, ...valueParts] = line.split('=')
           if (key && key.trim()) {
             return {
@@ -52,8 +52,8 @@ export const BodyEditor = ({
   // form-dataをbodyStringに変換する関数
   const serializeFormData = (data: KeyValuePair[]): string => {
     return data
-      .filter(item => item.key.trim() !== '' && item.enabled)
-      .map(item => `${item.key}=${item.value}`)
+      .filter((item) => item.key.trim() !== '' && item.enabled)
+      .map((item) => `${item.key}=${item.value}`)
       .join('\n')
   }
 
@@ -85,13 +85,13 @@ export const BodyEditor = ({
           onChange={(e) => onBodyTypeChange(e.target.value as BodyType)}
           className={styles.bodyTypeSelect}
         >
-          {bodyTypes.map(type => (
+          {bodyTypes.map((type) => (
             <option key={type.value} value={type.value}>
               {type.label}
             </option>
           ))}
         </select>
-        
+
         {isJsonBodyType && (
           <div className={styles.controls}>
             <div className={styles.inputModeToggle}>
@@ -111,11 +111,7 @@ export const BodyEditor = ({
               </button>
             </div>
             {bodyType === 'json' && (
-              <button
-                onClick={handleFormatJson}
-                className={styles.formatButton}
-                type="button"
-              >
+              <button onClick={handleFormatJson} className={styles.formatButton} type="button">
                 Format
               </button>
             )}
@@ -156,9 +152,7 @@ export const BodyEditor = ({
                   variables={JSON.stringify(variables, null, 2)}
                   onVariablesChange={(variablesStr) => {
                     try {
-                      const parsedVariables = variablesStr.trim() 
-                        ? JSON.parse(variablesStr) 
-                        : {}
+                      const parsedVariables = variablesStr.trim() ? JSON.parse(variablesStr) : {}
                       onVariablesChange(parsedVariables)
                     } catch {
                       // 無効なJSONの場合は何もしない

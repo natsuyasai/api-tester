@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { expect, userEvent, within } from 'storybook/test'
-import { useApiStore } from '@renderer/stores/apiStore'
 import { ApiResponse } from '@/types/types'
+import { useApiStore } from '@renderer/stores/apiStore'
 import { ResponseView } from './ResponseView'
 
 // Sample responses are now handled by MSW
@@ -66,7 +66,7 @@ const meta: Meta<typeof ResponseView> = {
   decorators: [
     (Story) => {
       const store = useApiStore.getState()
-      
+
       // タブがない場合は作成
       if (store.tabs.length === 0) {
         store.addTab()
@@ -92,7 +92,7 @@ export const NoResponse: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     await expect(canvas.getByText('No Response')).toBeInTheDocument()
     await expect(canvas.getByText('Send a request to see the response here')).toBeInTheDocument()
   }
@@ -105,11 +105,11 @@ export const SuccessResponse: Story = {
   decorators: [
     (Story) => {
       const store = useApiStore.getState()
-      
+
       if (store.tabs.length === 0) {
         store.addTab()
       }
-      
+
       const activeTab = store.tabs[0]
       store.updateUrl(activeTab.id, 'https://api.example.com/users')
       store.setResponse(activeTab.id, successResponse)
@@ -145,11 +145,11 @@ export const ErrorResponse: Story = {
   decorators: [
     (Story) => {
       const store = useApiStore.getState()
-      
+
       if (store.tabs.length === 0) {
         store.addTab()
       }
-      
+
       const activeTab = store.tabs[0]
       store.updateUrl(activeTab.id, 'https://api.example.com/users/999')
       store.setResponse(activeTab.id, errorResponse)
@@ -179,11 +179,11 @@ export const TextResponse: Story = {
   decorators: [
     (Story) => {
       const store = useApiStore.getState()
-      
+
       if (store.tabs.length === 0) {
         store.addTab()
       }
-      
+
       const activeTab = store.tabs[0]
       store.updateUrl(activeTab.id, 'https://api.example.com/health')
       store.setResponse(activeTab.id, textResponse)
@@ -212,11 +212,11 @@ export const HeadersView: Story = {
   decorators: [
     (Story) => {
       const store = useApiStore.getState()
-      
+
       if (store.tabs.length === 0) {
         store.addTab()
       }
-      
+
       const activeTab = store.tabs[0]
       store.updateUrl(activeTab.id, 'https://api.example.com/users')
       store.setResponse(activeTab.id, successResponse)
@@ -250,14 +250,14 @@ export const SlowResponse: Story = {
   decorators: [
     (Story) => {
       const store = useApiStore.getState()
-      
+
       if (store.tabs.length === 0) {
         store.addTab()
       }
-      
+
       const activeTab = store.tabs[0]
       store.updateUrl(activeTab.id, 'https://api.example.com/slow')
-      
+
       const slowResponse = {
         ...successResponse,
         duration: 2500

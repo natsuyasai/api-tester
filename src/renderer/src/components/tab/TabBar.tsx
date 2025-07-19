@@ -8,7 +8,8 @@ interface TabBarProps {
 }
 
 export const TabBar = ({ className }: TabBarProps): JSX.Element => {
-  const { tabs, addTab, closeTab, setActiveTab, updateTabTitle, saveToFile, loadFromFile } = useApiStore()
+  const { tabs, addTab, closeTab, setActiveTab, updateTabTitle, saveToFile, loadFromFile } =
+    useApiStore()
   const { theme, toggleTheme } = useThemeStore()
   const [editingTabId, setEditingTabId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')

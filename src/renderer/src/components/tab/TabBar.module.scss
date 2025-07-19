@@ -12,15 +12,15 @@
   flex: 1;
   overflow-x: auto;
   overflow-y: hidden;
-  
+
   &::-webkit-scrollbar {
     height: 3px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: var(--color-border-secondary);
     border-radius: 3px;
@@ -37,15 +37,15 @@
   border-right: 1px solid var(--color-border-primary);
   transition: var(--transition-base);
   position: relative;
-  
+
   &:hover {
     background-color: var(--color-bg-hover);
   }
-  
+
   &.active {
     background-color: var(--color-bg-active);
     border-bottom: 2px solid var(--color-border-accent);
-    
+
     &:hover {
       background-color: var(--color-bg-active);
     }
@@ -61,7 +61,7 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  
+
   &:focus {
     outline: none;
     box-shadow: var(--shadow-focus);
@@ -90,7 +90,7 @@
   font-weight: 500;
   background-color: var(--color-bg-primary);
   outline: none;
-  
+
   &:focus {
     border-color: var(--color-border-focus);
     box-shadow: var(--shadow-focus);
@@ -112,13 +112,13 @@
   cursor: pointer;
   transition: var(--transition-base);
   opacity: 0.7;
-  
+
   &:hover {
     background-color: var(--color-bg-hover);
     color: var(--color-error);
     opacity: 1;
   }
-  
+
   &:focus {
     outline: none;
     box-shadow: var(--shadow-focus);
@@ -145,11 +145,11 @@
   cursor: pointer;
   transition: var(--transition-base);
   border-radius: var(--border-radius);
-  
+
   &:hover {
     background-color: var(--color-bg-hover);
   }
-  
+
   &:focus {
     outline: none;
     box-shadow: var(--shadow-focus);
@@ -168,12 +168,12 @@
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: var(--transition-base);
-  
+
   &:hover {
     background-color: var(--color-bg-hover);
     color: var(--color-text-primary);
   }
-  
+
   &:focus {
     outline: none;
     box-shadow: var(--shadow-focus);

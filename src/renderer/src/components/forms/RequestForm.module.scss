@@ -18,7 +18,7 @@
   background-color: #ffffff;
   font-size: 14px;
   color: #495057;
-  
+
   &:focus {
     outline: none;
     border-color: #80bdff;
@@ -33,13 +33,13 @@
   border-radius: 4px;
   font-size: 14px;
   color: #495057;
-  
+
   &:focus {
     outline: none;
     border-color: #80bdff;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
   }
-  
+
   &::placeholder {
     color: #6c757d;
   }
@@ -56,16 +56,16 @@
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  
+
   &:hover:not(:disabled) {
     background-color: #0056b3;
   }
-  
+
   &:disabled {
     background-color: #6c757d;
     cursor: not-allowed;
   }
-  
+
   &:focus {
     outline: none;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
@@ -92,17 +92,17 @@
   color: #495057;
   cursor: pointer;
   transition: all 0.2s ease;
-  
+
   &:hover {
     background-color: #e9ecef;
   }
-  
+
   &.active {
     color: #007bff;
     border-bottom-color: #007bff;
     background-color: #ffffff;
   }
-  
+
   &:focus {
     outline: none;
     box-shadow: inset 0 0 0 2px rgba(0, 123, 255, 0.25);

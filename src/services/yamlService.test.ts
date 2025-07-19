@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import { YamlService } from './yamlService'
 import { ApiTab } from '@/types/types'
+import { YamlService } from './yamlService'
 
 // uuid をモック
 vi.mock('uuid', () => ({
@@ -35,8 +35,8 @@ describe('YamlService', () => {
   describe('exportToYaml', () => {
     it('should export tabs to YAML format', () => {
       const result = YamlService.exportToYaml([sampleTab])
-      
-      expect(result).toContain('version: \'1.0\'')
+
+      expect(result).toContain("version: '1.0'")
       expect(result).toContain('collections:')
       expect(result).toContain('name: API Collection')
       expect(result).toContain('requests:')
@@ -46,13 +46,13 @@ describe('YamlService', () => {
       expect(result).toContain('headers:')
       expect(result).toContain('Authorization: Bearer token123')
       expect(result).toContain('params:')
-      expect(result).toContain('limit: \'10\'')
+      expect(result).toContain("limit: '10'")
     })
 
     it('should handle empty tabs array', () => {
       const result = YamlService.exportToYaml([])
-      
-      expect(result).toContain('version: \'1.0\'')
+
+      expect(result).toContain("version: '1.0'")
       expect(result).toContain('collections: []')
     })
 
@@ -69,7 +69,7 @@ describe('YamlService', () => {
       }
 
       const result = YamlService.exportToYaml([graphqlTab])
-      
+
       expect(result).toContain('bodyType: graphql')
       expect(result).toContain('variables:')
       expect(result).toContain('limit: 10')
@@ -104,9 +104,9 @@ collections:
 
     it('should import YAML to tabs', () => {
       const result = YamlService.importFromYaml(sampleYaml)
-      
+
       expect(result).toHaveLength(2)
-      
+
       // First request
       expect(result[0].title).toBe('Get Users')
       expect(result[0].request.method).toBe('GET')
@@ -121,7 +121,7 @@ collections:
         value: '10',
         enabled: true
       })
-      
+
       // Second request
       expect(result[1].title).toBe('Create User')
       expect(result[1].request.method).toBe('POST')
@@ -131,7 +131,7 @@ collections:
 
     it('should throw error for invalid YAML', () => {
       const invalidYaml = 'invalid: yaml: content: ['
-      
+
       expect(() => YamlService.importFromYaml(invalidYaml)).toThrow('YAML parsing error')
     })
 
@@ -140,8 +140,10 @@ collections:
 version: '1.0'
 data: some other data
 `
-      
-      expect(() => YamlService.importFromYaml(yamlWithoutCollections)).toThrow('No collections found in YAML')
+
+      expect(() => YamlService.importFromYaml(yamlWithoutCollections)).toThrow(
+        'No collections found in YAML'
+      )
     })
   })
 
@@ -179,8 +181,8 @@ data: some other data
 
     it('should convert Postman collection to YAML', () => {
       const result = YamlService.convertPostmanToYaml(samplePostmanCollection)
-      
-      expect(result).toContain('version: \'1.0\'')
+
+      expect(result).toContain("version: '1.0'")
       expect(result).toContain('name: Test Collection')
       expect(result).toContain('description: Sample Postman collection')
       expect(result).toContain('- name: Get Users')
@@ -193,8 +195,10 @@ data: some other data
 
     it('should throw error for invalid Postman collection', () => {
       const invalidCollection = { invalid: 'data' }
-      
-      expect(() => YamlService.convertPostmanToYaml(invalidCollection)).toThrow('Invalid Postman collection format')
+
+      expect(() => YamlService.convertPostmanToYaml(invalidCollection)).toThrow(
+        'Invalid Postman collection format'
+      )
     })
   })
 
@@ -204,9 +208,7 @@ data: some other data
         title: 'User API',
         description: 'API for managing users'
       },
-      servers: [
-        { url: 'https://api.example.com' }
-      ],
+      servers: [{ url: 'https://api.example.com' }],
       paths: {
         '/users': {
           get: {
@@ -226,8 +228,8 @@ data: some other data
 
     it('should convert OpenAPI spec to YAML', () => {
       const result = YamlService.convertOpenApiToYaml(sampleOpenApiSpec)
-      
-      expect(result).toContain('version: \'1.0\'')
+
+      expect(result).toContain("version: '1.0'")
       expect(result).toContain('name: User API')
       expect(result).toContain('description: API for managing users')
       expect(result).toContain('- name: List users')
@@ -241,8 +243,10 @@ data: some other data
 
     it('should throw error for OpenAPI spec without paths', () => {
       const invalidSpec = { info: { title: 'Test API' } }
-      
-      expect(() => YamlService.convertOpenApiToYaml(invalidSpec)).toThrow('No paths found in OpenAPI specification')
+
+      expect(() => YamlService.convertOpenApiToYaml(invalidSpec)).toThrow(
+        'No paths found in OpenAPI specification'
+      )
     })
   })
 })

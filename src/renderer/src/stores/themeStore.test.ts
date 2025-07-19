@@ -22,9 +22,9 @@ describe('ThemeStore', () => {
 
   it('should set theme and update DOM attribute', () => {
     const { setTheme } = useThemeStore.getState()
-    
+
     setTheme('dark')
-    
+
     const { theme } = useThemeStore.getState()
     expect(theme).toBe('dark')
     expect(mockSetAttribute).toHaveBeenCalledWith('data-theme', 'dark')
@@ -32,9 +32,9 @@ describe('ThemeStore', () => {
 
   it('should toggle theme from light to dark', () => {
     const { toggleTheme } = useThemeStore.getState()
-    
+
     toggleTheme()
-    
+
     const { theme } = useThemeStore.getState()
     expect(theme).toBe('dark')
     expect(mockSetAttribute).toHaveBeenCalledWith('data-theme', 'dark')
@@ -42,13 +42,13 @@ describe('ThemeStore', () => {
 
   it('should toggle theme from dark to light', () => {
     const { setTheme, toggleTheme } = useThemeStore.getState()
-    
+
     // まずダークテーマに設定
     setTheme('dark')
-    
+
     // ライトテーマにトグル
     toggleTheme()
-    
+
     const { theme } = useThemeStore.getState()
     expect(theme).toBe('light')
     expect(mockSetAttribute).toHaveBeenLastCalledWith('data-theme', 'light')
@@ -57,9 +57,9 @@ describe('ThemeStore', () => {
   it('should call setTheme when toggling', () => {
     const setThemeSpy = vi.spyOn(useThemeStore.getState(), 'setTheme')
     const { toggleTheme } = useThemeStore.getState()
-    
+
     toggleTheme()
-    
+
     expect(setThemeSpy).toHaveBeenCalledWith('dark')
   })
 })

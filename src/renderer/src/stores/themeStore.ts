@@ -21,12 +21,12 @@ export const useThemeStore = create<ThemeState & ThemeActions>()(
     persist(
       (set, get) => ({
         ...initialState,
-        
+
         setTheme: (theme: Theme) => {
           set({ theme }, false, 'setTheme')
           document.documentElement.setAttribute('data-theme', theme)
         },
-        
+
         toggleTheme: () => {
           const currentTheme = get().theme
           const newTheme = currentTheme === 'light' ? 'dark' : 'light'

@@ -28,7 +28,7 @@ This is an Electron-based API testing tool built with React and TypeScript. The 
 ### Platform-specific Builds
 
 - `npm run build:linux` - Build for Linux
-- `npm run build:mac` - Build for macOS  
+- `npm run build:mac` - Build for macOS
 - `npm run build:win` - Build for Windows
 - `npm run build:unpack` - Build without packaging
 
@@ -49,7 +49,7 @@ This is an Electron-based API testing tool built with React and TypeScript. The 
 ### Electron Structure
 
 - **Main Process** (`src/main/`): Electron main process with IPC handlers for dialogs
-- **Preload** (`src/preload/`): Secure bridge between main and renderer processes  
+- **Preload** (`src/preload/`): Secure bridge between main and renderer processes
 - **Renderer** (`src/renderer/`): React frontend application
 
 ### Frontend Architecture

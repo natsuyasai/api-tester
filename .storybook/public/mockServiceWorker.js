@@ -34,13 +34,13 @@ addEventListener('message', async function (event) {
   }
 
   const allClients = await self.clients.matchAll({
-    type: 'window',
+    type: 'window'
   })
 
   switch (event.data) {
     case 'KEEPALIVE_REQUEST': {
       sendToClient(client, {
-        type: 'KEEPALIVE_RESPONSE',
+        type: 'KEEPALIVE_RESPONSE'
       })
       break
     }
@@ -50,8 +50,8 @@ addEventListener('message', async function (event) {
         type: 'INTEGRITY_CHECK_RESPONSE',
         payload: {
           packageVersion: PACKAGE_VERSION,
-          checksum: INTEGRITY_CHECKSUM,
-        },
+          checksum: INTEGRITY_CHECKSUM
+        }
       })
       break
     }
@@ -64,9 +64,9 @@ addEventListener('message', async function (event) {
         payload: {
           client: {
             id: client.id,
-            frameType: client.frameType,
-          },
-        },
+            frameType: client.frameType
+          }
+        }
       })
       break
     }
@@ -101,10 +101,7 @@ addEventListener('fetch', function (event) {
 
   // Opening the DevTools triggers the "only-if-cached" request
   // that cannot be handled by the worker. Bypass such requests.
-  if (
-    event.request.cache === 'only-if-cached' &&
-    event.request.mode !== 'same-origin'
-  ) {
+  if (event.request.cache === 'only-if-cached' && event.request.mode !== 'same-origin') {
     return
   }
 
@@ -145,18 +142,18 @@ async function handleRequest(event, requestId) {
           isMockedResponse: IS_MOCKED_RESPONSE in response,
           request: {
             id: requestId,
-            ...serializedRequest,
+            ...serializedRequest
           },
           response: {
             type: responseClone.type,
             status: responseClone.status,
             statusText: responseClone.statusText,
             headers: Object.fromEntries(responseClone.headers.entries()),
-            body: responseClone.body,
-          },
-        },
+            body: responseClone.body
+          }
+        }
       },
-      responseClone.body ? [serializedRequest.body, responseClone.body] : [],
+      responseClone.body ? [serializedRequest.body, responseClone.body] : []
     )
   }
 
@@ -183,7 +180,7 @@ async function resolveMainClient(event) {
   }
 
   const allClients = await self.clients.matchAll({
-    type: 'window',
+    type: 'window'
   })
 
   return allClients
@@ -220,9 +217,7 @@ async function getResponse(event, client, requestId) {
     const acceptHeader = headers.get('accept')
     if (acceptHeader) {
       const values = acceptHeader.split(',').map((value) => value.trim())
-      const filteredValues = values.filter(
-        (value) => value !== 'msw/passthrough',
-      )
+      const filteredValues = values.filter((value) => value !== 'msw/passthrough')
 
       if (filteredValues.length > 0) {
         headers.set('accept', filteredValues.join(', '))
@@ -255,10 +250,10 @@ async function getResponse(event, client, requestId) {
       type: 'REQUEST',
       payload: {
         id: requestId,
-        ...serializedRequest,
-      },
+        ...serializedRequest
+      }
     },
-    [serializedRequest.body],
+    [serializedRequest.body]
   )
 
   switch (clientMessage.type) {
@@ -292,10 +287,7 @@ function sendToClient(client, message, transferrables = []) {
       resolve(event.data)
     }
 
-    client.postMessage(message, [
-      channel.port2,
-      ...transferrables.filter(Boolean),
-    ])
+    client.postMessage(message, [channel.port2, ...transferrables.filter(Boolean)])
   })
 }
 
@@ -316,7 +308,7 @@ function respondWithMock(response) {
 
   Reflect.defineProperty(mockedResponse, IS_MOCKED_RESPONSE, {
     value: true,
-    enumerable: true,
+    enumerable: true
   })
 
   return mockedResponse
@@ -339,6 +331,6 @@ async function serializeRequest(request) {
     referrer: request.referrer,
     referrerPolicy: request.referrerPolicy,
     body: await request.arrayBuffer(),
-    keepalive: request.keepalive,
+    keepalive: request.keepalive
   }
 }

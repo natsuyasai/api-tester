@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { useApiStore } from '@renderer/stores/apiStore'
 import { ApiResponse } from '@/types/types'
+import { useApiStore } from '@renderer/stores/apiStore'
 import { ResponseView } from './ResponseView'
 
 // Zustandストアをモック

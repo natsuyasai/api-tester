@@ -27,20 +27,40 @@
 }
 
 .resizeHandle {
-  background: linear-gradient(to bottom, transparent 20%, var(--color-border-primary) 50%, transparent 80%);
+  background: linear-gradient(
+    to bottom,
+    transparent 20%,
+    var(--color-border-primary) 50%,
+    transparent 80%
+  );
   cursor: row-resize;
   transition: var(--transition-base);
   user-select: none;
-  
+
   &:hover {
-    background: linear-gradient(to bottom, transparent 20%, var(--color-border-accent) 50%, transparent 80%);
+    background: linear-gradient(
+      to bottom,
+      transparent 20%,
+      var(--color-border-accent) 50%,
+      transparent 80%
+    );
   }
-  
+
   &.dragging {
-    background: linear-gradient(to bottom, transparent 20%, var(--color-border-focus) 50%, transparent 80%);
+    background: linear-gradient(
+      to bottom,
+      transparent 20%,
+      var(--color-border-focus) 50%,
+      transparent 80%
+    );
   }
-  
+
   &:active {
-    background: linear-gradient(to bottom, transparent 20%, var(--color-border-focus) 50%, transparent 80%);
+    background: linear-gradient(
+      to bottom,
+      transparent 20%,
+      var(--color-border-focus) 50%,
+      transparent 80%
+    );
   }
 }

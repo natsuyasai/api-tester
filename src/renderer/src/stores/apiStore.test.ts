@@ -19,7 +19,7 @@ describe('ApiStore', () => {
   describe('Initial State', () => {
     it('should initialize with one tab', () => {
       const state = useApiStore.getState()
-      
+
       expect(state.tabs).toHaveLength(1)
       expect(state.tabs[0].title).toBe('New Request')
       expect(state.tabs[0].isActive).toBe(true)
@@ -32,7 +32,7 @@ describe('ApiStore', () => {
     it('should add a new tab', () => {
       const store = useApiStore.getState()
       store.addTab()
-      
+
       const state = useApiStore.getState()
       expect(state.tabs).toHaveLength(2)
       expect(state.tabs[1].isActive).toBe(true)
@@ -43,11 +43,11 @@ describe('ApiStore', () => {
     it('should set active tab', () => {
       const store = useApiStore.getState()
       store.addTab()
-      
+
       const state1 = useApiStore.getState()
       const firstTabId = state1.tabs[0].id
       store.setActiveTab(firstTabId)
-      
+
       const state = useApiStore.getState()
       expect(state.activeTabId).toBe(firstTabId)
       expect(state.tabs[0].isActive).toBe(true)
@@ -57,11 +57,11 @@ describe('ApiStore', () => {
     it('should close a tab when multiple tabs exist', () => {
       const store = useApiStore.getState()
       store.addTab()
-      
+
       const state1 = useApiStore.getState()
       const firstTabId = state1.tabs[0].id
       store.closeTab(firstTabId)
-      
+
       const state = useApiStore.getState()
       expect(state.tabs).toHaveLength(1)
       expect(state.tabs[0].isActive).toBe(true)
@@ -70,9 +70,9 @@ describe('ApiStore', () => {
     it('should not close the last remaining tab', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       store.closeTab(tabId)
-      
+
       const state = useApiStore.getState()
       expect(state.tabs).toHaveLength(1)
     })
@@ -80,9 +80,9 @@ describe('ApiStore', () => {
     it('should update tab title', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       store.updateTabTitle(tabId, 'Updated Title')
-      
+
       const state = useApiStore.getState()
       expect(state.tabs[0].title).toBe('Updated Title')
     })
@@ -92,9 +92,9 @@ describe('ApiStore', () => {
     it('should update request URL', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       store.updateUrl(tabId, 'https://api.example.com')
-      
+
       const state = useApiStore.getState()
       expect(state.tabs[0].request.url).toBe('https://api.example.com')
     })
@@ -102,9 +102,9 @@ describe('ApiStore', () => {
     it('should update request method', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       store.updateMethod(tabId, 'POST')
-      
+
       const state = useApiStore.getState()
       expect(state.tabs[0].request.method).toBe('POST')
     })
@@ -112,9 +112,9 @@ describe('ApiStore', () => {
     it('should update request body', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       store.updateBody(tabId, '{"test": true}')
-      
+
       const state = useApiStore.getState()
       expect(state.tabs[0].request.body).toBe('{"test": true}')
     })
@@ -122,9 +122,9 @@ describe('ApiStore', () => {
     it('should update body type', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       store.updateBodyType(tabId, 'form-data')
-      
+
       const state = useApiStore.getState()
       expect(state.tabs[0].request.bodyType).toBe('form-data')
     })
@@ -134,9 +134,9 @@ describe('ApiStore', () => {
     it('should add a new header', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       store.addHeader(tabId)
-      
+
       const state = useApiStore.getState()
       expect(state.tabs[0].request.headers).toHaveLength(2)
       expect(state.tabs[0].request.headers[1]).toEqual({
@@ -149,9 +149,9 @@ describe('ApiStore', () => {
     it('should update header', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       store.updateHeader(tabId, 0, { key: 'Authorization', value: 'Bearer token' })
-      
+
       const state = useApiStore.getState()
       expect(state.tabs[0].request.headers[0].key).toBe('Authorization')
       expect(state.tabs[0].request.headers[0].value).toBe('Bearer token')
@@ -161,10 +161,10 @@ describe('ApiStore', () => {
     it('should remove header', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       store.addHeader(tabId)
       store.removeHeader(tabId, 0)
-      
+
       const state = useApiStore.getState()
       expect(state.tabs[0].request.headers).toHaveLength(1)
     })
@@ -174,9 +174,9 @@ describe('ApiStore', () => {
     it('should add a new parameter', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       store.addParam(tabId)
-      
+
       const state = useApiStore.getState()
       expect(state.tabs[0].request.params).toHaveLength(2)
       expect(state.tabs[0].request.params[1]).toEqual({
@@ -189,9 +189,9 @@ describe('ApiStore', () => {
     it('should update parameter', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       store.updateParam(tabId, 0, { key: 'limit', value: '10' })
-      
+
       const state = useApiStore.getState()
       expect(state.tabs[0].request.params[0].key).toBe('limit')
       expect(state.tabs[0].request.params[0].value).toBe('10')
@@ -201,10 +201,10 @@ describe('ApiStore', () => {
     it('should remove parameter', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       store.addParam(tabId)
       store.removeParam(tabId, 0)
-      
+
       const state = useApiStore.getState()
       expect(state.tabs[0].request.params).toHaveLength(1)
     })
@@ -214,7 +214,7 @@ describe('ApiStore', () => {
     it('should set response', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       const mockResponse: ApiResponse = {
         status: 200,
         statusText: 'OK',
@@ -223,9 +223,9 @@ describe('ApiStore', () => {
         duration: 150,
         timestamp: '2024-01-01T00:00:00.000Z'
       }
-      
+
       store.setResponse(tabId, mockResponse)
-      
+
       const state = useApiStore.getState()
       expect(state.tabs[0].response).toEqual(mockResponse)
     })
@@ -233,7 +233,7 @@ describe('ApiStore', () => {
     it('should clear response', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       const mockResponse: ApiResponse = {
         status: 200,
         statusText: 'OK',
@@ -242,10 +242,10 @@ describe('ApiStore', () => {
         duration: 150,
         timestamp: '2024-01-01T00:00:00.000Z'
       }
-      
+
       store.setResponse(tabId, mockResponse)
       store.clearResponse(tabId)
-      
+
       const state = useApiStore.getState()
       expect(state.tabs[0].response).toBeNull()
     })
@@ -254,13 +254,13 @@ describe('ApiStore', () => {
   describe('Loading State', () => {
     it('should set loading state', () => {
       const store = useApiStore.getState()
-      
+
       store.setLoading(true)
-      
+
       expect(useApiStore.getState().isLoading).toBe(true)
-      
+
       store.setLoading(false)
-      
+
       expect(useApiStore.getState().isLoading).toBe(false)
     })
   })
@@ -269,13 +269,13 @@ describe('ApiStore', () => {
     it('should export configuration', () => {
       const store = useApiStore.getState()
       const tabId = store.tabs[0].id
-      
+
       store.updateUrl(tabId, 'https://api.example.com')
       store.updateMethod(tabId, 'POST')
-      
+
       const config = store.exportConfig()
       const parsedConfig = JSON.parse(config)
-      
+
       expect(parsedConfig.tabs).toHaveLength(1)
       expect(parsedConfig.tabs[0].request.url).toBe('https://api.example.com')
       expect(parsedConfig.tabs[0].request.method).toBe('POST')
@@ -284,7 +284,7 @@ describe('ApiStore', () => {
 
     it('should import configuration', () => {
       const store = useApiStore.getState()
-      
+
       const importConfig = JSON.stringify({
         tabs: [
           {
@@ -303,9 +303,9 @@ describe('ApiStore', () => {
         ],
         version: '1.0'
       })
-      
+
       store.importConfig(importConfig)
-      
+
       const state = useApiStore.getState()
       expect(state.tabs).toHaveLength(1)
       expect(state.tabs[0].title).toBe('Imported Tab')
@@ -315,11 +315,11 @@ describe('ApiStore', () => {
 
     it('should handle invalid import configuration', () => {
       const store = useApiStore.getState()
-      
+
       expect(() => {
         store.importConfig('invalid json')
       }).toThrow()
-      
+
       expect(() => {
         store.importConfig('{"tabs": "not an array"}')
       }).toThrow('Invalid config format')

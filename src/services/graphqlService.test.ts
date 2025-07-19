@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { GraphQLService } from './graphqlService'
 import { ApiService } from './apiService'
+import { GraphQLService } from './graphqlService'
 
 // ApiServiceをモック
 vi.mock('./apiService')
@@ -36,11 +36,15 @@ describe('GraphQLService', () => {
         method: 'POST',
         headers: [],
         params: [],
-        body: JSON.stringify({
-          query: 'query { users { id name } }',
-          variables: { limit: 10 },
-          operationName: undefined
-        }, null, 2),
+        body: JSON.stringify(
+          {
+            query: 'query { users { id name } }',
+            variables: { limit: 10 },
+            operationName: undefined
+          },
+          null,
+          2
+        ),
         bodyType: 'graphql',
         type: 'graphql'
       })
@@ -83,7 +87,7 @@ describe('GraphQLService', () => {
         '{ users { id } }'
       ]
 
-      validQueries.forEach(query => {
+      validQueries.forEach((query) => {
         const errors = GraphQLService.validateGraphQLQuery(query)
         expect(errors).toHaveLength(0)
       })
@@ -106,7 +110,7 @@ describe('GraphQLService', () => {
 
     it('should accept valid variables JSON', () => {
       const errors = GraphQLService.validateGraphQLQuery(
-        'query { users }', 
+        'query { users }',
         '{"limit": 10, "offset": 0}'
       )
       expect(errors).toHaveLength(0)
@@ -115,9 +119,15 @@ describe('GraphQLService', () => {
 
   describe('extractOperationName', () => {
     it('should extract operation name from queries', () => {
-      expect(GraphQLService.extractOperationName('query GetUsers { users { id } }')).toBe('GetUsers')
-      expect(GraphQLService.extractOperationName('mutation CreateUser { createUser { id } }')).toBe('CreateUser')
-      expect(GraphQLService.extractOperationName('subscription MessageAdded { messageAdded { id } }')).toBe('MessageAdded')
+      expect(GraphQLService.extractOperationName('query GetUsers { users { id } }')).toBe(
+        'GetUsers'
+      )
+      expect(GraphQLService.extractOperationName('mutation CreateUser { createUser { id } }')).toBe(
+        'CreateUser'
+      )
+      expect(
+        GraphQLService.extractOperationName('subscription MessageAdded { messageAdded { id } }')
+      ).toBe('MessageAdded')
     })
 
     it('should return undefined for anonymous operations', () => {
@@ -130,7 +140,7 @@ describe('GraphQLService', () => {
     it('should format GraphQL query with proper indentation', () => {
       const query = 'query{users{id,name,email}}'
       const formatted = GraphQLService.formatGraphQLQuery(query)
-      
+
       expect(formatted).toContain('{\n')
       expect(formatted).toContain('}\n')
       expect(formatted).not.toBe(query)

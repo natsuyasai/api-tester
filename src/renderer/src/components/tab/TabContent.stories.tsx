@@ -25,7 +25,7 @@ const meta: Meta<typeof TabContent> = {
     (Story) => {
       // ストーリー表示前にストアを初期化
       const store = useApiStore.getState()
-      
+
       // 新しいタブを追加してサンプルデータを設定
       if (store.tabs.length === 0) {
         store.addTab()
@@ -59,7 +59,7 @@ export const Default: Story = {
     // Sendボタンの確認
     const sendButton = canvas.getByRole('button', { name: 'Send' })
     await expect(sendButton).toBeInTheDocument()
-    
+
     // オプションタブの確認
     await expect(canvas.getByRole('button', { name: 'Params' })).toBeInTheDocument()
     await expect(canvas.getByRole('button', { name: 'Headers' })).toBeInTheDocument()
@@ -76,7 +76,7 @@ export const NoActiveTab: Story = {
     (Story) => {
       // すべてのタブを削除
       const store = useApiStore.getState()
-      store.tabs.forEach(tab => store.closeTab(tab.id))
+      store.tabs.forEach((tab) => store.closeTab(tab.id))
 
       return (
         <div style={{ width: '100%', height: '100vh', padding: '20px' }}>
@@ -111,7 +111,7 @@ export const WithAPICall: Story = {
 
     // MSWによるモックレスポンスを待機
     await expect(canvas.getByText('200 OK')).toBeInTheDocument()
-    
+
     // レスポンスボディの確認
     await expect(canvas.getByText(/"users":/)).toBeInTheDocument()
   }
@@ -122,16 +122,19 @@ export const POSTRequest: Story = {
   decorators: [
     (Story) => {
       const store = useApiStore.getState()
-      
+
       if (store.tabs.length === 0) {
         store.addTab()
       }
-      
+
       const activeTab = store.tabs[0]
       store.updateUrl(activeTab.id, 'https://api.example.com/users')
       store.updateMethod(activeTab.id, 'POST')
-      store.updateBody(activeTab.id, JSON.stringify({ name: 'John Doe', email: 'john@example.com' }, null, 2))
-      
+      store.updateBody(
+        activeTab.id,
+        JSON.stringify({ name: 'John Doe', email: 'john@example.com' }, null, 2)
+      )
+
       return (
         <div style={{ width: '100%', height: '100vh', padding: '20px' }}>
           <Story />
@@ -151,7 +154,7 @@ export const POSTRequest: Story = {
 
     // JSONボディの確認
     await expect(canvas.getByDisplayValue(/"name": "John Doe"/)).toBeInTheDocument()
-    
+
     // リクエストを送信
     const sendButton = canvas.getByRole('button', { name: 'Send' })
     await userEvent.click(sendButton)
@@ -181,7 +184,8 @@ export const ResizableLayout: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'RequestFormとResponseViewの間をマウス操作でリサイズできるGridレイアウト。境界線をドラッグしてgrid-template-rowsが動的に更新されます。'
+        story:
+          'RequestFormとResponseViewの間をマウス操作でリサイズできるGridレイアウト。境界線をドラッグしてgrid-template-rowsが動的に更新されます。'
       }
     }
   },
@@ -191,7 +195,7 @@ export const ResizableLayout: Story = {
     // Gridレイアウトの確認
     const tabContent = canvasElement.querySelector('.tabContent')
     await expect(tabContent).toBeInTheDocument()
-    
+
     // リサイズハンドルの存在確認
     const resizeHandle = canvasElement.querySelector('.resizeHandle')
     await expect(resizeHandle).toBeInTheDocument()
@@ -199,7 +203,7 @@ export const ResizableLayout: Story = {
     // 初期状態の確認
     await expect(canvas.getByPlaceholderText('Enter request URL')).toBeInTheDocument()
     await expect(canvas.getByText('No Response')).toBeInTheDocument()
-    
+
     // リサイズ機能の説明を表示するため、一時的にフォーカス
     if (resizeHandle) {
       resizeHandle.dispatchEvent(new Event('mouseenter', { bubbles: true }))

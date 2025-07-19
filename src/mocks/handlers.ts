@@ -16,24 +16,30 @@ export const handlers = [
   // POST /api/users
   http.post('https://api.example.com/users', async ({ request }) => {
     const body = await request.json()
-    return HttpResponse.json({
-      id: 123,
-      ...body,
-      createdAt: '2024-01-01T10:30:00.000Z'
-    }, { status: 201 })
+    return HttpResponse.json(
+      {
+        id: 123,
+        ...body,
+        createdAt: '2024-01-01T10:30:00.000Z'
+      },
+      { status: 201 }
+    )
   }),
 
   // 404 error endpoint
   http.get('https://api.example.com/users/999', () => {
-    return HttpResponse.json({
-      error: 'User not found',
-      code: 'NOT_FOUND'
-    }, { status: 404 })
+    return HttpResponse.json(
+      {
+        error: 'User not found',
+        code: 'NOT_FOUND'
+      },
+      { status: 404 }
+    )
   }),
 
   // Slow response endpoint
   http.get('https://api.example.com/slow', async () => {
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    await new Promise((resolve) => setTimeout(resolve, 2000))
     return HttpResponse.json({
       message: 'This was a slow response'
     })
@@ -50,21 +56,34 @@ export const handlers = [
 
   // GraphQL endpoint
   http.post('https://api.example.com/graphql', async ({ request }) => {
-    const { query } = await request.json() as { query: string }
-    
+    const { query } = (await request.json()) as { query: string }
+
     if (query.includes('GetUsers')) {
       return HttpResponse.json({
         data: {
           users: [
-            { id: 1, name: 'John Doe', email: 'john@example.com', createdAt: '2024-01-01T10:00:00.000Z' },
-            { id: 2, name: 'Jane Smith', email: 'jane@example.com', createdAt: '2024-01-01T10:01:00.000Z' }
+            {
+              id: 1,
+              name: 'John Doe',
+              email: 'john@example.com',
+              createdAt: '2024-01-01T10:00:00.000Z'
+            },
+            {
+              id: 2,
+              name: 'Jane Smith',
+              email: 'jane@example.com',
+              createdAt: '2024-01-01T10:01:00.000Z'
+            }
           ]
         }
       })
     }
 
-    return HttpResponse.json({
-      errors: [{ message: 'Unknown query' }]
-    }, { status: 400 })
+    return HttpResponse.json(
+      {
+        errors: [{ message: 'Unknown query' }]
+      },
+      { status: 400 }
+    )
   })
 ]

@@ -1,5 +1,5 @@
-import { join } from 'path'
 import { promises as fs } from 'fs'
+import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import {
   app,
@@ -124,9 +124,9 @@ ipcMain.handle('readFile', async (_event, filePath: string) => {
     const data = await fs.readFile(filePath, 'utf-8')
     return { success: true, data }
   } catch (error) {
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     }
   }
 })
@@ -137,9 +137,9 @@ ipcMain.handle('writeFile', async (_event, filePath: string, data: string) => {
     await fs.writeFile(filePath, data, 'utf-8')
     return { success: true }
   } catch (error) {
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     }
   }
 })

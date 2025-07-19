@@ -1,7 +1,7 @@
 import { JSX, useState } from 'react'
 import { ApiService } from '@/services/apiService'
-import { useApiStore } from '@renderer/stores/apiStore'
 import { HttpMethod } from '@/types/types'
+import { useApiStore } from '@renderer/stores/apiStore'
 import { BodyEditor } from './BodyEditor'
 import { KeyValueEditor } from './KeyValueEditor'
 import styles from './RequestForm.module.scss'

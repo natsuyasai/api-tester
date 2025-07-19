@@ -1,8 +1,8 @@
 import { JSX, useEffect } from 'react'
-import { useThemeStore } from './stores/themeStore'
 import styles from './App.module.scss'
 import { TabBar } from './components/tab/TabBar'
 import { TabContent } from './components/tab/TabContent'
+import { useThemeStore } from './stores/themeStore'
 
 function App(): JSX.Element {
   const { theme } = useThemeStore()

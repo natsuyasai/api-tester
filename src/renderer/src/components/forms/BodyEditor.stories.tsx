@@ -133,7 +133,7 @@ export const GraphQLWithQuery: Story = {
     // GraphQLクエリの確認
     const textarea = canvas.getByDisplayValue(/query GetUsers/)
     await expect(textarea).toBeInTheDocument()
-    
+
     // 変数エディターの確認
     await expect(canvas.getByText('Variables (JSON)')).toBeInTheDocument()
     await expect(canvas.getByDisplayValue(/\"limit\": 10/)).toBeInTheDocument()

@@ -1,6 +1,6 @@
 import { JSX, useState, useRef } from 'react'
-import { useApiStore } from '@renderer/stores/apiStore'
 import { YamlService } from '@/services/yamlService'
+import { useApiStore } from '@renderer/stores/apiStore'
 import styles from './ImportExportDialog.module.scss'
 
 interface ImportExportDialogProps {
@@ -26,8 +26,8 @@ export const ImportExportDialog = ({ isOpen, onClose }: ImportExportDialogProps)
   const handleExport = () => {
     try {
       const content = exportFormat === 'yaml' ? exportYaml() : exportConfig()
-      const blob = new Blob([content], { 
-        type: exportFormat === 'yaml' ? 'application/x-yaml' : 'application/json' 
+      const blob = new Blob([content], {
+        type: exportFormat === 'yaml' ? 'application/x-yaml' : 'application/json'
       })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -37,7 +37,7 @@ export const ImportExportDialog = ({ isOpen, onClose }: ImportExportDialogProps)
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
-      
+
       setSuccess(`Collection exported as ${exportFormat.toUpperCase()}`)
       setError(null)
     } catch (err) {
@@ -80,7 +80,7 @@ export const ImportExportDialog = ({ isOpen, onClose }: ImportExportDialogProps)
         default:
           setError('Unsupported import type')
       }
-      
+
       setImportContent('')
     } catch (err) {
       setError(`Import failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
@@ -96,7 +96,7 @@ export const ImportExportDialog = ({ isOpen, onClose }: ImportExportDialogProps)
     reader.onload = (e) => {
       const content = e.target?.result as string
       setImportContent(content)
-      
+
       // ファイル拡張子に基づいて自動判定
       const extension = file.name.split('.').pop()?.toLowerCase()
       switch (extension) {
@@ -135,11 +135,7 @@ export const ImportExportDialog = ({ isOpen, onClose }: ImportExportDialogProps)
       <div className={styles.dialog}>
         <div className={styles.header}>
           <h2>Import / Export Collection</h2>
-          <button 
-            className={styles.closeButton}
-            onClick={onClose}
-            aria-label="Close dialog"
-          >
+          <button className={styles.closeButton} onClick={onClose} aria-label="Close dialog">
             ×
           </button>
         </div>
@@ -185,10 +181,7 @@ export const ImportExportDialog = ({ isOpen, onClose }: ImportExportDialogProps)
                   </label>
                 </div>
               </div>
-              <button 
-                className={styles.primaryButton}
-                onClick={handleExport}
-              >
+              <button className={styles.primaryButton} onClick={handleExport}>
                 Export Collection
               </button>
             </div>
@@ -237,7 +230,7 @@ export const ImportExportDialog = ({ isOpen, onClose }: ImportExportDialogProps)
                 />
               </div>
 
-              <button 
+              <button
                 className={styles.primaryButton}
                 onClick={handleImport}
                 disabled={!importContent.trim()}
@@ -250,16 +243,8 @@ export const ImportExportDialog = ({ isOpen, onClose }: ImportExportDialogProps)
 
         {(error || success) && (
           <div className={styles.messages}>
-            {error && (
-              <div className={styles.errorMessage}>
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className={styles.successMessage}>
-                {success}
-              </div>
-            )}
+            {error && <div className={styles.errorMessage}>{error}</div>}
+            {success && <div className={styles.successMessage}>{success}</div>}
           </div>
         )}
       </div>

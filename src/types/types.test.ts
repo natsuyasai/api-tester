@@ -1,18 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { 
-  HttpMethod, 
-  ApiRequest, 
-  ApiResponse, 
-  ApiTab, 
-  KeyValuePair,
-  ApiConfig 
-} from './types'
+import { HttpMethod, ApiRequest, ApiResponse, ApiTab, KeyValuePair, ApiConfig } from './types'
 
 describe('型定義のテスト', () => {
   describe('HttpMethod', () => {
     it('有効なHTTPメソッドが定義されていること', () => {
       const methods: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
-      methods.forEach(method => {
+      methods.forEach((method) => {
         expect(typeof method).toBe('string')
       })
     })
@@ -25,7 +18,7 @@ describe('型定義のテスト', () => {
         value: 'application/json',
         enabled: true
       }
-      
+
       expect(pair.key).toBe('Content-Type')
       expect(pair.value).toBe('application/json')
       expect(pair.enabled).toBe(true)
@@ -37,7 +30,7 @@ describe('型定義のテスト', () => {
         value: 'Bearer token',
         enabled: false
       }
-      
+
       expect(pair.enabled).toBe(false)
     })
   })
@@ -49,17 +42,13 @@ describe('型定義のテスト', () => {
         name: 'Test API',
         url: 'https://api.example.com/users',
         method: 'GET',
-        headers: [
-          { key: 'Content-Type', value: 'application/json', enabled: true }
-        ],
-        params: [
-          { key: 'limit', value: '10', enabled: true }
-        ],
+        headers: [{ key: 'Content-Type', value: 'application/json', enabled: true }],
+        params: [{ key: 'limit', value: '10', enabled: true }],
         body: '',
         bodyType: 'json',
         type: 'rest'
       }
-      
+
       expect(request.id).toBe('test-1')
       expect(request.type).toBe('rest')
       expect(request.method).toBe('GET')
@@ -78,7 +67,7 @@ describe('型定義のテスト', () => {
         type: 'graphql',
         variables: {}
       }
-      
+
       expect(request.type).toBe('graphql')
       expect(request.bodyType).toBe('graphql')
       expect(request.variables).toEqual({})
@@ -95,7 +84,7 @@ describe('型定義のテスト', () => {
         duration: 150,
         timestamp: new Date().toISOString()
       }
-      
+
       expect(response.status).toBe(200)
       expect(response.duration).toBe(150)
       expect(typeof response.timestamp).toBe('string')
@@ -121,7 +110,7 @@ describe('型定義のテスト', () => {
         response: null,
         isActive: true
       }
-      
+
       expect(tab.id).toBe('tab-1')
       expect(tab.isActive).toBe(true)
       expect(tab.response).toBe(null)
@@ -152,7 +141,7 @@ describe('型定義のテスト', () => {
         ],
         activeTabId: 'tab-1'
       }
-      
+
       expect(config.tabs).toHaveLength(1)
       expect(config.activeTabId).toBe('tab-1')
     })

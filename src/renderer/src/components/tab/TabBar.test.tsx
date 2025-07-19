@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useApiStore } from '@renderer/stores/apiStore'
 import { useThemeStore } from '@renderer/stores/themeStore'
 import { TabBar } from './TabBar'
@@ -238,7 +238,7 @@ describe('TabBar', () => {
     const input = screen.getByDisplayValue('Tab 1')
     await user.clear(input)
     await user.type(input, 'Blurred Title')
-    
+
     // フォーカスを他の要素に移す
     const addButton = screen.getByLabelText('Add new tab')
     await user.click(addButton)
@@ -298,7 +298,7 @@ describe('TabBar', () => {
     // ダークテーマの場合
     mockThemeStore.theme = 'dark'
     mockUseThemeStore.mockImplementation(() => mockThemeStore as any)
-    
+
     render(<TabBar />)
     const lightThemeButton = screen.getByLabelText('Switch to light theme')
     expect(lightThemeButton.textContent).toBe('☀️')

@@ -41,14 +41,11 @@ describe('ApiService', () => {
 
       const result = await ApiService.executeRequest(basicRequest)
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.example.com/users?limit=10',
-        {
-          method: 'GET',
-          headers: new Headers({ 'Content-Type': 'application/json' }),
-          body: undefined
-        }
-      )
+      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', {
+        method: 'GET',
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+        body: undefined
+      })
 
       expect(result.status).toBe(200)
       expect(result.statusText).toBe('OK')
@@ -75,14 +72,11 @@ describe('ApiService', () => {
 
       const result = await ApiService.executeRequest(postRequest)
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.example.com/users?limit=10',
-        {
-          method: 'POST',
-          headers: new Headers({ 'Content-Type': 'application/json' }),
-          body: '{"name": "John Doe"}'
-        }
-      )
+      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', {
+        method: 'POST',
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+        body: '{"name": "John Doe"}'
+      })
 
       expect(result.status).toBe(201)
       expect(result.data).toEqual({ id: 1, name: 'John Doe' })
@@ -112,14 +106,11 @@ describe('ApiService', () => {
 
       await ApiService.executeRequest(basicRequest)
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.example.com/users?limit=10',
-        {
-          method: 'GET',
-          headers: new Headers({ 'Content-Type': 'application/json' }),
-          body: undefined
-        }
-      )
+      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', {
+        method: 'GET',
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+        body: undefined
+      })
     })
 
     it('should handle text responses', async () => {
@@ -232,19 +223,15 @@ describe('ApiService', () => {
         name: 'Test Request',
         url: 'https://api.example.com/users',
         method: 'GET',
-        headers: [
-          { key: 'Authorization', value: 'Bearer token', enabled: true }
-        ],
-        params: [
-          { key: 'limit', value: '10', enabled: true }
-        ],
+        headers: [{ key: 'Authorization', value: 'Bearer token', enabled: true }],
+        params: [{ key: 'limit', value: '10', enabled: true }],
         body: '',
         bodyType: 'json',
         type: 'rest'
       }
 
       const curlCommand = ApiService.buildCurlCommand(request)
-      
+
       expect(curlCommand).toBe(
         'curl -X GET -H "Authorization: Bearer token" "https://api.example.com/users?limit=10"'
       )
@@ -256,9 +243,7 @@ describe('ApiService', () => {
         name: 'Test Request',
         url: 'https://api.example.com/users',
         method: 'POST',
-        headers: [
-          { key: 'Content-Type', value: 'application/json', enabled: true }
-        ],
+        headers: [{ key: 'Content-Type', value: 'application/json', enabled: true }],
         params: [],
         body: '{"name": "John"}',
         bodyType: 'json',
@@ -266,7 +251,7 @@ describe('ApiService', () => {
       }
 
       const curlCommand = ApiService.buildCurlCommand(request)
-      
+
       expect(curlCommand).toBe(
         'curl -X POST -H "Content-Type: application/json" -d \'{"name": "John"}\' "https://api.example.com/users"'
       )
