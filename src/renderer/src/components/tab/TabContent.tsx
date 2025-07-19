@@ -87,12 +87,11 @@ export const TabContent = ({ className }: TabContentProps): JSX.Element => {
         <RequestForm tabId={activeTab.id} />
       </div>
 
-      <div
+      <button
         className={`${styles.resizeHandle} ${isDragging ? styles.dragging : ''}`}
         onMouseDown={handleMouseDown}
-        role="separator"
-        aria-orientation="horizontal"
-        tabIndex={0}
+        type="button"
+        aria-label="Resize panels"
         onKeyDown={(e) => {
           if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
             e.preventDefault()
