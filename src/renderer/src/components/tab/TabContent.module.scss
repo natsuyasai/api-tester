@@ -1,0 +1,28 @@
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.requestSection {
+  flex: 1;
+  min-height: 300px;
+  overflow-y: auto;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.responseSection {
+  flex: 1;
+  min-height: 200px;
+  overflow-y: auto;
+}
+
+.noTab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #6c757d;
+  font-size: 16px;
+}

@@ -1,28 +1,17 @@
 .app_root {
-  height: 100%;
-  display: grid;
-  grid-template-rows: calc(100% - 72px) 72px;
-  margin-left: 8px;
-  margin-right: 8px;
-}
-
-.contents {
-  width: 100%;
-  margin-top: 8px;
-  margin-bottom: 8px;
-  grid-row: 1 / 2;
-  display: grid;
-  grid-template-rows: repeat(6, calc(1005 / 6));
-}
-
-.bottom {
-  width: 100%;
-  grid-row: 2 / 3;
-}
-
-.action_root {
+  height: 100vh;
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: flex-end;
+  flex-direction: column;
+  background-color: #ffffff;
+  overflow: hidden;
+}
+
+.tabContainer {
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.contentContainer {
+  flex: 1;
+  overflow: hidden;
 }
