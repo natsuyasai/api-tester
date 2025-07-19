@@ -7,7 +7,7 @@
     "src/preload/*.d.ts",
     "src/types",
     "src/types/types.ts",
-    "src/stores/**/*",
+    "src/renderer/src/stores/**/*",
     "src/services/**/*",
     "src/test/**/*",
     "src/vite-env.d.ts",

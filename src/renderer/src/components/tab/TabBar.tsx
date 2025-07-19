@@ -1,5 +1,5 @@
 import { JSX } from 'react'
-import { useApiStore } from '@/stores/apiStore'
+import { useApiStore } from '@renderer/stores/apiStore'
 import styles from './TabBar.module.scss'
 
 interface TabBarProps {
@@ -26,10 +26,7 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
     <div className={`${styles.tabBar} ${className || ''}`}>
       <div className={styles.tabList}>
         {tabs.map((tab) => (
-          <div
-            key={tab.id}
-            className={`${styles.tab} ${tab.isActive ? styles.active : ''}`}
-          >
+          <div key={tab.id} className={`${styles.tab} ${tab.isActive ? styles.active : ''}`}>
             <button
               className={styles.tabButton}
               onClick={() => handleTabClick(tab.id)}

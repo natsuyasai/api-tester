@@ -1,5 +1,5 @@
 import { JSX } from 'react'
-import { useApiStore } from '@/stores/apiStore'
+import { useApiStore } from '@renderer/stores/apiStore'
 import { RequestForm } from '../forms/RequestForm'
 import { ResponseView } from '../response/ResponseView'
 import styles from './TabContent.module.scss'
@@ -10,9 +10,9 @@ interface TabContentProps {
 
 export const TabContent = ({ className }: TabContentProps): JSX.Element => {
   const { tabs, activeTabId } = useApiStore()
-  
-  const activeTab = tabs.find(tab => tab.id === activeTabId)
-  
+
+  const activeTab = tabs.find((tab) => tab.id === activeTabId)
+
   if (!activeTab) {
     return <div className={styles.noTab}>No active tab</div>
   }

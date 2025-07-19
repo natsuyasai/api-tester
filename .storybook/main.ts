@@ -17,11 +17,11 @@ const config: StorybookConfig = {
     if (config.resolve) {
       config.resolve.alias = {
         ...config.resolve.alias,
-        '@renderer': resolve('../src/renderer/src'),
-        '@': resolve('../src/')
+        '@renderer': resolve('src/renderer/src'),
+        '@': resolve('src/')
       }
     }
-
+    console.log(config.resolve?.alias)
     return config
   }
 }

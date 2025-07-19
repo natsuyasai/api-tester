@@ -1,5 +1,5 @@
 import { JSX, useState } from 'react'
-import { useApiStore } from '@/stores/apiStore'
+import { useApiStore } from '@renderer/stores/apiStore'
 import styles from './ResponseView.module.scss'
 
 interface ResponseViewProps {

@@ -1,16 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { expect, userEvent, within } from 'storybook/test'
-import { useApiStore } from '@/stores/apiStore'
 import { KeyValueEditor } from './KeyValueEditor'
-
-const mockStore = {
-  addHeader: () => {},
-  updateHeader: () => {},
-  removeHeader: () => {},
-  addParam: () => {},
-  updateParam: () => {},
-  removeParam: () => {}
-}
 
 const meta: Meta<typeof KeyValueEditor> = {
   title: 'Components/KeyValueEditor',
@@ -40,8 +30,6 @@ const meta: Meta<typeof KeyValueEditor> = {
   },
   decorators: [
     (Story) => {
-      ;(useApiStore as any) = () => mockStore
-
       return (
         <div style={{ width: '100%', height: '400px', padding: '20px' }}>
           <Story />

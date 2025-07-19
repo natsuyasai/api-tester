@@ -1,6 +1,6 @@
 import { JSX } from 'react'
-import { useApiStore } from '@/stores/apiStore'
 import { KeyValuePair } from '@/types/types'
+import { useApiStore } from '@renderer/stores/apiStore'
 import styles from './KeyValueEditor.module.scss'
 
 interface KeyValueEditorProps {
@@ -10,14 +10,8 @@ interface KeyValueEditorProps {
 }
 
 export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX.Element => {
-  const { 
-    addHeader, 
-    updateHeader, 
-    removeHeader,
-    addParam,
-    updateParam,
-    removeParam
-  } = useApiStore()
+  const { addHeader, updateHeader, removeHeader, addParam, updateParam, removeParam } =
+    useApiStore()
 
   const handleAdd = () => {
     if (type === 'headers') {
@@ -51,7 +45,7 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
         <div className={styles.column}>Value</div>
         <div className={styles.actions}>Actions</div>
       </div>
-      
+
       <div className={styles.rows}>
         {items.map((item, index) => (
           <div key={index} className={styles.row}>
@@ -90,12 +84,8 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
           </div>
         ))}
       </div>
-      
-      <button
-        onClick={handleAdd}
-        className={styles.addButton}
-        type="button"
-      >
+
+      <button onClick={handleAdd} className={styles.addButton} type="button">
         Add {type === 'headers' ? 'Header' : 'Parameter'}
       </button>
     </div>

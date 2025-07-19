@@ -1,6 +1,6 @@
 import { JSX, useState } from 'react'
 import { ApiService } from '@/services/apiService'
-import { useApiStore } from '@/stores/apiStore'
+import { useApiStore } from '@renderer/stores/apiStore'
 import { HttpMethod } from '@/types/types'
 import { BodyEditor } from './BodyEditor'
 import { KeyValueEditor } from './KeyValueEditor'
@@ -11,21 +11,21 @@ interface RequestFormProps {
 }
 
 export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
-  const { 
-    tabs, 
-    updateUrl, 
-    updateMethod, 
-    updateBody, 
+  const {
+    tabs,
+    updateUrl,
+    updateMethod,
+    updateBody,
     updateBodyType,
     updateTabTitle,
     setLoading,
     setResponse,
     isLoading
   } = useApiStore()
-  
-  const tab = tabs.find(t => t.id === tabId)
+
+  const tab = tabs.find((t) => t.id === tabId)
   const [activeSection, setActiveSection] = useState<'params' | 'headers' | 'body'>('params')
-  
+
   if (!tab) {
     return <div>Tab not found</div>
   }
@@ -101,8 +101,10 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
           onChange={(e) => handleMethodChange(e.target.value as HttpMethod)}
           className={styles.methodSelect}
         >
-          {httpMethods.map(method => (
-            <option key={method} value={method}>{method}</option>
+          {httpMethods.map((method) => (
+            <option key={method} value={method}>
+              {method}
+            </option>
           ))}
         </select>
         <input
@@ -149,18 +151,10 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
 
         <div className={styles.content}>
           {activeSection === 'params' && (
-            <KeyValueEditor
-              tabId={tabId}
-              type="params"
-              items={request.params}
-            />
+            <KeyValueEditor tabId={tabId} type="params" items={request.params} />
           )}
           {activeSection === 'headers' && (
-            <KeyValueEditor
-              tabId={tabId}
-              type="headers"
-              items={request.headers}
-            />
+            <KeyValueEditor tabId={tabId} type="headers" items={request.headers} />
           )}
           {activeSection === 'body' && (
             <BodyEditor
