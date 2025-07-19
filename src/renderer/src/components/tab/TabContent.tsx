@@ -74,7 +74,6 @@ export const TabContent = ({ className }: TabContentProps): JSX.Element => {
     return <div className={styles.noTab}>No active tab</div>
   }
 
-  const responseHeight = `calc(100% - ${requestHeight}px - 6px)` // 6px for resize handle
 
   return (
     <div
@@ -91,6 +90,17 @@ export const TabContent = ({ className }: TabContentProps): JSX.Element => {
       <div
         className={`${styles.resizeHandle} ${isDragging ? styles.dragging : ''}`}
         onMouseDown={handleMouseDown}
+        role="separator"
+        aria-orientation="horizontal"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            e.preventDefault()
+            const delta = e.key === 'ArrowUp' ? -10 : 10
+            const newHeight = Math.max(200, Math.min(requestHeight + delta, (containerRef.current?.offsetHeight || 600) - 200))
+            setRequestHeight(newHeight)
+          }
+        }}
       />
 
       <div className={styles.responseSection}>

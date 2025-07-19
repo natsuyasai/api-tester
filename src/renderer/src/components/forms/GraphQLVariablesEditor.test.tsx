@@ -34,7 +34,7 @@ describe('GraphQLVariablesEditor', () => {
     expect(defaultProps.onVariablesChange).toHaveBeenCalledWith('{"limit": 10}')
   })
 
-  it('should show error for invalid JSON', async () => {
+  it('should show error for invalid JSON', () => {
     render(<GraphQLVariablesEditor {...defaultProps} />)
 
     const textarea = screen.getByRole('textbox')
@@ -44,7 +44,7 @@ describe('GraphQLVariablesEditor', () => {
     expect(textarea.className).toContain('error')
   })
 
-  it('should not show error for valid JSON', async () => {
+  it('should not show error for valid JSON', () => {
     render(<GraphQLVariablesEditor {...defaultProps} />)
 
     const textarea = screen.getByRole('textbox')

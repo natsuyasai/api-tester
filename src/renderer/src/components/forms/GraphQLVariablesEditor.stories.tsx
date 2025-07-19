@@ -109,9 +109,9 @@ export const ComplexVariables: Story = {
     const canvas = within(canvasElement)
 
     // 複雑なJSONが適切に表示されることを確認
-    await expect(canvas.getByDisplayValue(/\"pagination\":/)).toBeInTheDocument()
-    await expect(canvas.getByDisplayValue(/\"filters\":/)).toBeInTheDocument()
-    await expect(canvas.getByDisplayValue(/\"sorting\":/)).toBeInTheDocument()
+    await expect(canvas.getByDisplayValue(/"pagination":/)).toBeInTheDocument()
+    await expect(canvas.getByDisplayValue(/"filters":/)).toBeInTheDocument()
+    await expect(canvas.getByDisplayValue(/"sorting":/)).toBeInTheDocument()
 
     // フォーマットボタンが有効
     const formatButton = canvas.getByRole('button', { name: 'Format' })

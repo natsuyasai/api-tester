@@ -26,7 +26,7 @@ const mockDownloadLink = {
   style: { display: '' }
 }
 
-const originalCreateElement = document.createElement
+const originalCreateElement = document.createElement.bind(document)
 document.createElement = vi.fn((tagName: string) => {
   if (tagName === 'a') {
     return mockDownloadLink as unknown as HTMLAnchorElement
@@ -140,7 +140,7 @@ describe('ImportExportDialog', () => {
       await user.click(importTab)
     })
 
-    it('should switch to import tab', async () => {
+    it('should switch to import tab', () => {
       expect(screen.getByText('Import Type:')).toBeInTheDocument()
       expect(screen.getByDisplayValue('JSON Configuration')).toBeInTheDocument()
       expect(screen.getByPlaceholderText('Paste your JSON content here...')).toBeInTheDocument()

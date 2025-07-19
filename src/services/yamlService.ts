@@ -315,11 +315,11 @@ export class YamlService {
       id: uuidv4(),
       name: yamlRequest.name || `Request ${index + 1}`,
       url: yamlRequest.url || '',
-      method: (yamlRequest.method as any) || 'GET',
+      method: (yamlRequest.method as ApiRequest['method']) || 'GET',
       headers,
       params,
       body,
-      bodyType: (yamlRequest.bodyType as any) || 'json',
+      bodyType: (yamlRequest.bodyType as ApiRequest['bodyType']) || 'json',
       type: yamlRequest.bodyType === 'graphql' ? 'graphql' : 'rest',
       variables: yamlRequest.variables || {}
     }

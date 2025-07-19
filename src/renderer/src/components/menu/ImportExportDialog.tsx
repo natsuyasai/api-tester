@@ -65,18 +65,20 @@ export const ImportExportDialog = ({ isOpen, onClose }: ImportExportDialogProps)
           importYaml(importContent)
           setSuccess('YAML configuration imported successfully')
           break
-        case 'postman':
-          const postmanData = JSON.parse(importContent)
+        case 'postman': {
+          const postmanData: unknown = JSON.parse(importContent)
           const yamlFromPostman = YamlService.convertPostmanToYaml(postmanData)
           importYaml(yamlFromPostman)
           setSuccess('Postman collection imported successfully')
           break
-        case 'openapi':
-          const openApiData = JSON.parse(importContent)
+        }
+        case 'openapi': {
+          const openApiData: unknown = JSON.parse(importContent)
           const yamlFromOpenApi = YamlService.convertOpenApiToYaml(openApiData)
           importYaml(yamlFromOpenApi)
           setSuccess('OpenAPI specification imported successfully')
           break
+        }
         default:
           setError('Unsupported import type')
       }
@@ -159,7 +161,7 @@ export const ImportExportDialog = ({ isOpen, onClose }: ImportExportDialogProps)
           {activeTab === 'export' ? (
             <div className={styles.exportTab}>
               <div className={styles.section}>
-                <label className={styles.label}>Export Format:</label>
+                <span className={styles.label}>Export Format:</span>
                 <div className={styles.radioGroup}>
                   <label className={styles.radioLabel}>
                     <input
@@ -188,8 +190,9 @@ export const ImportExportDialog = ({ isOpen, onClose }: ImportExportDialogProps)
           ) : (
             <div className={styles.importTab}>
               <div className={styles.section}>
-                <label className={styles.label}>Import Type:</label>
+                <label htmlFor="import-type-select" className={styles.label}>Import Type:</label>
                 <select
+                  id="import-type-select"
                   value={importType}
                   onChange={(e) => setImportType(e.target.value as ImportType)}
                   className={styles.select}
@@ -202,7 +205,7 @@ export const ImportExportDialog = ({ isOpen, onClose }: ImportExportDialogProps)
               </div>
 
               <div className={styles.section}>
-                <label className={styles.label}>Import Source:</label>
+                <span className={styles.label}>Import Source:</span>
                 <div className={styles.importMethods}>
                   <button
                     className={styles.secondaryButton}

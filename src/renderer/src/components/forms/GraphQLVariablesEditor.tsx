@@ -31,7 +31,7 @@ export const GraphQLVariablesEditor = ({
   const handleFormatVariables = () => {
     try {
       if (variables.trim()) {
-        const parsed = JSON.parse(variables)
+        const parsed: unknown = JSON.parse(variables)
         const formatted = JSON.stringify(parsed, null, 2)
         onVariablesChange(formatted)
         setError(null)
@@ -44,7 +44,7 @@ export const GraphQLVariablesEditor = ({
   return (
     <div className={styles.variablesEditor}>
       <div className={styles.header}>
-        <label className={styles.label}>Variables (JSON)</label>
+        <label htmlFor="variables-textarea" className={styles.label}>Variables (JSON)</label>
         <button
           onClick={handleFormatVariables}
           className={styles.formatButton}
@@ -57,6 +57,7 @@ export const GraphQLVariablesEditor = ({
 
       <div className={styles.editorContainer}>
         <textarea
+          id="variables-textarea"
           value={variables}
           onChange={(e) => handleVariablesChange(e.target.value)}
           placeholder={`{\n  "limit": 10,\n  "offset": 0\n}`}

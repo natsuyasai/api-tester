@@ -125,7 +125,7 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
       <div className={styles.controls}>
         <button
           className={styles.fileButton}
-          onClick={handleLoadFile}
+          onClick={() => handleLoadFile().catch(console.error)}
           aria-label="Load collection from file"
           type="button"
           title="Load"
@@ -134,7 +134,7 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
         </button>
         <button
           className={styles.fileButton}
-          onClick={handleSaveFile}
+          onClick={() => handleSaveFile().catch(console.error)}
           aria-label="Save collection to file"
           type="button"
           title="Save"
