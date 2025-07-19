@@ -9,15 +9,15 @@ interface ResponseViewProps {
 export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
   const { tabs } = useApiStore()
   const [activeTab, setActiveTab] = useState<'body' | 'headers' | 'cookies'>('body')
-  
-  const tab = tabs.find(t => t.id === tabId)
+
+  const tab = tabs.find((t) => t.id === tabId)
   const response = tab?.response
 
   if (!response) {
     return (
       <div className={styles.noResponse}>
         <div className={styles.icon}>📡</div>
-        <h3>No Response</h3>
+        <h2>No Response</h2>
         <p>Send a request to see the response here</p>
       </div>
     )
@@ -52,14 +52,12 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
           <span className={`${styles.status} ${styles[getStatusColor(response.status)]}`}>
             {response.status} {response.statusText}
           </span>
-          <span className={styles.time}>
-            {formatResponseTime(response.duration)}
-          </span>
+          <span className={styles.time}>{formatResponseTime(response.duration)}</span>
           <span className={styles.timestamp}>
             {new Date(response.timestamp).toLocaleTimeString()}
           </span>
         </div>
-        
+
         <div className={styles.tabs}>
           <button
             className={`${styles.tab} ${activeTab === 'body' ? styles.active : ''}`}
@@ -88,12 +86,10 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
       <div className={styles.content}>
         {activeTab === 'body' && (
           <div className={styles.bodyContent}>
-            <pre className={styles.responseBody}>
-              {formatJson(response.data)}
-            </pre>
+            <pre className={styles.responseBody}>{formatJson(response.data)}</pre>
           </div>
         )}
-        
+
         {activeTab === 'headers' && (
           <div className={styles.headersContent}>
             {Object.entries(response.headers).map(([key, value]) => (
@@ -104,12 +100,10 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
             ))}
           </div>
         )}
-        
+
         {activeTab === 'cookies' && (
           <div className={styles.cookiesContent}>
-            <div className={styles.placeholder}>
-              No cookies found in response
-            </div>
+            <div className={styles.placeholder}>No cookies found in response</div>
           </div>
         )}
       </div>

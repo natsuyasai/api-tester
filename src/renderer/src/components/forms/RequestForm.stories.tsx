@@ -1,7 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect } from '@storybook/testing-library'
-import { render, within, screen } from '@storybook/testing-library'
-import { userEvent } from '@storybook/testing-library'
+import { expect, userEvent, within } from 'storybook/test'
 import { useApiStore } from '@/stores/apiStore'
 import { RequestForm } from './RequestForm'
 
@@ -48,7 +46,8 @@ const meta: Meta<typeof RequestForm> = {
     layout: 'fullscreen',
     docs: {
       description: {
-        component: 'APIリクエストを設定するフォームコンポーネント。URL、メソッド、ヘッダー、パラメータ、ボディを設定できます。'
+        component:
+          'APIリクエストを設定するフォームコンポーネント。URL、メソッド、ヘッダー、パラメータ、ボディを設定できます。'
       }
     }
   },
@@ -61,7 +60,7 @@ const meta: Meta<typeof RequestForm> = {
   decorators: [
     (Story) => {
       ;(useApiStore as any) = () => mockStore
-      
+
       return (
         <div style={{ width: '100%', height: '600px', padding: '20px' }}>
           <Story />
@@ -80,20 +79,20 @@ export const Default: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // URL入力フィールドの確認
     const urlInput = canvas.getByPlaceholderText('Enter request URL')
     await expect(urlInput).toBeInTheDocument()
     await expect(urlInput).toHaveValue('https://api.example.com/users')
-    
+
     // メソッド選択の確認
     const methodSelect = canvas.getByDisplayValue('GET')
     await expect(methodSelect).toBeInTheDocument()
-    
+
     // Sendボタンの確認
     const sendButton = canvas.getByRole('button', { name: 'Send' })
     await expect(sendButton).toBeInTheDocument()
-    
+
     // オプションタブの確認
     await expect(canvas.getByRole('button', { name: 'Params' })).toBeInTheDocument()
     await expect(canvas.getByRole('button', { name: 'Headers' })).toBeInTheDocument()
@@ -115,14 +114,14 @@ export const POSTRequest: Story = {
           body: '{\n  "name": "John Doe",\n  "email": "john@example.com"\n}'
         }
       }
-      
+
       const postStore = {
         ...mockStore,
         tabs: [postTab]
       }
-      
+
       ;(useApiStore as any) = () => postStore
-      
+
       return (
         <div style={{ width: '100%', height: '600px', padding: '20px' }}>
           <Story />
@@ -132,14 +131,14 @@ export const POSTRequest: Story = {
   ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // POSTメソッドの確認
     await expect(canvas.getByDisplayValue('POST')).toBeInTheDocument()
-    
+
     // ボディタブをクリック
     const bodyTab = canvas.getByRole('button', { name: 'Body' })
     await userEvent.click(bodyTab)
-    
+
     // ボディ内容の確認
     const bodyTextarea = canvas.getByDisplayValue(/"name": "John Doe"/)
     await expect(bodyTextarea).toBeInTheDocument()
@@ -163,14 +162,14 @@ export const WithHeaders: Story = {
           ]
         }
       }
-      
+
       const headerStore = {
         ...mockStore,
         tabs: [headerTab]
       }
-      
+
       ;(useApiStore as any) = () => headerStore
-      
+
       return (
         <div style={{ width: '100%', height: '600px', padding: '20px' }}>
           <Story />
@@ -180,17 +179,17 @@ export const WithHeaders: Story = {
   ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // ヘッダータブをクリック
     const headersTab = canvas.getByRole('button', { name: 'Headers' })
     await userEvent.click(headersTab)
-    
+
     // ヘッダー項目の確認
     await expect(canvas.getByDisplayValue('Content-Type')).toBeInTheDocument()
     await expect(canvas.getByDisplayValue('application/json')).toBeInTheDocument()
     await expect(canvas.getByDisplayValue('Authorization')).toBeInTheDocument()
     await expect(canvas.getByDisplayValue('Bearer token123')).toBeInTheDocument()
-    
+
     // チェックボックスの確認
     const checkboxes = canvas.getAllByRole('checkbox')
     await expect(checkboxes[0]).toBeChecked()
@@ -216,14 +215,14 @@ export const WithParams: Story = {
           ]
         }
       }
-      
+
       const paramStore = {
         ...mockStore,
         tabs: [paramTab]
       }
-      
+
       ;(useApiStore as any) = () => paramStore
-      
+
       return (
         <div style={{ width: '100%', height: '600px', padding: '20px' }}>
           <Story />
@@ -233,13 +232,13 @@ export const WithParams: Story = {
   ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // パラメータタブ（デフォルトで選択されている）の確認
     await expect(canvas.getByDisplayValue('limit')).toBeInTheDocument()
     await expect(canvas.getByDisplayValue('20')).toBeInTheDocument()
     await expect(canvas.getByDisplayValue('offset')).toBeInTheDocument()
     await expect(canvas.getByDisplayValue('10')).toBeInTheDocument()
-    
+
     // チェックボックスの確認
     const checkboxes = canvas.getAllByRole('checkbox')
     await expect(checkboxes[0]).toBeChecked()
@@ -258,9 +257,9 @@ export const LoadingState: Story = {
         ...mockStore,
         isLoading: true
       }
-      
+
       ;(useApiStore as any) = () => loadingStore
-      
+
       return (
         <div style={{ width: '100%', height: '600px', padding: '20px' }}>
           <Story />
@@ -270,7 +269,7 @@ export const LoadingState: Story = {
   ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // ローディング状態のSendボタンの確認
     const sendButton = canvas.getByRole('button', { name: 'Sending...' })
     await expect(sendButton).toBeInTheDocument()
@@ -291,14 +290,14 @@ export const EmptyURL: Story = {
           url: ''
         }
       }
-      
+
       const emptyStore = {
         ...mockStore,
         tabs: [emptyTab]
       }
-      
+
       ;(useApiStore as any) = () => emptyStore
-      
+
       return (
         <div style={{ width: '100%', height: '600px', padding: '20px' }}>
           <Story />
@@ -308,7 +307,7 @@ export const EmptyURL: Story = {
   ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // 空のURLの場合、Sendボタンが無効化されることを確認
     const sendButton = canvas.getByRole('button', { name: 'Send' })
     await expect(sendButton).toBeDisabled()
@@ -321,28 +320,28 @@ export const InteractiveExample: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // URLを変更
     const urlInput = canvas.getByPlaceholderText('Enter request URL')
     await userEvent.clear(urlInput)
     await userEvent.type(urlInput, 'https://jsonplaceholder.typicode.com/posts')
-    
+
     // メソッドをPOSTに変更
     const methodSelect = canvas.getByDisplayValue('GET')
     await userEvent.selectOptions(methodSelect, 'POST')
-    
+
     // ボディタブに移動
     const bodyTab = canvas.getByRole('button', { name: 'Body' })
     await userEvent.click(bodyTab)
-    
+
     // ボディを入力
     const bodyTextarea = canvas.getByPlaceholderText(/Enter JSON body/)
     await userEvent.type(bodyTextarea, '{"title": "Test Post", "body": "This is a test"}')
-    
+
     // ヘッダータブに移動
     const headersTab = canvas.getByRole('button', { name: 'Headers' })
     await userEvent.click(headersTab)
-    
+
     // ヘッダーを追加
     const addHeaderButton = canvas.getByRole('button', { name: /add header/i })
     await userEvent.click(addHeaderButton)

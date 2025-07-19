@@ -1,7 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect } from '@storybook/testing-library'
-import { render, within, screen } from '@storybook/testing-library'
-import { userEvent } from '@storybook/testing-library'
+import { expect, userEvent, within } from 'storybook/test'
 import { useApiStore } from '@/stores/apiStore'
 import { KeyValueEditor } from './KeyValueEditor'
 
@@ -43,7 +41,7 @@ const meta: Meta<typeof KeyValueEditor> = {
   decorators: [
     (Story) => {
       ;(useApiStore as any) = () => mockStore
-      
+
       return (
         <div style={{ width: '100%', height: '400px', padding: '20px' }}>
           <Story />
@@ -60,24 +58,22 @@ export const HeadersEmpty: Story = {
   args: {
     tabId: 'tab-1',
     type: 'headers',
-    items: [
-      { key: '', value: '', enabled: true }
-    ]
+    items: [{ key: '', value: '', enabled: true }]
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // ヘッダーの確認
     await expect(canvas.getByText('Key')).toBeInTheDocument()
     await expect(canvas.getByText('Value')).toBeInTheDocument()
     await expect(canvas.getByText('Actions')).toBeInTheDocument()
-    
+
     // 空の入力フィールドの確認
     const keyInput = canvas.getByPlaceholderText('Key')
     const valueInput = canvas.getByPlaceholderText('Value')
     await expect(keyInput).toBeInTheDocument()
     await expect(valueInput).toBeInTheDocument()
-    
+
     // 追加ボタンの確認
     await expect(canvas.getByRole('button', { name: 'Add Header' })).toBeInTheDocument()
   }
@@ -96,20 +92,20 @@ export const HeadersWithData: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // ヘッダー値の確認
     await expect(canvas.getByDisplayValue('Content-Type')).toBeInTheDocument()
     await expect(canvas.getByDisplayValue('application/json')).toBeInTheDocument()
     await expect(canvas.getByDisplayValue('Authorization')).toBeInTheDocument()
     await expect(canvas.getByDisplayValue('Bearer token123')).toBeInTheDocument()
-    
+
     // チェックボックスの状態確認
     const checkboxes = canvas.getAllByRole('checkbox')
     await expect(checkboxes[0]).toBeChecked()
     await expect(checkboxes[1]).toBeChecked()
     await expect(checkboxes[2]).not.toBeChecked()
     await expect(checkboxes[3]).toBeChecked()
-    
+
     // 削除ボタンの確認
     const removeButtons = canvas.getAllByLabelText('Remove item')
     await expect(removeButtons).toHaveLength(4)
@@ -120,13 +116,11 @@ export const ParametersEmpty: Story = {
   args: {
     tabId: 'tab-1',
     type: 'params',
-    items: [
-      { key: '', value: '', enabled: true }
-    ]
+    items: [{ key: '', value: '', enabled: true }]
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // パラメータ用の追加ボタンの確認
     await expect(canvas.getByRole('button', { name: 'Add Parameter' })).toBeInTheDocument()
   }
@@ -145,7 +139,7 @@ export const ParametersWithData: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // パラメータ値の確認
     await expect(canvas.getByDisplayValue('limit')).toBeInTheDocument()
     await expect(canvas.getByDisplayValue('20')).toBeInTheDocument()
@@ -153,12 +147,12 @@ export const ParametersWithData: Story = {
     await expect(canvas.getByDisplayValue('0')).toBeInTheDocument()
     await expect(canvas.getByDisplayValue('sort')).toBeInTheDocument()
     await expect(canvas.getByDisplayValue('name')).toBeInTheDocument()
-    
+
     // 無効化されたフィールドの確認
     const inputs = canvas.getAllByRole('textbox')
-    const sortKeyInput = inputs.find(input => (input as HTMLInputElement).value === 'sort')
-    const sortValueInput = inputs.find(input => (input as HTMLInputElement).value === 'name')
-    
+    const sortKeyInput = inputs.find((input) => (input as HTMLInputElement).value === 'sort')
+    const sortValueInput = inputs.find((input) => (input as HTMLInputElement).value === 'name')
+
     await expect(sortKeyInput).toBeDisabled()
     await expect(sortValueInput).toBeDisabled()
   }
@@ -175,20 +169,20 @@ export const InteractiveHeaders: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // 新しいヘッダーを追加
     const addButton = canvas.getByRole('button', { name: 'Add Header' })
     await userEvent.click(addButton)
-    
+
     // チェックボックスの切り替えテスト
     const checkboxes = canvas.getAllByRole('checkbox')
     await userEvent.click(checkboxes[0])
-    
+
     // 入力フィールドの編集テスト
     const keyInputs = canvas.getAllByPlaceholderText('Key')
     await userEvent.clear(keyInputs[1])
     await userEvent.type(keyInputs[1], 'X-Custom-Header')
-    
+
     const valueInputs = canvas.getAllByPlaceholderText('Value')
     await userEvent.clear(valueInputs[1])
     await userEvent.type(valueInputs[1], 'custom-value')
@@ -206,11 +200,11 @@ export const InteractiveParams: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // 削除ボタンのテスト
     const removeButtons = canvas.getAllByLabelText('Remove item')
     await userEvent.click(removeButtons[0])
-    
+
     // 新しいパラメータを追加
     const addButton = canvas.getByRole('button', { name: 'Add Parameter' })
     await userEvent.click(addButton)
@@ -222,24 +216,27 @@ export const LongValueTruncation: Story = {
     tabId: 'tab-1',
     type: 'headers',
     items: [
-      { 
-        key: 'Authorization', 
-        value: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c', 
-        enabled: true 
+      {
+        key: 'Authorization',
+        value:
+          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+        enabled: true
       },
-      { 
-        key: 'X-Very-Long-Header-Name-That-Might-Overflow', 
-        value: 'very-long-header-value-that-might-cause-ui-issues-when-displayed-in-the-interface', 
-        enabled: true 
+      {
+        key: 'X-Very-Long-Header-Name-That-Might-Overflow',
+        value: 'very-long-header-value-that-might-cause-ui-issues-when-displayed-in-the-interface',
+        enabled: true
       }
     ]
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // 長い値が表示されているか確認
     await expect(canvas.getByDisplayValue(/Bearer eyJhbGciOiJIUzI1NiIs/)).toBeInTheDocument()
-    await expect(canvas.getByDisplayValue('X-Very-Long-Header-Name-That-Might-Overflow')).toBeInTheDocument()
+    await expect(
+      canvas.getByDisplayValue('X-Very-Long-Header-Name-That-Might-Overflow')
+    ).toBeInTheDocument()
   }
 }
 
@@ -256,15 +253,15 @@ export const MixedEnabledDisabled: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // 有効・無効のフィールドが適切に表示されているか確認
     const inputs = canvas.getAllByRole('textbox')
-    const enabledInputs = inputs.filter(input => !(input as HTMLInputElement).disabled)
-    const disabledInputs = inputs.filter(input => (input as HTMLInputElement).disabled)
-    
+    const enabledInputs = inputs.filter((input) => !(input as HTMLInputElement).disabled)
+    const disabledInputs = inputs.filter((input) => (input as HTMLInputElement).disabled)
+
     // 有効なフィールド（Content-Type, Accept）は4つ（キー2つ、値2つ）
     await expect(enabledInputs).toHaveLength(4)
-    // 無効なフィールド（Authorization, X-Debug）は4つ（キー2つ、値2つ）  
+    // 無効なフィールド（Authorization, X-Debug）は4つ（キー2つ、値2つ）
     await expect(disabledInputs).toHaveLength(4)
   }
 }

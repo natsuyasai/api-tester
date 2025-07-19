@@ -1,7 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect } from '@storybook/testing-library'
-import { render, within, screen } from '@storybook/testing-library'
-import { userEvent } from '@storybook/testing-library'
+import { expect, userEvent, within } from 'storybook/test'
 import { useApiStore } from '@/stores/apiStore'
 import { ApiResponse } from '@/types/types'
 import { ResponseView } from './ResponseView'

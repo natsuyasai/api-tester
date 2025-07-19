@@ -1,9 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { TabBar } from './TabBar'
 
-// Mock useApiStore hook
-const mockUseApiStore = (state: any) => state
-
 // Create mock component with data
 const TabBarWithMockData = ({ tabs, ...props }: any) => {
   // Override the useApiStore temporarily
@@ -49,7 +46,7 @@ const TabBarWithMockData = ({ tabs, ...props }: any) => {
     closeTab: (id: string) => console.log('closeTab called', id),
     setActiveTab: (id: string) => console.log('setActiveTab called', id)
   })
-  
+
   return <TabBar {...props} />
 }
 
