@@ -1,7 +1,7 @@
+import { v4 as uuidv4 } from 'uuid'
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { ApiTab, ApiRequest, ApiResponse, KeyValuePair, HttpMethod, BodyType } from '@/types/types'
-import { v4 as uuidv4 } from 'uuid'
 
 // ストアの状態の型定義
 interface ApiState {
@@ -101,10 +101,12 @@ export const useApiStore = create<ApiState & ApiActions>()(
         
         // 閉じたタブがアクティブだった場合、新しいアクティブタブを決定
         if (state.activeTabId === tabId) {
-          if (tabIndex >= newTabs.length) {
-            newActiveTabId = newTabs[newTabs.length - 1].id
-          } else {
-            newActiveTabId = newTabs[tabIndex].id
+          if (newTabs.length > 0) {
+            if (tabIndex >= newTabs.length) {
+              newActiveTabId = newTabs[newTabs.length - 1].id
+            } else {
+              newActiveTabId = newTabs[tabIndex].id
+            }
           }
         }
         
@@ -307,29 +309,35 @@ export const useApiStore = create<ApiState & ApiActions>()(
       
       importConfig: (configJson: string) => {
         try {
-          const config = JSON.parse(configJson)
-          if (!config.tabs || !Array.isArray(config.tabs)) {
+          const config = JSON.parse(configJson) as unknown
+          if (!config || typeof config !== 'object' || !('tabs' in config) || !Array.isArray((config as { tabs: unknown }).tabs)) {
             throw new Error('Invalid config format')
           }
           
-          const importedTabs: ApiTab[] = config.tabs.map((tabData: any, index: number) => ({
-            id: uuidv4(),
-            title: tabData.title || `Imported ${index + 1}`,
-            request: {
+          const configData = config as { tabs: unknown[] }
+          const importedTabs: ApiTab[] = configData.tabs.map((tabData: unknown, index: number) => {
+            const tab = tabData as Record<string, unknown>
+            const request = (tab.request as Record<string, unknown>) || {}
+            
+            return {
               id: uuidv4(),
-              name: tabData.request?.name || `Imported ${index + 1}`,
-              url: tabData.request?.url || '',
-              method: tabData.request?.method || 'GET',
-              headers: tabData.request?.headers || [{ key: '', value: '', enabled: true }],
-              params: tabData.request?.params || [{ key: '', value: '', enabled: true }],
-              body: tabData.request?.body || '',
-              bodyType: tabData.request?.bodyType || 'json',
-              type: tabData.request?.type || 'rest',
-              variables: tabData.request?.variables || {}
-            },
-            response: null,
-            isActive: false
-          }))
+              title: (tab.title as string) || `Imported ${index + 1}`,
+              request: {
+                id: uuidv4(),
+                name: (request.name as string) || `Imported ${index + 1}`,
+                url: (request.url as string) || '',
+                method: (request.method as HttpMethod) || 'GET',
+                headers: (request.headers as KeyValuePair[]) || [{ key: '', value: '', enabled: true }],
+                params: (request.params as KeyValuePair[]) || [{ key: '', value: '', enabled: true }],
+                body: (request.body as string) || '',
+                bodyType: (request.bodyType as BodyType) || 'json',
+                type: (request.type as 'rest' | 'graphql') || 'rest',
+                variables: (request.variables as Record<string, unknown>) || {}
+              },
+              response: null,
+              isActive: false
+            }
+          })
           
           if (importedTabs.length > 0) {
             importedTabs[0].isActive = true

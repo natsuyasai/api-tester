@@ -16,10 +16,14 @@ const ignores = {
     "node_modules",
     "dist",
     "build",
+    "out",
+    "coverage",
     "eslint.config.mjs",
     "postcss.config.ts",
     "vite.config.ts",
     "vitest.config.ts",
+    "vitest.config.mjs",
+    "vitest.config.simple.ts",
     "vitest.shims.d.ts",
     "vitest.workspace.ts",
     "storybook-static",
@@ -107,6 +111,28 @@ const storybookConfig = {
   plugins: {
     storybook: storybook,
   },
+  rules: {
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/no-unsafe-return": "off",
+    "@typescript-eslint/no-require-imports": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "storybook/use-storybook-expect": "off",
+  },
+};
+
+const testConfig = {
+  name: "test",
+  files: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx", "src/test/**/*"],
+  rules: {
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+  },
 };
 
 const a11yConfig = {
@@ -137,7 +163,6 @@ const a11yConfig = {
 export default [
   ignores,
   ...storybook.configs["flat/recommended"],
-  storybookConfig,
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked.map(config => ({
     ...config,
@@ -153,5 +178,7 @@ export default [
   typescriptConfig,
   reactConfig,
   jsxA11y.flatConfigs.strict,
-  a11yConfig
+  a11yConfig,
+  testConfig,
+  storybookConfig
 ];

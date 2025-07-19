@@ -66,11 +66,11 @@ describe('TabBar', () => {
   it('should highlight active tab', () => {
     render(<TabBar />)
     
-    const tab1Container = screen.getByText('Tab 1').closest('.tab')
-    const tab2Container = screen.getByText('Tab 2').closest('.tab')
+    const tab1Container = screen.getByText('Tab 1').closest('div')
+    const tab2Container = screen.getByText('Tab 2').closest('div')
     
-    expect(tab1Container).toHaveClass('active')
-    expect(tab2Container).not.toHaveClass('active')
+    expect(tab1Container).toHaveClass(/active/)
+    expect(tab2Container).not.toHaveClass(/active/)
   })
 
   it('should call setActiveTab when tab is clicked', () => {

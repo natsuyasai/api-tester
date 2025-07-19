@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ApiService } from './apiService'
 import { ApiRequest } from '@/types/types'
+import { ApiService } from './apiService'
 
 // Mock fetch
 const mockFetch = vi.fn()

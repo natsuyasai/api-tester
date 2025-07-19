@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect, userEvent, within } from '@storybook/test'
+import { expect } from '@storybook/testing-library'
+import { render, within, screen } from '@storybook/testing-library'
+import { userEvent } from '@storybook/testing-library'
 import { useApiStore } from '@/stores/apiStore'
 import { ApiResponse } from '@/types/types'
 import { ResponseView } from './ResponseView'
@@ -56,7 +58,8 @@ const meta: Meta<typeof ResponseView> = {
     layout: 'fullscreen',
     docs: {
       description: {
-        component: 'APIレスポンスを表示するコンポーネント。ステータス、ヘッダー、ボディを表示します。'
+        component:
+          'APIレスポンスを表示するコンポーネント。ステータス、ヘッダー、ボディを表示します。'
       }
     }
   },
@@ -78,26 +81,28 @@ export const NoResponse: Story = {
   decorators: [
     (Story) => {
       const storeWithoutResponse = {
-        tabs: [{
-          id: 'tab-1',
-          title: 'Test Tab',
-          isActive: true,
-          request: {
-            id: 'req-1',
-            name: 'Test Request',
-            url: '',
-            method: 'GET' as const,
-            headers: [],
-            params: [],
-            body: '',
-            bodyType: 'json' as const,
-            type: 'rest' as const
-          },
-          response: null
-        }]
+        tabs: [
+          {
+            id: 'tab-1',
+            title: 'Test Tab',
+            isActive: true,
+            request: {
+              id: 'req-1',
+              name: 'Test Request',
+              url: '',
+              method: 'GET' as const,
+              headers: [],
+              params: [],
+              body: '',
+              bodyType: 'json' as const,
+              type: 'rest' as const
+            },
+            response: null
+          }
+        ]
       }
       ;(useApiStore as any) = () => storeWithoutResponse
-      
+
       return (
         <div style={{ width: '100%', height: '400px' }}>
           <Story />
@@ -107,7 +112,7 @@ export const NoResponse: Story = {
   ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     await expect(canvas.getByText('No Response')).toBeInTheDocument()
     await expect(canvas.getByText('Send a request to see the response here')).toBeInTheDocument()
   }
@@ -120,26 +125,28 @@ export const SuccessResponse: Story = {
   decorators: [
     (Story) => {
       const storeWithResponse = {
-        tabs: [{
-          id: 'tab-1',
-          title: 'Test Tab',
-          isActive: true,
-          request: {
-            id: 'req-1',
-            name: 'Test Request',
-            url: 'https://api.example.com/users',
-            method: 'GET' as const,
-            headers: [],
-            params: [],
-            body: '',
-            bodyType: 'json' as const,
-            type: 'rest' as const
-          },
-          response: successResponse
-        }]
+        tabs: [
+          {
+            id: 'tab-1',
+            title: 'Test Tab',
+            isActive: true,
+            request: {
+              id: 'req-1',
+              name: 'Test Request',
+              url: 'https://api.example.com/users',
+              method: 'GET' as const,
+              headers: [],
+              params: [],
+              body: '',
+              bodyType: 'json' as const,
+              type: 'rest' as const
+            },
+            response: successResponse
+          }
+        ]
       }
       ;(useApiStore as any) = () => storeWithResponse
-      
+
       return (
         <div style={{ width: '100%', height: '500px' }}>
           <Story />
@@ -149,16 +156,16 @@ export const SuccessResponse: Story = {
   ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // ステータス情報の確認
     await expect(canvas.getByText('200 OK')).toBeInTheDocument()
     await expect(canvas.getByText('150ms')).toBeInTheDocument()
-    
+
     // タブの確認
     await expect(canvas.getByRole('button', { name: 'Body' })).toBeInTheDocument()
     await expect(canvas.getByRole('button', { name: 'Headers' })).toBeInTheDocument()
     await expect(canvas.getByRole('button', { name: 'Cookies' })).toBeInTheDocument()
-    
+
     // JSONレスポンスの確認
     await expect(canvas.getByText(/"users":/)).toBeInTheDocument()
   }
@@ -171,26 +178,28 @@ export const ErrorResponse: Story = {
   decorators: [
     (Story) => {
       const storeWithErrorResponse = {
-        tabs: [{
-          id: 'tab-1',
-          title: 'Test Tab',
-          isActive: true,
-          request: {
-            id: 'req-1',
-            name: 'Test Request',
-            url: 'https://api.example.com/users/999',
-            method: 'GET' as const,
-            headers: [],
-            params: [],
-            body: '',
-            bodyType: 'json' as const,
-            type: 'rest' as const
-          },
-          response: errorResponse
-        }]
+        tabs: [
+          {
+            id: 'tab-1',
+            title: 'Test Tab',
+            isActive: true,
+            request: {
+              id: 'req-1',
+              name: 'Test Request',
+              url: 'https://api.example.com/users/999',
+              method: 'GET' as const,
+              headers: [],
+              params: [],
+              body: '',
+              bodyType: 'json' as const,
+              type: 'rest' as const
+            },
+            response: errorResponse
+          }
+        ]
       }
       ;(useApiStore as any) = () => storeWithErrorResponse
-      
+
       return (
         <div style={{ width: '100%', height: '500px' }}>
           <Story />
@@ -200,10 +209,10 @@ export const ErrorResponse: Story = {
   ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // エラーステータスの確認
     await expect(canvas.getByText('404 Not Found')).toBeInTheDocument()
-    
+
     // エラーレスポンスの確認
     await expect(canvas.getByText(/"error":/)).toBeInTheDocument()
   }
@@ -216,26 +225,28 @@ export const TextResponse: Story = {
   decorators: [
     (Story) => {
       const storeWithTextResponse = {
-        tabs: [{
-          id: 'tab-1',
-          title: 'Test Tab',
-          isActive: true,
-          request: {
-            id: 'req-1',
-            name: 'Test Request',
-            url: 'https://api.example.com/health',
-            method: 'GET' as const,
-            headers: [],
-            params: [],
-            body: '',
-            bodyType: 'json' as const,
-            type: 'rest' as const
-          },
-          response: textResponse
-        }]
+        tabs: [
+          {
+            id: 'tab-1',
+            title: 'Test Tab',
+            isActive: true,
+            request: {
+              id: 'req-1',
+              name: 'Test Request',
+              url: 'https://api.example.com/health',
+              method: 'GET' as const,
+              headers: [],
+              params: [],
+              body: '',
+              bodyType: 'json' as const,
+              type: 'rest' as const
+            },
+            response: textResponse
+          }
+        ]
       }
       ;(useApiStore as any) = () => storeWithTextResponse
-      
+
       return (
         <div style={{ width: '100%', height: '500px' }}>
           <Story />
@@ -245,9 +256,11 @@ export const TextResponse: Story = {
   ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // テキストレスポンスの確認
-    await expect(canvas.getByText('This is a plain text response from the server.')).toBeInTheDocument()
+    await expect(
+      canvas.getByText('This is a plain text response from the server.')
+    ).toBeInTheDocument()
   }
 }
 
@@ -258,26 +271,28 @@ export const HeadersView: Story = {
   decorators: [
     (Story) => {
       const storeWithResponse = {
-        tabs: [{
-          id: 'tab-1',
-          title: 'Test Tab',
-          isActive: true,
-          request: {
-            id: 'req-1',
-            name: 'Test Request',
-            url: 'https://api.example.com/users',
-            method: 'GET' as const,
-            headers: [],
-            params: [],
-            body: '',
-            bodyType: 'json' as const,
-            type: 'rest' as const
-          },
-          response: successResponse
-        }]
+        tabs: [
+          {
+            id: 'tab-1',
+            title: 'Test Tab',
+            isActive: true,
+            request: {
+              id: 'req-1',
+              name: 'Test Request',
+              url: 'https://api.example.com/users',
+              method: 'GET' as const,
+              headers: [],
+              params: [],
+              body: '',
+              bodyType: 'json' as const,
+              type: 'rest' as const
+            },
+            response: successResponse
+          }
+        ]
       }
       ;(useApiStore as any) = () => storeWithResponse
-      
+
       return (
         <div style={{ width: '100%', height: '500px' }}>
           <Story />
@@ -287,11 +302,11 @@ export const HeadersView: Story = {
   ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // ヘッダータブをクリック
     const headersTab = canvas.getByRole('button', { name: 'Headers' })
     await userEvent.click(headersTab)
-    
+
     // ヘッダー情報の確認
     await expect(canvas.getByText('content-type:')).toBeInTheDocument()
     await expect(canvas.getByText('application/json')).toBeInTheDocument()
@@ -310,28 +325,30 @@ export const SlowResponse: Story = {
         ...successResponse,
         duration: 2500
       }
-      
+
       const storeWithSlowResponse = {
-        tabs: [{
-          id: 'tab-1',
-          title: 'Test Tab',
-          isActive: true,
-          request: {
-            id: 'req-1',
-            name: 'Test Request',
-            url: 'https://api.example.com/slow',
-            method: 'GET' as const,
-            headers: [],
-            params: [],
-            body: '',
-            bodyType: 'json' as const,
-            type: 'rest' as const
-          },
-          response: slowResponse
-        }]
+        tabs: [
+          {
+            id: 'tab-1',
+            title: 'Test Tab',
+            isActive: true,
+            request: {
+              id: 'req-1',
+              name: 'Test Request',
+              url: 'https://api.example.com/slow',
+              method: 'GET' as const,
+              headers: [],
+              params: [],
+              body: '',
+              bodyType: 'json' as const,
+              type: 'rest' as const
+            },
+            response: slowResponse
+          }
+        ]
       }
       ;(useApiStore as any) = () => storeWithSlowResponse
-      
+
       return (
         <div style={{ width: '100%', height: '500px' }}>
           <Story />
@@ -341,7 +358,7 @@ export const SlowResponse: Story = {
   ],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // 遅いレスポンス時間の表示確認
     await expect(canvas.getByText('2.50s')).toBeInTheDocument()
   }

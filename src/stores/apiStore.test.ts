@@ -1,10 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { useApiStore } from './apiStore'
 import { ApiResponse } from '@/types/types'
+import { useApiStore } from './apiStore'
 
 // UUID をモック
 vi.mock('uuid', () => ({
-  v4: vi.fn(() => 'mocked-uuid')
+  v4: (() => {
+    let counter = 0
+    return () => `test-id-${++counter}`
+  })()
 }))
 
 describe('ApiStore', () => {
@@ -20,7 +23,7 @@ describe('ApiStore', () => {
       expect(state.tabs).toHaveLength(1)
       expect(state.tabs[0].title).toBe('New Request')
       expect(state.tabs[0].isActive).toBe(true)
-      expect(state.activeTabId).toBe('mocked-uuid')
+      expect(state.activeTabId).toBe(state.tabs[0].id)
       expect(state.isLoading).toBe(false)
     })
   })
@@ -34,7 +37,7 @@ describe('ApiStore', () => {
       expect(state.tabs).toHaveLength(2)
       expect(state.tabs[1].isActive).toBe(true)
       expect(state.tabs[0].isActive).toBe(false)
-      expect(state.activeTabId).toBe('mocked-uuid')
+      expect(state.activeTabId).toBe(state.tabs[1].id)
     })
 
     it('should set active tab', () => {

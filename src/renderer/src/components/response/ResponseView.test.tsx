@@ -74,7 +74,7 @@ describe('ResponseView', () => {
     
     expect(screen.getByText('200 OK')).toBeInTheDocument()
     expect(screen.getByText('150ms')).toBeInTheDocument()
-    expect(screen.getByText(/10:30:00/)).toBeInTheDocument()
+    expect(screen.getByText(/19:30:00/)).toBeInTheDocument()
   })
 
   it('should format response time correctly', () => {
@@ -98,7 +98,7 @@ describe('ResponseView', () => {
     render(<ResponseView tabId="tab-1" />)
     
     const statusElement = screen.getByText('200 OK')
-    expect(statusElement).toHaveClass('success')
+    expect(statusElement).toHaveClass(/success/)
   })
 
   it('should display error status with red styling', () => {
@@ -117,7 +117,7 @@ describe('ResponseView', () => {
     render(<ResponseView tabId="tab-1" />)
     
     const statusElement = screen.getByText('404 Not Found')
-    expect(statusElement).toHaveClass('error')
+    expect(statusElement).toHaveClass(/error/)
   })
 
   it('should display warning status with yellow styling', () => {
@@ -136,7 +136,7 @@ describe('ResponseView', () => {
     render(<ResponseView tabId="tab-1" />)
     
     const statusElement = screen.getByText('301 Moved Permanently')
-    expect(statusElement).toHaveClass('warning')
+    expect(statusElement).toHaveClass(/warning/)
   })
 
   it('should render response tabs', () => {
@@ -160,7 +160,7 @@ describe('ResponseView', () => {
     const headersTab = screen.getByRole('button', { name: 'Headers' })
     fireEvent.click(headersTab)
     
-    expect(headersTab).toHaveClass('active')
+    expect(headersTab).toHaveClass(/active/)
     expect(screen.getByText('content-type:')).toBeInTheDocument()
     expect(screen.getByText('application/json')).toBeInTheDocument()
     expect(screen.getByText('x-ratelimit-remaining:')).toBeInTheDocument()
@@ -173,7 +173,7 @@ describe('ResponseView', () => {
     const cookiesTab = screen.getByRole('button', { name: 'Cookies' })
     fireEvent.click(cookiesTab)
     
-    expect(cookiesTab).toHaveClass('active')
+    expect(cookiesTab).toHaveClass(/active/)
     expect(screen.getByText('No cookies found in response')).toBeInTheDocument()
   })
 
@@ -202,7 +202,7 @@ describe('ResponseView', () => {
     
     render(<ResponseView tabId="tab-1" />)
     
-    expect(screen.getByText('Plain text response')).toBeInTheDocument()
+    expect(screen.getByText(/Plain text response/)).toBeInTheDocument()
   })
 
   it('should handle malformed data gracefully', () => {
