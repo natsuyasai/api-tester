@@ -1,6 +1,6 @@
 import yaml from 'js-yaml'
+import { v4 as uuidv4 } from 'uuid'
 import { ApiTab, ApiRequest } from '@/types/types'
-
 export interface YamlExportData {
   version: string
   collections: YamlCollection[]
@@ -30,11 +30,11 @@ export class YamlService {
    */
   static exportToYaml(tabs: ApiTab[]): string {
     const collections: YamlCollection[] = []
-    
+
     // タブを単一のコレクションとして扱う
     if (tabs.length > 0) {
-      const requests: YamlRequest[] = tabs.map(tab => this.convertTabToYamlRequest(tab))
-      
+      const requests: YamlRequest[] = tabs.map((tab) => this.convertTabToYamlRequest(tab))
+
       collections.push({
         name: 'API Collection',
         description: `Exported collection with ${tabs.length} requests`,
@@ -61,7 +61,7 @@ export class YamlService {
   static importFromYaml(yamlContent: string): ApiTab[] {
     try {
       const data = yaml.load(yamlContent) as YamlExportData
-      
+
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid YAML format')
       }
@@ -72,7 +72,7 @@ export class YamlService {
 
       const importedTabs: ApiTab[] = []
 
-      data.collections.forEach(collection => {
+      data.collections.forEach((collection) => {
         if (collection.requests && Array.isArray(collection.requests)) {
           collection.requests.forEach((request, index) => {
             const tab = this.convertYamlRequestToTab(request, index)
@@ -112,14 +112,14 @@ export class YamlService {
         throw new Error('Invalid Postman collection format')
       }
 
-      const requests: YamlRequest[] = collection.item.map(item => {
+      const requests: YamlRequest[] = collection.item.map((item) => {
         const request = item.request || {}
         const url = typeof request.url === 'string' ? request.url : request.url?.raw || ''
-        
+
         // ヘッダーを変換
         const headers: Record<string, string> = {}
         if (request.header && Array.isArray(request.header)) {
-          request.header.forEach(h => {
+          request.header.forEach((h) => {
             if (h.key && h.value) {
               headers[h.key] = h.value
             }
@@ -138,11 +138,13 @@ export class YamlService {
 
       const yamlData: YamlExportData = {
         version: '1.0',
-        collections: [{
-          name: collection.info?.name || 'Imported Collection',
-          description: collection.info?.description,
-          requests
-        }]
+        collections: [
+          {
+            name: collection.info?.name || 'Imported Collection',
+            description: collection.info?.description,
+            requests
+          }
+        ]
       }
 
       return yaml.dump(yamlData, {
@@ -151,7 +153,9 @@ export class YamlService {
         noRefs: true
       })
     } catch (error) {
-      throw new Error(`Postman conversion error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Postman conversion error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
@@ -163,11 +167,17 @@ export class YamlService {
       const spec = openApiSpec as {
         info?: { title?: string; description?: string }
         servers?: Array<{ url?: string }>
-        paths?: Record<string, Record<string, {
-          summary?: string
-          parameters?: Array<{ name?: string; in?: string }>
-          requestBody?: { content?: Record<string, unknown> }
-        }>>
+        paths?: Record<
+          string,
+          Record<
+            string,
+            {
+              summary?: string
+              parameters?: Array<{ name?: string; in?: string }>
+              requestBody?: { content?: Record<string, unknown> }
+            }
+          >
+        >
       }
 
       if (!spec.paths) {
@@ -180,7 +190,7 @@ export class YamlService {
       Object.entries(spec.paths).forEach(([path, methods]) => {
         Object.entries(methods).forEach(([method, operation]) => {
           const fullUrl = baseUrl + path
-          
+
           requests.push({
             name: operation.summary || `${method.toUpperCase()} ${path}`,
             method: method.toUpperCase(),
@@ -192,11 +202,13 @@ export class YamlService {
 
       const yamlData: YamlExportData = {
         version: '1.0',
-        collections: [{
-          name: spec.info?.title || 'OpenAPI Collection',
-          description: spec.info?.description,
-          requests
-        }]
+        collections: [
+          {
+            name: spec.info?.title || 'OpenAPI Collection',
+            description: spec.info?.description,
+            requests
+          }
+        ]
       }
 
       return yaml.dump(yamlData, {
@@ -205,26 +217,28 @@ export class YamlService {
         noRefs: true
       })
     } catch (error) {
-      throw new Error(`OpenAPI conversion error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `OpenAPI conversion error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
   private static convertTabToYamlRequest(tab: ApiTab): YamlRequest {
     const request = tab.request
-    
+
     // ヘッダーを辞書形式に変換
     const headers: Record<string, string> = {}
     request.headers
-      .filter(h => h.enabled && h.key && h.value)
-      .forEach(h => {
+      .filter((h) => h.enabled && h.key && h.value)
+      .forEach((h) => {
         headers[h.key] = h.value
       })
 
     // パラメータを辞書形式に変換
     const params: Record<string, string> = {}
     request.params
-      .filter(p => p.enabled && p.key && p.value)
-      .forEach(p => {
+      .filter((p) => p.enabled && p.key && p.value)
+      .forEach((p) => {
         params[p.key] = p.value
       })
 
@@ -263,17 +277,15 @@ export class YamlService {
   }
 
   private static convertYamlRequestToTab(yamlRequest: YamlRequest, index: number): ApiTab {
-    const { v4: uuidv4 } = require('uuid')
-    
     // ヘッダーを配列形式に変換
-    const headers = yamlRequest.headers 
+    const headers = yamlRequest.headers
       ? Object.entries(yamlRequest.headers).map(([key, value]) => ({
           key,
           value,
           enabled: true
         }))
       : []
-    
+
     // 空の行を追加
     headers.push({ key: '', value: '', enabled: true })
 
@@ -285,7 +297,7 @@ export class YamlService {
           enabled: true
         }))
       : []
-    
+
     // 空の行を追加
     params.push({ key: '', value: '', enabled: true })
 
