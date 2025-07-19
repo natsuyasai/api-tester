@@ -1,4 +1,4 @@
-import { JSX, useState } from 'react'
+import { JSX, useId, useState } from 'react'
 import { BodyType, KeyValuePair } from '@/types/types'
 import styles from './BodyEditor.module.scss'
 import { FormDataEditor } from './FormDataEditor'
@@ -23,7 +23,8 @@ export const BodyEditor = ({
   onVariablesChange
 }: BodyEditorProps): JSX.Element => {
   const [inputMode, setInputMode] = useState<'raw' | 'json'>('json')
-  const [formData, setFormData] = useState<KeyValuePair[]>([])
+  const [, setFormData] = useState<KeyValuePair[]>([])
+  const queryTextareaId = useId()
 
   // bodyをform-dataとして解析する関数
   const parseFormData = (bodyString: string): KeyValuePair[] => {
@@ -136,9 +137,15 @@ export const BodyEditor = ({
           <div className={styles.graphqlEditor}>
             <div className={styles.querySection}>
               <div className={styles.sectionHeader}>
-                <label className={styles.sectionLabel}>Query</label>
+                <label
+                  htmlFor={`graphql-query-textarea-${queryTextareaId}`}
+                  className={styles.sectionLabel}
+                >
+                  Query
+                </label>
               </div>
               <textarea
+                id={`graphql-query-textarea-${queryTextareaId}`}
                 value={body}
                 onChange={(e) => onBodyChange(e.target.value)}
                 placeholder="query {\n  users {\n    id\n    name\n    email\n  }\n}"
@@ -152,7 +159,9 @@ export const BodyEditor = ({
                   variables={JSON.stringify(variables, null, 2)}
                   onVariablesChange={(variablesStr) => {
                     try {
-                      const parsedVariables = variablesStr.trim() ? JSON.parse(variablesStr) : {}
+                      const parsedVariables: Record<string, unknown> = variablesStr.trim()
+                        ? (JSON.parse(variablesStr) as Record<string, unknown>)
+                        : {}
                       onVariablesChange(parsedVariables)
                     } catch {
                       // 無効なJSONの場合は何もしない

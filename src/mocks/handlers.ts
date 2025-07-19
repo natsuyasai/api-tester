@@ -15,7 +15,15 @@ export const handlers = [
 
   // POST /api/users
   http.post('https://api.example.com/users', async ({ request }) => {
-    const body = await request.json()
+    let body: Record<string, unknown> = {}
+    try {
+      const parsed = await request.json()
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        body = parsed
+      }
+    } catch {
+      body = {}
+    }
     return HttpResponse.json(
       {
         id: 123,

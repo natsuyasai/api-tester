@@ -27,7 +27,8 @@ const ignores = {
     'vitest.shims.d.ts',
     'vitest.workspace.ts',
     'storybook-static',
-    'scripts'
+    'scripts',
+    '.storybook/public'
   ]
 }
 

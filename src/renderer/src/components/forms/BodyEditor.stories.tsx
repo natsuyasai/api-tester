@@ -113,7 +113,7 @@ export const GraphQLEmpty: Story = {
     await expect(canvas.getByRole('button', { name: 'Raw' })).toBeInTheDocument()
 
     // フォーマットボタンはGraphQLでは表示されない
-    expect(canvas.queryByRole('button', { name: 'Format' })).not.toBeInTheDocument()
+    await expect(canvas.queryByRole('button', { name: 'Format' })).not.toBeInTheDocument()
   }
 }
 
@@ -136,7 +136,7 @@ export const GraphQLWithQuery: Story = {
 
     // 変数エディターの確認
     await expect(canvas.getByText('Variables (JSON)')).toBeInTheDocument()
-    await expect(canvas.getByDisplayValue(/\"limit\": 10/)).toBeInTheDocument()
+    await expect(canvas.getByDisplayValue(/"limit": 10/)).toBeInTheDocument()
   }
 }
 
@@ -159,8 +159,8 @@ export const RawText: Story = {
     await expect(textarea).toBeInTheDocument()
 
     // コントロールボタンが表示されないことを確認
-    expect(canvas.queryByRole('button', { name: 'JSON' })).not.toBeInTheDocument()
-    expect(canvas.queryByRole('button', { name: 'Format' })).not.toBeInTheDocument()
+    await expect(canvas.queryByRole('button', { name: 'JSON' })).not.toBeInTheDocument()
+    await expect(canvas.queryByRole('button', { name: 'Format' })).not.toBeInTheDocument()
   }
 }
 
@@ -182,7 +182,7 @@ export const FormData: Story = {
     await expect(canvas.getByText('Form data editor will be implemented here')).toBeInTheDocument()
 
     // テキストエリアが表示されないことを確認
-    expect(canvas.queryByRole('textbox')).not.toBeInTheDocument()
+    await expect(canvas.queryByRole('textbox')).not.toBeInTheDocument()
   }
 }
 
@@ -313,7 +313,7 @@ export const LongContent: Story = {
     await expect(textarea).toBeInTheDocument()
 
     // スクロールが可能な状態であることを確認
-    expect(textarea.scrollHeight).toBeGreaterThan(textarea.clientHeight)
+    await expect(textarea.scrollHeight).toBeGreaterThan(textarea.clientHeight)
   }
 }
 

@@ -9,14 +9,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
+  background-color: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-primary);
 }
 
 .label {
   font-size: 14px;
   font-weight: 500;
-  color: #495057;
+  color: var(--color-text-primary);
   margin: 0;
 }
 
@@ -24,28 +24,28 @@
   padding: 4px 12px;
   font-size: 12px;
   font-weight: 500;
-  color: #007bff;
+  color: var(--color-text-accent);
   background: transparent;
-  border: 1px solid #007bff;
-  border-radius: 4px;
+  border: 1px solid var(--color-border-accent);
+  border-radius: var(--border-radius);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-base);
 
   &:hover:not(:disabled) {
-    background-color: #007bff;
-    color: #ffffff;
+    background-color: var(--color-bg-accent);
+    color: var(--color-text-inverse);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    color: #6c757d;
-    border-color: #6c757d;
+    color: var(--color-text-secondary);
+    border-color: var(--color-text-secondary);
   }
 
   &:focus {
-    outline: 2px solid #007bff;
-    outline-offset: 1px;
+    outline: none;
+    box-shadow: var(--shadow-focus);
   }
 }
 
@@ -63,20 +63,20 @@
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
   line-height: 1.5;
-  background-color: #ffffff;
-  color: #495057;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
 
   &:focus {
     outline: none;
-    box-shadow: inset 0 0 0 2px #007bff;
+    box-shadow: inset 0 0 0 2px var(--color-border-accent);
   }
 
   &.error {
-    box-shadow: inset 0 0 0 2px #dc3545;
+    box-shadow: inset 0 0 0 2px var(--color-error);
   }
 
   &::placeholder {
-    color: #6c757d;
+    color: var(--color-text-muted);
     opacity: 0.7;
   }
 }
@@ -87,10 +87,10 @@
   left: 12px;
   right: 12px;
   padding: 4px 8px;
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
+  background-color: var(--color-error);
+  color: var(--color-text-inverse);
+  border: 1px solid var(--color-error);
+  border-radius: var(--border-radius);
   font-size: 12px;
   font-weight: 500;
 }

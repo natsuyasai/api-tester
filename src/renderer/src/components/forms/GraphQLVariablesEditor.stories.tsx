@@ -55,7 +55,7 @@ export const WithValidJSON: Story = {
     const canvas = within(canvasElement)
 
     // 有効なJSONが表示されることを確認
-    const textarea = canvas.getByDisplayValue(/\"limit\": 10/)
+    const textarea = canvas.getByDisplayValue(/"limit": 10/)
     await expect(textarea).toBeInTheDocument()
     await expect(textarea).not.toHaveClass('error')
 

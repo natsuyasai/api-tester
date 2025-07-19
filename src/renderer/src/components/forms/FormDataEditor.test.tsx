@@ -49,7 +49,7 @@ describe('FormDataEditor', () => {
     expect(screen.getByDisplayValue('30')).toBeInTheDocument()
   })
 
-  it('should add new row when typing in last empty row', async () => {
+  it('should add new row when typing in last empty row', () => {
     render(<FormDataEditor {...defaultProps} />)
 
     const keyInput = screen.getByPlaceholderText('Enter key')
