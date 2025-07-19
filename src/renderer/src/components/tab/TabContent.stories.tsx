@@ -181,13 +181,17 @@ export const ResizableLayout: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'RequestFormとResponseViewの間をマウス操作でリサイズできるレイアウト。境界線をドラッグしてサイズを調整できます。'
+        story: 'RequestFormとResponseViewの間をマウス操作でリサイズできるGridレイアウト。境界線をドラッグしてgrid-template-rowsが動的に更新されます。'
       }
     }
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
+    // Gridレイアウトの確認
+    const tabContent = canvasElement.querySelector('.tabContent')
+    await expect(tabContent).toBeInTheDocument()
+    
     // リサイズハンドルの存在確認
     const resizeHandle = canvasElement.querySelector('.resizeHandle')
     await expect(resizeHandle).toBeInTheDocument()

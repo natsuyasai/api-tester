@@ -1,26 +1,20 @@
 .tabContent {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: 400px 6px 1fr;
   height: 100%;
   overflow: hidden;
 }
 
 .requestSection {
-  position: relative;
   overflow-y: auto;
-  border-bottom: 1px solid #dee2e6;
   background-color: #ffffff;
-  
-  // react-rndのデフォルトスタイルをオーバーライド
-  .react-resizable-handle {
-    position: absolute;
-  }
+  min-height: 200px;
 }
 
 .responseSection {
-  min-height: 200px;
   overflow-y: auto;
   background-color: #ffffff;
+  min-height: 200px;
 }
 
 .noTab {
@@ -33,21 +27,20 @@
 }
 
 .resizeHandle {
-  position: absolute;
-  height: 6px;
-  bottom: -3px;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to bottom, transparent, #dee2e6, transparent);
+  background: linear-gradient(to bottom, transparent 20%, #dee2e6 50%, transparent 80%);
   cursor: row-resize;
-  z-index: 10;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  user-select: none;
   
   &:hover {
-    background: linear-gradient(to bottom, transparent, #007bff, transparent);
+    background: linear-gradient(to bottom, transparent 20%, #007bff 50%, transparent 80%);
+  }
+  
+  &.dragging {
+    background: linear-gradient(to bottom, transparent 20%, #0056b3 50%, transparent 80%);
   }
   
   &:active {
-    background: linear-gradient(to bottom, transparent, #0056b3, transparent);
+    background: linear-gradient(to bottom, transparent 20%, #0056b3 50%, transparent 80%);
   }
 }
