@@ -1,0 +1,25 @@
+.cahcel {
+  @apply bg-gray-500 text-gray-100 font-semibold py-2 px-4 border border-gray-900 rounded shadow;
+  @apply m-4;
+}
+
+.cahcel:hover {
+  @apply bg-gray-200;
+}
+
+.cahcel:active {
+  @apply bg-gray-700;
+}
+
+.cahcel:disabled {
+  @apply bg-gray-800;
+}
+
+.exec {
+  @apply m-4;
+  margin-right: 0;
+}
+
+button + button {
+  margin-left: 4px;
+}
