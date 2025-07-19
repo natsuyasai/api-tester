@@ -21,7 +21,7 @@ describe('GraphQLService', () => {
         timestamp: '2024-01-01T10:00:00.000Z'
       }
 
-      vi.mocked(ApiService.executeRequest.bind(ApiService)).mockResolvedValue(mockResponse)
+      vi.mocked(ApiService.executeRequest).mockResolvedValue(mockResponse)
 
       const result = await GraphQLService.executeGraphQLQuery(
         'https://api.example.com/graphql',
@@ -62,7 +62,7 @@ describe('GraphQLService', () => {
         timestamp: '2024-01-01T10:00:00.000Z'
       }
 
-      vi.mocked(ApiService.executeRequest.bind(ApiService)).mockResolvedValue(mockResponse)
+      vi.mocked(ApiService.executeRequest).mockResolvedValue(mockResponse)
 
       await GraphQLService.executeGraphQLQuery(
         'https://api.example.com/graphql',
@@ -72,7 +72,7 @@ describe('GraphQLService', () => {
         'GetUsers'
       )
 
-      const call = vi.mocked(ApiService.executeRequest.bind(ApiService)).mock.calls[0][0]
+      const call = vi.mocked(ApiService.executeRequest).mock.calls[0][0]
       const body = JSON.parse(call.body)
       expect(body.operationName).toBe('GetUsers')
     })

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useApiStore } from '@renderer/stores/apiStore'
@@ -31,8 +31,8 @@ document.createElement = vi.fn((tagName: string) => {
   if (tagName === 'a') {
     return mockDownloadLink as unknown as HTMLAnchorElement
   }
-  return originalCreateElement.call(document, tagName)
-})
+  return originalCreateElement(tagName)
+}) as any
 
 describe('ImportExportDialog', () => {
   const mockStore = {
