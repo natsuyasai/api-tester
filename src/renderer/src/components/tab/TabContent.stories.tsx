@@ -175,3 +175,30 @@ export const WithCustomClassName: Story = {
     await expect(tabContent).toBeInTheDocument()
   }
 }
+
+export const ResizableLayout: Story = {
+  args: {},
+  parameters: {
+    docs: {
+      description: {
+        story: 'RequestFormとResponseViewの間をマウス操作でリサイズできるレイアウト。境界線をドラッグしてサイズを調整できます。'
+      }
+    }
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // リサイズハンドルの存在確認
+    const resizeHandle = canvasElement.querySelector('.resizeHandle')
+    await expect(resizeHandle).toBeInTheDocument()
+
+    // 初期状態の確認
+    await expect(canvas.getByPlaceholderText('Enter request URL')).toBeInTheDocument()
+    await expect(canvas.getByText('No Response')).toBeInTheDocument()
+    
+    // リサイズ機能の説明を表示するため、一時的にフォーカス
+    if (resizeHandle) {
+      resizeHandle.dispatchEvent(new Event('mouseenter', { bubbles: true }))
+    }
+  }
+}
