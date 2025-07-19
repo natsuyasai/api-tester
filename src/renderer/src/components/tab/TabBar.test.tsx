@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
 import { useApiStore } from '@renderer/stores/apiStore'
 import { TabBar } from './TabBar'
 
@@ -48,7 +49,8 @@ describe('TabBar', () => {
     ],
     addTab: vi.fn(),
     closeTab: vi.fn(),
-    setActiveTab: vi.fn()
+    setActiveTab: vi.fn(),
+    updateTabTitle: vi.fn()
   }
 
   beforeEach(() => {
@@ -164,5 +166,71 @@ describe('TabBar', () => {
     render(<TabBar />)
 
     expect(screen.getByText('Untitled')).toBeInTheDocument()
+  })
+
+  it('should enable editing mode when tab title is double-clicked', async () => {
+    const user = userEvent.setup()
+    render(<TabBar />)
+
+    const tabButton = screen.getByText('Tab 1').closest('button')
+    expect(tabButton).toBeInTheDocument()
+
+    // ダブルクリックして編集モードに入る
+    await user.dblClick(tabButton!)
+
+    // 入力フィールドが表示されることを確認
+    const input = screen.getByDisplayValue('Tab 1')
+    expect(input).toBeInTheDocument()
+    expect(input).toHaveFocus()
+  })
+
+  it('should save title when pressing Enter', async () => {
+    const user = userEvent.setup()
+    render(<TabBar />)
+
+    const tabButton = screen.getByText('Tab 1').closest('button')
+    await user.dblClick(tabButton!)
+
+    const input = screen.getByDisplayValue('Tab 1')
+    await user.clear(input)
+    await user.type(input, 'New Title')
+    await user.keyboard('{Enter}')
+
+    expect(mockStore.updateTabTitle).toHaveBeenCalledWith('tab-1', 'New Title')
+  })
+
+  it('should cancel editing when pressing Escape', async () => {
+    const user = userEvent.setup()
+    render(<TabBar />)
+
+    const tabButton = screen.getByText('Tab 1').closest('button')
+    await user.dblClick(tabButton!)
+
+    const input = screen.getByDisplayValue('Tab 1')
+    await user.clear(input)
+    await user.type(input, 'New Title')
+    await user.keyboard('{Escape}')
+
+    // 編集がキャンセルされ、元のタイトルが表示される
+    expect(screen.getByText('Tab 1')).toBeInTheDocument()
+    expect(mockStore.updateTabTitle).not.toHaveBeenCalled()
+  })
+
+  it('should save title when input loses focus', async () => {
+    const user = userEvent.setup()
+    render(<TabBar />)
+
+    const tabButton = screen.getByText('Tab 1').closest('button')
+    await user.dblClick(tabButton!)
+
+    const input = screen.getByDisplayValue('Tab 1')
+    await user.clear(input)
+    await user.type(input, 'Blurred Title')
+    
+    // フォーカスを他の要素に移す
+    const addButton = screen.getByLabelText('Add new tab')
+    await user.click(addButton)
+
+    expect(mockStore.updateTabTitle).toHaveBeenCalledWith('tab-1', 'Blurred Title')
   })
 })

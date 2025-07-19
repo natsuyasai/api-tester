@@ -28,6 +28,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "electron-updater": "^6.6.2",
     "path-browserify": "^1.0.1",
+    "react-rnd": "^10.5.2",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

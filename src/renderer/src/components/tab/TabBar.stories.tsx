@@ -205,3 +205,39 @@ export const InteractiveExample: Story = {
     }
   }
 }
+
+export const EditableTabTitles: Story = {
+  decorators: [
+    (Story) => {
+      const store = useApiStore.getState()
+      
+      // 既存のタブをクリア
+      store.tabs.forEach((tab) => store.closeTab(tab.id))
+      
+      // 編集可能なタブを作成
+      store.addTab()
+      const tab = store.tabs[0]
+      store.updateUrl(tab.id, 'https://api.example.com/editable')
+      store.updateTabTitle(tab.id, 'Double-click to edit')
+
+      return (
+        <div style={{ width: '100%', height: '50px' }}>
+          <Story />
+        </div>
+      )
+    }
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    
+    // タブタイトルをダブルクリックして編集モードに入る
+    const tabButton = canvas.getByText('Double-click to edit').closest('button')
+    if (tabButton) {
+      await userEvent.dblClick(tabButton)
+      
+      // 入力フィールドが表示されることを確認
+      const input = canvas.getByDisplayValue('Double-click to edit')
+      await expect(input).toBeInTheDocument()
+    }
+  }
+}

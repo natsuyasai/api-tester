@@ -78,6 +78,25 @@
   font-weight: 500;
 }
 
+.titleInput {
+  flex: 1;
+  height: 28px;
+  padding: 4px 8px;
+  margin: 0 4px;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #495057;
+  font-weight: 500;
+  background-color: #ffffff;
+  outline: none;
+  
+  &:focus {
+    border-color: #0056b3;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  }
+}
+
 .closeButton {
   display: flex;
   align-items: center;
