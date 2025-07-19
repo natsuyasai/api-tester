@@ -26,15 +26,19 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
     <div className={`${styles.tabBar} ${className || ''}`}>
       <div className={styles.tabList}>
         {tabs.map((tab) => (
-          <button
+          <div
             key={tab.id}
             className={`${styles.tab} ${tab.isActive ? styles.active : ''}`}
-            onClick={() => handleTabClick(tab.id)}
-            type="button"
           >
-            <span className={styles.title} title={tab.title}>
-              {tab.title || 'Untitled'}
-            </span>
+            <button
+              className={styles.tabButton}
+              onClick={() => handleTabClick(tab.id)}
+              type="button"
+            >
+              <span className={styles.title} title={tab.title}>
+                {tab.title || 'Untitled'}
+              </span>
+            </button>
             {tabs.length > 1 && (
               <button
                 className={styles.closeButton}
@@ -45,7 +49,7 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
                 ×
               </button>
             )}
-          </button>
+          </div>
         ))}
       </div>
       <button
