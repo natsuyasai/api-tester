@@ -1,6 +1,7 @@
 import { JSX, useState } from 'react'
-import { BodyType } from '@/types/types'
+import { BodyType, KeyValuePair } from '@/types/types'
 import { GraphQLVariablesEditor } from './GraphQLVariablesEditor'
+import { FormDataEditor } from './FormDataEditor'
 import styles from './BodyEditor.module.scss'
 
 interface BodyEditorProps {
@@ -22,6 +23,39 @@ export const BodyEditor = ({
   onVariablesChange
 }: BodyEditorProps): JSX.Element => {
   const [inputMode, setInputMode] = useState<'raw' | 'json'>('json')
+  const [formData, setFormData] = useState<KeyValuePair[]>([])
+
+  // bodyをform-dataとして解析する関数
+  const parseFormData = (bodyString: string): KeyValuePair[] => {
+    if (!bodyString.trim()) return []
+    
+    try {
+      const lines = bodyString.split('\n')
+      return lines
+        .map(line => {
+          const [key, ...valueParts] = line.split('=')
+          if (key && key.trim()) {
+            return {
+              key: key.trim(),
+              value: valueParts.join('=').trim(),
+              enabled: true
+            }
+          }
+          return null
+        })
+        .filter((item): item is KeyValuePair => item !== null)
+    } catch {
+      return []
+    }
+  }
+
+  // form-dataをbodyStringに変換する関数
+  const serializeFormData = (data: KeyValuePair[]): string => {
+    return data
+      .filter(item => item.key.trim() !== '' && item.enabled)
+      .map(item => `${item.key}=${item.value}`)
+      .join('\n')
+  }
 
   const bodyTypes: { value: BodyType; label: string }[] = [
     { value: 'json', label: 'JSON' },
@@ -91,12 +125,17 @@ export const BodyEditor = ({
 
       <div className={styles.editorContainer}>
         {bodyType === 'form-data' || bodyType === 'x-www-form-urlencoded' ? (
-          <div className={styles.formDataEditor}>
-            {/* TODO: Form data editor implementation */}
-            <div className={styles.placeholder}>
-              Form data editor will be implemented here
-            </div>
-          </div>
+          <FormDataEditor
+            data={parseFormData(body)}
+            onChange={(data) => {
+              setFormData(data)
+              onBodyChange(serializeFormData(data))
+            }}
+            placeholder={{
+              key: bodyType === 'form-data' ? 'Enter field name' : 'Enter parameter name',
+              value: bodyType === 'form-data' ? 'Enter field value' : 'Enter parameter value'
+            }}
+          />
         ) : bodyType === 'graphql' ? (
           <div className={styles.graphqlEditor}>
             <div className={styles.querySection}>

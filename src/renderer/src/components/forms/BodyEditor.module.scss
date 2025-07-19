@@ -119,9 +119,8 @@
 
 .formDataEditor {
   flex: 1;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  background-color: #f8f9fa;
+  display: flex;
+  flex-direction: column;
 }
 
 .placeholder {
