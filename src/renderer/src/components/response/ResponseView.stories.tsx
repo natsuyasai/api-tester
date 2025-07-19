@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { expect, userEvent, within } from '@storybook/test'
-import { ResponseView } from './ResponseView'
 import { useApiStore } from '@/stores/apiStore'
 import { ApiResponse } from '@/types/types'
+import { ResponseView } from './ResponseView'
 
 const successResponse: ApiResponse = {
   status: 200,

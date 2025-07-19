@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { ResponseView } from './ResponseView'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useApiStore } from '@/stores/apiStore'
 import { ApiResponse } from '@/types/types'
+import { ResponseView } from './ResponseView'
 
 // Zustandストアをモック
 vi.mock('@/stores/apiStore')

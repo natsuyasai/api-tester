@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { TabBar } from './TabBar'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useApiStore } from '@/stores/apiStore'
+import { TabBar } from './TabBar'
 
 // Zustandストアをモック
 vi.mock('@/stores/apiStore')
