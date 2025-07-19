@@ -318,7 +318,7 @@ describe('ApiStore', () => {
 
       expect(() => {
         store.importConfig('invalid json')
-      }).toThrow()
+      }).toThrow('Unexpected token')
 
       expect(() => {
         store.importConfig('{"tabs": "not an array"}')
