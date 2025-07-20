@@ -7,11 +7,18 @@ export type ApiType = 'rest' | 'graphql'
 // ボディタイプの型定義
 export type BodyType = 'json' | 'form-data' | 'x-www-form-urlencoded' | 'raw' | 'graphql'
 
+// ファイルエンコーディング方法の型定義
+export type FileEncoding = 'base64' | 'binary'
+
 // キーバリューペアの型定義
 export interface KeyValuePair {
   key: string
   value: string
   enabled: boolean
+  isFile?: boolean // ファイルかどうか
+  fileName?: string // ファイル名
+  fileContent?: string // ファイルの内容
+  fileEncoding?: FileEncoding // ファイルのエンコーディング方法
 }
 
 // APIリクエストの型定義

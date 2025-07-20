@@ -253,3 +253,77 @@ export const MixedEnabledDisabled: Story = {
     await expect(disabledInputs).toHaveLength(4)
   }
 }
+
+export const WithFileParameters: Story = {
+  args: {
+    tabId: 'tab-1',
+    type: 'params',
+    items: [
+      { key: 'name', value: 'test', enabled: true },
+      { 
+        key: 'file', 
+        value: '[File: example.txt]', 
+        enabled: true,
+        isFile: true,
+        fileName: 'example.txt',
+        fileContent: 'SGVsbG8gV29ybGQ=',
+        fileEncoding: 'base64'
+      },
+      { 
+        key: 'document', 
+        value: 'This is file content', 
+        enabled: true,
+        isFile: true,
+        fileName: 'document.txt',
+        fileContent: 'This is file content',
+        fileEncoding: 'binary'
+      },
+      { key: '', value: '', enabled: true }
+    ]
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // ファイル名が表示されているか確認
+    await expect(canvas.getByText(/📎 example.txt/)).toBeInTheDocument()
+    await expect(canvas.getByText(/📎 document.txt/)).toBeInTheDocument()
+
+    // エンコーディング選択ボックスの確認
+    const encodingSelects = canvas.getAllByDisplayValue('base64')
+    await expect(encodingSelects).toHaveLength(1)
+    
+    const binarySelects = canvas.getAllByDisplayValue('binary')
+    await expect(binarySelects).toHaveLength(1)
+
+    // ファイルボタンの確認
+    const fileButtons = canvas.getAllByTitle('ファイルを選択')
+    await expect(fileButtons).toHaveLength(2) // 通常の入力フィールド用
+
+    // クリアボタンの確認
+    const clearButtons = canvas.getAllByTitle('ファイルをクリア')
+    await expect(clearButtons).toHaveLength(2)
+  }
+}
+
+export const FileUploadInteraction: Story = {
+  args: {
+    tabId: 'tab-1',
+    type: 'params',
+    items: [
+      { key: 'file', value: '', enabled: true },
+      { key: '', value: '', enabled: true }
+    ]
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // ファイル選択ボタンの確認
+    const fileButton = canvas.getAllByTitle('ファイルを選択')[0]
+    await expect(fileButton).toBeInTheDocument()
+    await expect(fileButton).toBeEnabled()
+
+    // 通常のテキスト入力フィールドの確認
+    const valueInput = canvas.getAllByPlaceholderText('Value')[0]
+    await expect(valueInput).toBeInTheDocument()
+  }
+}
