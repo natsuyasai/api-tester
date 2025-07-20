@@ -180,4 +180,122 @@ describe('TabStore', () => {
       expect(updatedState.tabs[0].isActive).toBe(true)
     })
   })
+
+  describe('Keyboard Navigation', () => {
+    it('should switch to next tab', () => {
+      const { addTab, switchToNextTab } = useTabStore.getState()
+      addTab()
+
+      const state = useTabStore.getState()
+      const firstTabId = state.tabs[0].id
+      const secondTabId = state.tabs[1].id
+
+      expect(state.activeTabId).toBe(secondTabId)
+
+      switchToNextTab()
+
+      const updatedState = useTabStore.getState()
+      expect(updatedState.activeTabId).toBe(firstTabId)
+      expect(updatedState.tabs[0].isActive).toBe(true)
+      expect(updatedState.tabs[1].isActive).toBe(false)
+    })
+
+    it('should switch to previous tab', () => {
+      const { addTab, switchToPreviousTab } = useTabStore.getState()
+      addTab()
+
+      const state = useTabStore.getState()
+      const firstTabId = state.tabs[0].id
+      const secondTabId = state.tabs[1].id
+
+      expect(state.activeTabId).toBe(secondTabId)
+
+      switchToPreviousTab()
+
+      const updatedState = useTabStore.getState()
+      expect(updatedState.activeTabId).toBe(firstTabId)
+      expect(updatedState.tabs[0].isActive).toBe(true)
+      expect(updatedState.tabs[1].isActive).toBe(false)
+    })
+
+    it('should wrap around when switching to next tab at end', () => {
+      const { addTab, setActiveTab, switchToNextTab } = useTabStore.getState()
+      addTab()
+
+      const state = useTabStore.getState()
+      const firstTabId = state.tabs[0].id
+      const secondTabId = state.tabs[1].id
+
+      setActiveTab(firstTabId)
+      switchToNextTab()
+
+      const updatedState = useTabStore.getState()
+      expect(updatedState.activeTabId).toBe(secondTabId)
+    })
+
+    it('should wrap around when switching to previous tab at beginning', () => {
+      const { addTab, setActiveTab, switchToPreviousTab } = useTabStore.getState()
+      addTab()
+
+      const state = useTabStore.getState()
+      const firstTabId = state.tabs[0].id
+      const secondTabId = state.tabs[1].id
+
+      setActiveTab(firstTabId)
+      switchToPreviousTab()
+
+      const updatedState = useTabStore.getState()
+      expect(updatedState.activeTabId).toBe(secondTabId)
+    })
+
+    it('should close active tab via keyboard shortcut', () => {
+      const { addTab, closeActiveTab } = useTabStore.getState()
+      addTab()
+
+      const state = useTabStore.getState()
+      expect(state.tabs).toHaveLength(2)
+
+      const activeTabId = state.activeTabId
+      closeActiveTab()
+
+      const updatedState = useTabStore.getState()
+      expect(updatedState.tabs).toHaveLength(1)
+      expect(updatedState.tabs.find((tab) => tab.id === activeTabId)).toBeUndefined()
+    })
+
+    it('should not close the last tab via keyboard shortcut', () => {
+      const { closeActiveTab } = useTabStore.getState()
+      const state = useTabStore.getState()
+      const tabId = state.tabs[0].id
+
+      closeActiveTab()
+
+      const updatedState = useTabStore.getState()
+      expect(updatedState.tabs).toHaveLength(1)
+      expect(updatedState.tabs[0].id).toBe(tabId)
+    })
+
+    it('should return active tab id for editing', () => {
+      const { startEditingActiveTab } = useTabStore.getState()
+      const state = useTabStore.getState()
+      const activeTabId = state.activeTabId
+
+      const result = startEditingActiveTab()
+
+      expect(result).toBe(activeTabId)
+    })
+
+    it('should return null when no active tab exists for editing', () => {
+      const { startEditingActiveTab } = useTabStore.getState()
+
+      useTabStore.setState({
+        tabs: [],
+        activeTabId: ''
+      })
+
+      const result = startEditingActiveTab()
+
+      expect(result).toBeNull()
+    })
+  })
 })

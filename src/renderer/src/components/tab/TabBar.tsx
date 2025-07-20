@@ -1,4 +1,4 @@
-import { JSX, useState, useRef, useEffect } from 'react'
+import { JSX, useState, useRef, useEffect, useCallback } from 'react'
 import { useYamlOperations } from '@renderer/hooks/useYamlOperations'
 import { useTabStore } from '@renderer/stores/tabStore'
 import { useThemeStore } from '@renderer/stores/themeStore'
@@ -9,7 +9,8 @@ interface TabBarProps {
 }
 
 export const TabBar = ({ className }: TabBarProps): JSX.Element => {
-  const { tabs, addTab, closeTab, setActiveTab, updateTabTitle } = useTabStore()
+  const { tabs, addTab, closeTab, setActiveTab, updateTabTitle, startEditingActiveTab } =
+    useTabStore()
   const { theme, toggleTheme } = useThemeStore()
   const { saveToFile, loadFromFile } = useYamlOperations()
   const [editingTabId, setEditingTabId] = useState<string | null>(null)
@@ -56,6 +57,17 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
     setEditingTabId(tabId)
     setEditingTitle(currentTitle || 'Untitled')
   }
+
+  const handleStartEditingActiveTab = useCallback(() => {
+    const activeTabId = startEditingActiveTab()
+    if (activeTabId) {
+      const activeTab = tabs.find((tab) => tab.id === activeTabId)
+      if (activeTab) {
+        setEditingTabId(activeTabId)
+        setEditingTitle(activeTab.title || 'Untitled')
+      }
+    }
+  }, [startEditingActiveTab, tabs])
 
   const handleTitleSubmit = () => {
     if (editingTabId && editingTitle.trim()) {
@@ -121,6 +133,17 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
     }
     return () => {}
   }, [])
+
+  useEffect(() => {
+    const handleEditActiveTab = () => {
+      handleStartEditingActiveTab()
+    }
+
+    document.addEventListener('edit-active-tab', handleEditActiveTab)
+    return () => {
+      document.removeEventListener('edit-active-tab', handleEditActiveTab)
+    }
+  }, [handleStartEditingActiveTab])
 
   return (
     <div className={`${styles.tabBar} ${className || ''}`}>

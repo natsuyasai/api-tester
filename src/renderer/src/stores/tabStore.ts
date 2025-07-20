@@ -16,6 +16,10 @@ interface TabActions {
   getActiveTab: () => ApiTab | undefined
   getTab: (tabId: string) => ApiTab | undefined
   resetTabs: () => void
+  switchToNextTab: () => void
+  switchToPreviousTab: () => void
+  closeActiveTab: () => void
+  startEditingActiveTab: () => string | null
 }
 
 const createInitialTab = (): ApiTab => ({
@@ -137,6 +141,64 @@ export const useTabStore = create<TabState & TabActions>()(
           false,
           'resetTabs'
         )
+      },
+
+      switchToNextTab: () => {
+        const state = get()
+        const currentIndex = state.tabs.findIndex((tab) => tab.id === state.activeTabId)
+        if (currentIndex !== -1) {
+          const nextIndex = (currentIndex + 1) % state.tabs.length
+          const nextTab = state.tabs[nextIndex]
+          if (nextTab) {
+            set(
+              (state) => ({
+                tabs: state.tabs.map((tab) => ({
+                  ...tab,
+                  isActive: tab.id === nextTab.id
+                })),
+                activeTabId: nextTab.id
+              }),
+              false,
+              'switchToNextTab'
+            )
+          }
+        }
+      },
+
+      switchToPreviousTab: () => {
+        const state = get()
+        const currentIndex = state.tabs.findIndex((tab) => tab.id === state.activeTabId)
+        if (currentIndex !== -1) {
+          const prevIndex = currentIndex === 0 ? state.tabs.length - 1 : currentIndex - 1
+          const prevTab = state.tabs[prevIndex]
+          if (prevTab) {
+            set(
+              (state) => ({
+                tabs: state.tabs.map((tab) => ({
+                  ...tab,
+                  isActive: tab.id === prevTab.id
+                })),
+                activeTabId: prevTab.id
+              }),
+              false,
+              'switchToPreviousTab'
+            )
+          }
+        }
+      },
+
+      closeActiveTab: () => {
+        const state = get()
+        const activeTab = state.getActiveTab()
+        if (activeTab && state.tabs.length > 1) {
+          state.closeTab(activeTab.id)
+        }
+      },
+
+      startEditingActiveTab: () => {
+        const state = get()
+        const activeTab = state.getActiveTab()
+        return activeTab ? activeTab.id : null
       }
     }),
     {
