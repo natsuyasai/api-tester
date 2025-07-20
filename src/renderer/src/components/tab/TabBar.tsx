@@ -14,6 +14,9 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
   const [editingTabId, setEditingTabId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  const tabListRef = useRef<HTMLDivElement>(null)
+  const [showLeftScroll, setShowLeftScroll] = useState(false)
+  const [showRightScroll, setShowRightScroll] = useState(false)
 
   const handleTabClick = (tabId: string) => {
     setActiveTab(tabId)
@@ -74,6 +77,26 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
     }
   }
 
+  const checkScrollButtons = () => {
+    if (tabListRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = tabListRef.current
+      setShowLeftScroll(scrollLeft > 0)
+      setShowRightScroll(scrollLeft < scrollWidth - clientWidth - 1)
+    }
+  }
+
+  const scrollLeft = () => {
+    if (tabListRef.current) {
+      tabListRef.current.scrollBy({ left: -120, behavior: 'smooth' })
+    }
+  }
+
+  const scrollRight = () => {
+    if (tabListRef.current) {
+      tabListRef.current.scrollBy({ left: 120, behavior: 'smooth' })
+    }
+  }
+
   useEffect(() => {
     if (editingTabId && inputRef.current) {
       inputRef.current.focus()
@@ -81,9 +104,36 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
     }
   }, [editingTabId])
 
+  useEffect(() => {
+    checkScrollButtons()
+    const handleResize = () => checkScrollButtons()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [tabs])
+
+  useEffect(() => {
+    const tabList = tabListRef.current
+    if (tabList) {
+      const handleScroll = () => checkScrollButtons()
+      tabList.addEventListener('scroll', handleScroll)
+      return () => tabList.removeEventListener('scroll', handleScroll)
+    }
+    return () => {}
+  }, [])
+
   return (
     <div className={`${styles.tabBar} ${className || ''}`}>
-      <div className={styles.tabList}>
+      {showLeftScroll && (
+        <button
+          className={styles.scrollButton}
+          onClick={scrollLeft}
+          aria-label="Scroll tabs left"
+          type="button"
+        >
+          ‹
+        </button>
+      )}
+      <div className={styles.tabList} ref={tabListRef}>
         {tabs.map((tab) => (
           <div key={tab.id} className={`${styles.tab} ${tab.isActive ? styles.active : ''}`}>
             {editingTabId === tab.id ? (
@@ -122,6 +172,16 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
           </div>
         ))}
       </div>
+      {showRightScroll && (
+        <button
+          className={styles.scrollButton}
+          onClick={scrollRight}
+          aria-label="Scroll tabs right"
+          type="button"
+        >
+          ›
+        </button>
+      )}
       <div className={styles.controls}>
         <button
           className={styles.fileButton}
