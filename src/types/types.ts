@@ -56,6 +56,7 @@ export interface ApiRequest {
   bodyType: BodyType
   bodyKeyValuePairs?: KeyValuePair[] // KeyValue方式のbody入力用
   auth?: AuthConfig // 認証設定
+  settings?: RequestSettings // リクエスト設定
   type: ApiType
   variables?: Record<string, unknown> // GraphQL用の変数
 }
@@ -116,4 +117,22 @@ export interface Environment {
 export interface EnvironmentConfig {
   environments: Environment[]
   activeEnvironmentId: string | null
+}
+
+// リクエスト設定の型定義
+export interface RequestSettings {
+  timeout: number // ミリ秒
+  followRedirects: boolean
+  maxRedirects: number
+  validateSSL: boolean
+  userAgent?: string
+}
+
+// デフォルトのリクエスト設定
+export const DEFAULT_REQUEST_SETTINGS: RequestSettings = {
+  timeout: 30000, // 30秒
+  followRedirects: true,
+  maxRedirects: 5,
+  validateSSL: true,
+  userAgent: 'API Tester 1.0'
 }

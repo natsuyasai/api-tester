@@ -7,7 +7,8 @@ import {
   HttpMethod,
   BodyType,
   ApiTab,
-  AuthConfig
+  AuthConfig,
+  RequestSettings
 } from '@/types/types'
 import { useTabStore } from './tabStore'
 
@@ -34,6 +35,9 @@ interface RequestActions {
 
   // 認証管理
   updateAuth: (tabId: string, auth: AuthConfig) => void
+
+  // リクエスト設定管理
+  updateSettings: (tabId: string, settings: RequestSettings) => void
 
   // Body KeyValue管理
   addBodyKeyValue: (tabId: string) => void
@@ -155,6 +159,10 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
       updateAuth: (tabId: string, auth: AuthConfig) => {
         get().updateRequest(tabId, { auth })
+      },
+
+      updateSettings: (tabId: string, settings: RequestSettings) => {
+        get().updateRequest(tabId, { settings })
       },
 
       setResponse: (tabId: string, response: ApiResponse) => {

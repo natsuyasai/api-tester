@@ -170,9 +170,7 @@ export const useEnvironmentStore = create<EnvironmentState>()(
 
       getActiveEnvironment: () => {
         const state = get()
-        return (
-          state.environments.find((env) => env.id === state.activeEnvironmentId) || null
-        )
+        return state.environments.find((env) => env.id === state.activeEnvironmentId) || null
       }
     }),
     {

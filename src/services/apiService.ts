@@ -1,4 +1,4 @@
-import { ApiRequest, ApiResponse } from '@/types/types'
+import { ApiRequest, ApiResponse, DEFAULT_REQUEST_SETTINGS } from '@/types/types'
 
 export class ApiService {
   static async executeRequest(
@@ -10,7 +10,10 @@ export class ApiService {
     try {
       // 変数の解決
       const resolveVariables = variableResolver || ((text: string) => text)
-      
+
+      // リクエスト設定の取得
+      const settings = request.settings || DEFAULT_REQUEST_SETTINGS
+
       // URLパラメータの構築
       const url = new URL(resolveVariables(request.url))
       const enabledParams = request.params.filter((param) => param.enabled && param.key)
@@ -24,6 +27,11 @@ export class ApiService {
       enabledHeaders.forEach((header) => {
         headers.set(resolveVariables(header.key), resolveVariables(header.value))
       })
+
+      // User-Agentの設定
+      if (settings.userAgent && !headers.has('User-Agent')) {
+        headers.set('User-Agent', settings.userAgent)
+      }
 
       // 認証処理
       if (request.auth) {
@@ -128,12 +136,20 @@ export class ApiService {
         }
       }
 
+      // AbortControllerでタイムアウト制御
+      const abortController = new AbortController()
+      const timeoutId = setTimeout(() => abortController.abort(), settings.timeout)
+
       // リクエストの実行
       const response = await fetch(url.toString(), {
         method: request.method,
         headers,
-        body
+        body,
+        signal: abortController.signal,
+        redirect: settings.followRedirects ? 'follow' : 'manual'
       })
+
+      clearTimeout(timeoutId)
 
       const endTime = Date.now()
       const duration = endTime - startTime
@@ -178,9 +194,19 @@ export class ApiService {
       const endTime = Date.now()
       const duration = endTime - startTime
 
+      // エラータイプの判定
+      let statusText = 'Network Error'
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          statusText = 'Request Timeout'
+        } else if (error.message.includes('fetch')) {
+          statusText = 'Fetch Error'
+        }
+      }
+
       return {
         status: 0,
-        statusText: 'Network Error',
+        statusText,
         headers: {},
         data: {
           error: error instanceof Error ? error.message : 'Unknown error',

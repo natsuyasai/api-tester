@@ -9,6 +9,7 @@ import { BodyEditor } from './BodyEditor'
 import { EnvironmentEditor } from './EnvironmentEditor'
 import { KeyValueEditor } from './KeyValueEditor'
 import styles from './RequestForm.module.scss'
+import { RequestSettingsEditor } from './RequestSettingsEditor'
 
 interface RequestFormProps {
   tabId: string
@@ -23,6 +24,7 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
     updateBodyType,
     updateGraphQLVariables,
     updateAuth,
+    updateSettings,
     setLoading,
     setResponse,
     isLoading
@@ -31,7 +33,7 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
 
   const tab = getTab(tabId)
   const [activeSection, setActiveSection] = useState<
-    'params' | 'headers' | 'auth' | 'body' | 'environment'
+    'params' | 'headers' | 'auth' | 'body' | 'environment' | 'settings'
   >('params')
 
   if (!tab) {
@@ -169,6 +171,13 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
           >
             Environment
           </button>
+          <button
+            className={`${styles.tab} ${activeSection === 'settings' ? styles.active : ''}`}
+            onClick={() => setActiveSection('settings')}
+            type="button"
+          >
+            Settings
+          </button>
         </div>
 
         <div className={styles.content}>
@@ -193,6 +202,12 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
             />
           )}
           {activeSection === 'environment' && <EnvironmentEditor />}
+          {activeSection === 'settings' && (
+            <RequestSettingsEditor
+              settings={request.settings}
+              onChange={(settings) => updateSettings(tabId, settings)}
+            />
+          )}
         </div>
       </div>
     </div>
