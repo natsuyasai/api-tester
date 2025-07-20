@@ -22,7 +22,6 @@ export const BodyEditor = ({
   onBodyTypeChange,
   onVariablesChange
 }: BodyEditorProps): JSX.Element => {
-  const [inputMode, setInputMode] = useState<'raw' | 'json'>('json')
   const [, setFormData] = useState<KeyValuePair[]>([])
   const queryTextareaId = useId()
 
@@ -95,22 +94,6 @@ export const BodyEditor = ({
 
         {isJsonBodyType && (
           <div className={styles.controls}>
-            <div className={styles.inputModeToggle}>
-              <button
-                className={`${styles.toggleButton} ${inputMode === 'json' ? styles.active : ''}`}
-                onClick={() => setInputMode('json')}
-                type="button"
-              >
-                JSON
-              </button>
-              <button
-                className={`${styles.toggleButton} ${inputMode === 'raw' ? styles.active : ''}`}
-                onClick={() => setInputMode('raw')}
-                type="button"
-              >
-                Raw
-              </button>
-            </div>
             {bodyType === 'json' && (
               <button onClick={handleFormatJson} className={styles.formatButton} type="button">
                 Format
