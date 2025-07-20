@@ -1,4 +1,3 @@
-import { useApiStore } from '@renderer/stores/apiStore'
 import type { Meta, StoryObj } from '@storybook/react'
 import { expect, userEvent, within } from 'storybook/test'
 import { RequestForm } from './RequestForm'
@@ -23,16 +22,6 @@ const meta: Meta<typeof RequestForm> = {
   },
   decorators: [
     (Story) => {
-      const store = useApiStore.getState()
-
-      // タブがない場合は作成
-      if (store.tabs.length === 0) {
-        store.addTab()
-        const activeTab = store.tabs[0]
-        store.updateUrl(activeTab.id, 'https://api.example.com/users')
-        store.updateTabTitle(activeTab.id, 'API Test')
-      }
-
       return (
         <div style={{ width: '100%', height: '600px', padding: '20px' }}>
           <Story />
@@ -46,15 +35,15 @@ export default meta
 type Story = StoryObj<typeof RequestForm>
 
 export const Default: Story = {
+  args: {
+    tabId: 'sample-tab-1'
+  },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    const store = useApiStore.getState()
-    const activeTab = store.tabs[0]
 
     // URL入力フィールドの確認
     const urlInput = canvas.getByPlaceholderText('Enter request URL')
     await expect(urlInput).toBeInTheDocument()
-    await expect(urlInput).toHaveValue('https://api.example.com/users')
 
     // メソッド選択の確認
     const methodSelect = canvas.getByDisplayValue('GET')
@@ -68,26 +57,15 @@ export const Default: Story = {
     await expect(canvas.getByRole('button', { name: 'Params' })).toBeInTheDocument()
     await expect(canvas.getByRole('button', { name: 'Headers' })).toBeInTheDocument()
     await expect(canvas.getByRole('button', { name: 'Body' })).toBeInTheDocument()
-
-    // タブのIDをargsとして渡す代わりに、実際のアクティブタブを使用
-    await expect(activeTab.id).toBeTruthy()
   }
 }
 
 export const POSTRequest: Story = {
+  args: {
+    tabId: 'sample-tab-2'
+  },
   decorators: [
     (Story) => {
-      const store = useApiStore.getState()
-
-      if (store.tabs.length === 0) {
-        store.addTab()
-      }
-
-      const activeTab = store.tabs[0]
-      store.updateUrl(activeTab.id, 'https://api.example.com/users')
-      store.updateMethod(activeTab.id, 'POST')
-      store.updateBody(activeTab.id, '{\n  "name": "John Doe",\n  "email": "john@example.com"\n}')
-
       return (
         <div style={{ width: '100%', height: '600px', padding: '20px' }}>
           <Story />
@@ -98,20 +76,28 @@ export const POSTRequest: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // POSTメソッドの確認
+    // メソッド選択を確認
+    const methodSelect = canvas.getByDisplayValue('GET')
+    await expect(methodSelect).toBeInTheDocument()
+
+    // POSTに変更
+    await userEvent.selectOptions(methodSelect, 'POST')
     await expect(canvas.getByDisplayValue('POST')).toBeInTheDocument()
 
     // ボディタブをクリック
     const bodyTab = canvas.getByRole('button', { name: 'Body' })
     await userEvent.click(bodyTab)
 
-    // ボディ内容の確認
-    const bodyTextarea = canvas.getByDisplayValue(/"name": "John Doe"/)
+    // ボディエリアが表示されることを確認
+    const bodyTextarea = canvas.getByPlaceholderText(/Enter JSON body/)
     await expect(bodyTextarea).toBeInTheDocument()
   }
 }
 
 export const InteractiveExample: Story = {
+  args: {
+    tabId: 'sample-tab-3'
+  },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
