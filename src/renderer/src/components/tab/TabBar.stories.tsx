@@ -1,6 +1,6 @@
+import { useApiStore } from '@renderer/stores/apiStore'
 import type { Meta, StoryObj } from '@storybook/react'
 import { expect, userEvent, within } from 'storybook/test'
-import { useApiStore } from '@renderer/stores/apiStore'
 import { TabBar } from './TabBar'
 
 const meta: Meta<typeof TabBar> = {

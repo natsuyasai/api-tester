@@ -1,6 +1,6 @@
 import { JSX } from 'react'
 import { KeyValuePair } from '@/types/types'
-import { useApiStore } from '@renderer/stores/apiStore'
+import { useRequestStore } from '@renderer/stores/requestStore'
 import styles from './KeyValueEditor.module.scss'
 
 interface KeyValueEditorProps {
@@ -11,7 +11,7 @@ interface KeyValueEditorProps {
 
 export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX.Element => {
   const { addHeader, updateHeader, removeHeader, addParam, updateParam, removeParam } =
-    useApiStore()
+    useRequestStore()
 
   const handleAdd = () => {
     if (type === 'headers') {

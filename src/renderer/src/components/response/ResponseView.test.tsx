@@ -1,13 +1,13 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ApiResponse } from '@/types/types'
-import { useApiStore } from '@renderer/stores/apiStore'
+import { useTabStore } from '@renderer/stores/tabStore'
 import { ResponseView } from './ResponseView'
 
 // Zustandストアをモック
-vi.mock('@renderer/stores/apiStore')
+vi.mock('@renderer/stores/tabStore')
 
-const mockUseApiStore = vi.mocked(useApiStore)
+const mockUseTabStore = vi.mocked(useTabStore)
 
 describe('ResponseView', () => {
   const mockResponse: ApiResponse = {
@@ -27,31 +27,37 @@ describe('ResponseView', () => {
     timestamp: '2024-01-01T10:30:00.000Z'
   }
 
-  const mockStore = {
-    tabs: [
-      {
-        id: 'tab-1',
-        title: 'Test Tab',
-        isActive: true,
-        request: {
-          id: 'req-1',
-          name: 'Test Request',
-          url: 'https://api.example.com',
-          method: 'GET' as const,
-          headers: [],
-          params: [],
-          body: '',
-          bodyType: 'json' as const,
-          type: 'rest' as const
-        },
-        response: mockResponse
-      }
-    ]
+  const mockTab = {
+    id: 'tab-1',
+    title: 'Test Tab',
+    isActive: true,
+    request: {
+      id: 'req-1',
+      name: 'Test Request',
+      url: 'https://api.example.com',
+      method: 'GET' as const,
+      headers: [],
+      params: [],
+      body: '',
+      bodyType: 'json' as const,
+      type: 'rest' as const
+    },
+    response: mockResponse
   }
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUseApiStore.mockImplementation(() => mockStore as any)
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTab],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTab),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTab : undefined)),
+      resetTabs: vi.fn()
+    })
   })
 
   it('should display "No Response" when there is no response', () => {

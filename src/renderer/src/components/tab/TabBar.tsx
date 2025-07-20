@@ -1,5 +1,6 @@
 import { JSX, useState, useRef, useEffect } from 'react'
-import { useApiStore } from '@renderer/stores/apiStore'
+import { useYamlOperations } from '@renderer/hooks/useYamlOperations'
+import { useTabStore } from '@renderer/stores/tabStore'
 import { useThemeStore } from '@renderer/stores/themeStore'
 import styles from './TabBar.module.scss'
 
@@ -8,9 +9,9 @@ interface TabBarProps {
 }
 
 export const TabBar = ({ className }: TabBarProps): JSX.Element => {
-  const { tabs, addTab, closeTab, setActiveTab, updateTabTitle, saveToFile, loadFromFile } =
-    useApiStore()
+  const { tabs, addTab, closeTab, setActiveTab, updateTabTitle } = useTabStore()
   const { theme, toggleTheme } = useThemeStore()
+  const { saveToFile, loadFromFile } = useYamlOperations()
   const [editingTabId, setEditingTabId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)

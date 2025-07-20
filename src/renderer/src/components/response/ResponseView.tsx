@@ -1,5 +1,5 @@
 import { JSX, useState } from 'react'
-import { useApiStore } from '@renderer/stores/apiStore'
+import { useTabStore } from '@renderer/stores/tabStore'
 import styles from './ResponseView.module.scss'
 
 interface ResponseViewProps {
@@ -7,10 +7,10 @@ interface ResponseViewProps {
 }
 
 export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
-  const { tabs } = useApiStore()
+  const { getTab } = useTabStore()
   const [activeTab, setActiveTab] = useState<'body' | 'headers' | 'cookies'>('body')
 
-  const tab = tabs.find((t) => t.id === tabId)
+  const tab = getTab(tabId)
   const response = tab?.response
 
   if (!response) {

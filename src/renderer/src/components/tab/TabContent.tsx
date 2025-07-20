@@ -1,5 +1,5 @@
 import { JSX, useState, useEffect, useRef, useCallback } from 'react'
-import { useApiStore } from '@renderer/stores/apiStore'
+import { useTabStore } from '@renderer/stores/tabStore'
 import { RequestForm } from '../forms/RequestForm'
 import { ResponseView } from '../response/ResponseView'
 import styles from './TabContent.module.scss'
@@ -9,14 +9,14 @@ interface TabContentProps {
 }
 
 export const TabContent = ({ className }: TabContentProps): JSX.Element => {
-  const { tabs, activeTabId } = useApiStore()
+  const { getActiveTab } = useTabStore()
   const [requestHeight, setRequestHeight] = useState(400)
   const [isDragging, setIsDragging] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const startYRef = useRef<number>(0)
   const startHeightRef = useRef<number>(0)
 
-  const activeTab = tabs.find((tab) => tab.id === activeTabId)
+  const activeTab = getActiveTab()
 
   // マウスドラッグでリサイズ処理
   const handleMouseDown = useCallback(

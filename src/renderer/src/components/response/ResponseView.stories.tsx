@@ -1,7 +1,7 @@
+import { useApiStore } from '@renderer/stores/apiStore'
 import type { Meta, StoryObj } from '@storybook/react'
 import { expect, userEvent, within } from 'storybook/test'
 import { ApiResponse } from '@/types/types'
-import { useApiStore } from '@renderer/stores/apiStore'
 import { ResponseView } from './ResponseView'
 
 // Sample responses are now handled by MSW

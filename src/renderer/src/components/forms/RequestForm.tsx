@@ -1,7 +1,8 @@
 import { JSX, useState } from 'react'
 import { ApiService } from '@/services/apiService'
 import { HttpMethod } from '@/types/types'
-import { useApiStore } from '@renderer/stores/apiStore'
+import { useRequestStore } from '@renderer/stores/requestStore'
+import { useTabStore } from '@renderer/stores/tabStore'
 import { BodyEditor } from './BodyEditor'
 import { KeyValueEditor } from './KeyValueEditor'
 import styles from './RequestForm.module.scss'
@@ -11,20 +12,19 @@ interface RequestFormProps {
 }
 
 export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
+  const { getTab, updateTabTitle } = useTabStore()
   const {
-    tabs,
     updateUrl,
     updateMethod,
     updateBody,
     updateBodyType,
-    updateTabTitle,
     updateGraphQLVariables,
     setLoading,
     setResponse,
     isLoading
-  } = useApiStore()
+  } = useRequestStore()
 
-  const tab = tabs.find((t) => t.id === tabId)
+  const tab = getTab(tabId)
   const [activeSection, setActiveSection] = useState<'params' | 'headers' | 'body'>('params')
 
   if (!tab) {
