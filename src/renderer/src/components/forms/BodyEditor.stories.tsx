@@ -258,6 +258,67 @@ export const JSONModeToggle: Story = {
   }
 }
 
+export const JSONKeyValueMode: Story = {
+  args: {
+    tabId: 'tab-1',
+    body: '',
+    bodyType: 'json',
+    onBodyChange: () => {},
+    onBodyTypeChange: () => {}
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // JSON選択の確認
+    await expect(canvas.getByDisplayValue('JSON')).toBeInTheDocument()
+
+    // 入力モード切り替えボタンの確認
+    await expect(canvas.getByRole('button', { name: 'Text' })).toBeInTheDocument()
+    await expect(canvas.getByRole('button', { name: 'Key-Value' })).toBeInTheDocument()
+
+    // Key-Valueモードに切り替え
+    const keyValueButton = canvas.getByRole('button', { name: 'Key-Value' })
+    await userEvent.click(keyValueButton)
+
+    // KeyValueエディターが表示されることを確認
+    await expect(canvas.getByText('Key')).toBeInTheDocument()
+    await expect(canvas.getByText('Value')).toBeInTheDocument()
+    await expect(canvas.getByRole('button', { name: 'Add Field' })).toBeInTheDocument()
+  }
+}
+
+export const RawKeyValueMode: Story = {
+  args: {
+    tabId: 'tab-1',
+    body: '',
+    bodyType: 'raw',
+    onBodyChange: () => {},
+    onBodyTypeChange: () => {}
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // Raw選択の確認
+    await expect(canvas.getByDisplayValue('Raw')).toBeInTheDocument()
+
+    // 入力モード切り替えボタンの確認
+    await expect(canvas.getByRole('button', { name: 'Text' })).toBeInTheDocument()
+    await expect(canvas.getByRole('button', { name: 'Key-Value' })).toBeInTheDocument()
+
+    // Key-Valueモードに切り替え
+    const keyValueButton = canvas.getByRole('button', { name: 'Key-Value' })
+    await userEvent.click(keyValueButton)
+
+    // KeyValueエディターでファイル選択機能も確認
+    await expect(canvas.getByText('Key')).toBeInTheDocument()
+    await expect(canvas.getByText('Value')).toBeInTheDocument()
+
+    // ファイル選択ボタンの確認
+    const fileButtons = canvas.getAllByTitle('ファイルを選択')
+    await expect(fileButtons.length).toBeGreaterThan(0)
+  }
+}
+
 export const JSONFormatting: Story = {
   args: {
     tabId: 'tab-1',

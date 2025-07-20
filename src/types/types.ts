@@ -31,6 +31,7 @@ export interface ApiRequest {
   params: KeyValuePair[]
   body: string
   bodyType: BodyType
+  bodyKeyValuePairs?: KeyValuePair[] // KeyValue方式のbody入力用
   type: ApiType
   variables?: Record<string, unknown> // GraphQL用の変数
 }

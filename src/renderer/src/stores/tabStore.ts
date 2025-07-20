@@ -32,6 +32,7 @@ const createInitialTab = (): ApiTab => ({
     params: [{ key: '', value: '', enabled: true }],
     body: '',
     bodyType: 'json',
+    bodyKeyValuePairs: [{ key: '', value: '', enabled: true }],
     type: 'rest'
   }
 })

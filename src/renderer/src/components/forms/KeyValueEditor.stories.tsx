@@ -260,18 +260,18 @@ export const WithFileParameters: Story = {
     type: 'params',
     items: [
       { key: 'name', value: 'test', enabled: true },
-      { 
-        key: 'file', 
-        value: '[File: example.txt]', 
+      {
+        key: 'file',
+        value: '[File: example.txt]',
         enabled: true,
         isFile: true,
         fileName: 'example.txt',
         fileContent: 'SGVsbG8gV29ybGQ=',
         fileEncoding: 'base64'
       },
-      { 
-        key: 'document', 
-        value: 'This is file content', 
+      {
+        key: 'document',
+        value: 'This is file content',
         enabled: true,
         isFile: true,
         fileName: 'document.txt',
@@ -291,7 +291,7 @@ export const WithFileParameters: Story = {
     // エンコーディング選択ボックスの確認
     const encodingSelects = canvas.getAllByDisplayValue('base64')
     await expect(encodingSelects).toHaveLength(1)
-    
+
     const binarySelects = canvas.getAllByDisplayValue('binary')
     await expect(binarySelects).toHaveLength(1)
 

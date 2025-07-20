@@ -1,8 +1,11 @@
 import { JSX, useId, useState } from 'react'
 import { BodyType, KeyValuePair } from '@/types/types'
+import { useRequestStore } from '@renderer/stores/requestStore'
+import { useTabStore } from '@renderer/stores/tabStore'
 import styles from './BodyEditor.module.scss'
 import { FormDataEditor } from './FormDataEditor'
 import { GraphQLVariablesEditor } from './GraphQLVariablesEditor'
+import { KeyValueEditor } from './KeyValueEditor'
 
 interface BodyEditorProps {
   tabId: string
@@ -15,6 +18,7 @@ interface BodyEditorProps {
 }
 
 export const BodyEditor = ({
+  tabId,
   body,
   bodyType,
   variables = {},
@@ -23,7 +27,14 @@ export const BodyEditor = ({
   onVariablesChange
 }: BodyEditorProps): JSX.Element => {
   const [, setFormData] = useState<KeyValuePair[]>([])
+  const [inputMode, setInputMode] = useState<'text' | 'keyvalue'>('text')
   const queryTextareaId = useId()
+
+  const { getTab } = useTabStore()
+  const { addBodyKeyValue, updateBodyKeyValue, removeBodyKeyValue } = useRequestStore()
+
+  const tab = getTab(tabId)
+  const bodyKeyValuePairs = tab?.request.bodyKeyValuePairs || []
 
   // bodyをform-dataとして解析する関数
   const parseFormData = (bodyString: string): KeyValuePair[] => {
@@ -75,7 +86,103 @@ export const BodyEditor = ({
     }
   }
 
+  // KeyValue方式からテキストへの変換
+  const convertKeyValueToText = (keyValuePairs: KeyValuePair[]): string => {
+    if (bodyType === 'json') {
+      // JSONとして変換
+      const obj: Record<string, unknown> = {}
+      keyValuePairs
+        .filter((pair) => pair.enabled && pair.key.trim())
+        .forEach((pair) => {
+          try {
+            // 値がJSONとして解析可能かチェック
+            obj[pair.key] = JSON.parse(pair.value)
+          } catch {
+            // 文字列として扱う
+            obj[pair.key] = pair.value
+          }
+        })
+      return JSON.stringify(obj, null, 2)
+    } else {
+      // その他の形式は key=value 形式
+      return keyValuePairs
+        .filter((pair) => pair.enabled && pair.key.trim())
+        .map((pair) => `${pair.key}=${pair.value}`)
+        .join('\n')
+    }
+  }
+
+  // テキストからKeyValue方式への変換
+  const convertTextToKeyValue = (text: string): KeyValuePair[] => {
+    if (!text.trim()) return [{ key: '', value: '', enabled: true }]
+
+    if (bodyType === 'json') {
+      try {
+        const parsed = JSON.parse(text) as Record<string, unknown>
+        const pairs = Object.entries(parsed).map(([key, value]) => ({
+          key,
+          value: typeof value === 'string' ? value : JSON.stringify(value),
+          enabled: true
+        }))
+        return pairs.length > 0
+          ? [...pairs, { key: '', value: '', enabled: true }]
+          : [{ key: '', value: '', enabled: true }]
+      } catch {
+        // JSONとして解析できない場合は空のペアを返す
+        return [{ key: '', value: '', enabled: true }]
+      }
+    } else {
+      // key=value形式として解析
+      const lines = text.split('\n')
+      const pairs = lines
+        .map((line) => {
+          const [key, ...valueParts] = line.split('=')
+          if (key && key.trim()) {
+            return {
+              key: key.trim(),
+              value: valueParts.join('=').trim(),
+              enabled: true
+            }
+          }
+          return null
+        })
+        .filter((item): item is KeyValuePair => item !== null)
+
+      return pairs.length > 0
+        ? [...pairs, { key: '', value: '', enabled: true }]
+        : [{ key: '', value: '', enabled: true }]
+    }
+  }
+
+  // 入力モード切り替え時の処理
+  const handleInputModeChange = (newMode: 'text' | 'keyvalue') => {
+    if (newMode === 'keyvalue' && inputMode === 'text') {
+      // テキストからKeyValueに切り替え：現在のbodyテキストをKeyValueに変換
+      const convertedPairs = convertTextToKeyValue(body)
+      convertedPairs.forEach((pair, index) => {
+        if (index < bodyKeyValuePairs.length) {
+          updateBodyKeyValue(tabId, index, pair)
+        } else {
+          addBodyKeyValue(tabId)
+          updateBodyKeyValue(tabId, bodyKeyValuePairs.length, pair)
+        }
+      })
+      // 余分なペアを削除
+      if (convertedPairs.length < bodyKeyValuePairs.length) {
+        for (let i = bodyKeyValuePairs.length - 1; i >= convertedPairs.length; i--) {
+          removeBodyKeyValue(tabId, i)
+        }
+      }
+    } else if (newMode === 'text' && inputMode === 'keyvalue') {
+      // KeyValueからテキストに切り替え：KeyValueをテキストに変換
+      const convertedText = convertKeyValueToText(bodyKeyValuePairs)
+      onBodyChange(convertedText)
+    }
+    setInputMode(newMode)
+  }
+
   const isJsonBodyType = bodyType === 'json' || bodyType === 'graphql'
+  const canUseKeyValueMode = bodyType === 'json'
 
   return (
     <div className={styles.bodyEditor}>
@@ -91,16 +198,35 @@ export const BodyEditor = ({
             </option>
           ))}
         </select>
-
-        {isJsonBodyType && (
-          <div className={styles.controls}>
+        {isJsonBodyType && inputMode === 'text' && (
+          <div className={styles.jsonControls}>
             {bodyType === 'json' && (
               <button onClick={handleFormatJson} className={styles.formatButton} type="button">
-                Format
+                Format JSON
               </button>
             )}
           </div>
         )}
+        <div className={styles.controls}>
+          {canUseKeyValueMode && (
+            <div className={styles.inputModeToggle}>
+              <button
+                onClick={() => handleInputModeChange('text')}
+                className={`${styles.modeButton} ${inputMode === 'text' ? styles.active : ''}`}
+                type="button"
+              >
+                Text
+              </button>
+              <button
+                onClick={() => handleInputModeChange('keyvalue')}
+                className={`${styles.modeButton} ${inputMode === 'keyvalue' ? styles.active : ''}`}
+                type="button"
+              >
+                Key-Value
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className={styles.editorContainer}>
@@ -153,6 +279,10 @@ export const BodyEditor = ({
                 />
               )}
             </div>
+          </div>
+        ) : canUseKeyValueMode && inputMode === 'keyvalue' ? (
+          <div className={styles.keyValueContainer}>
+            <KeyValueEditor tabId={tabId} type="body" items={bodyKeyValuePairs} />
           </div>
         ) : (
           <textarea

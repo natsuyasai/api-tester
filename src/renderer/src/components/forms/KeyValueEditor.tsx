@@ -6,20 +6,31 @@ import styles from './KeyValueEditor.module.scss'
 
 interface KeyValueEditorProps {
   tabId: string
-  type: 'headers' | 'params'
+  type: 'headers' | 'params' | 'body'
   items: KeyValuePair[]
 }
 
 export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX.Element => {
-  const { addHeader, updateHeader, removeHeader, addParam, updateParam, removeParam } =
-    useRequestStore()
+  const {
+    addHeader,
+    updateHeader,
+    removeHeader,
+    addParam,
+    updateParam,
+    removeParam,
+    addBodyKeyValue,
+    updateBodyKeyValue,
+    removeBodyKeyValue
+  } = useRequestStore()
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({})
 
   const handleAdd = () => {
     if (type === 'headers') {
       addHeader(tabId)
-    } else {
+    } else if (type === 'params') {
       addParam(tabId)
+    } else {
+      addBodyKeyValue(tabId)
     }
   }
 
@@ -27,16 +38,20 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
     const update = { [field]: value }
     if (type === 'headers') {
       updateHeader(tabId, index, update)
-    } else {
+    } else if (type === 'params') {
       updateParam(tabId, index, update)
+    } else {
+      updateBodyKeyValue(tabId, index, update)
     }
   }
 
   const handleRemove = (index: number) => {
     if (type === 'headers') {
       removeHeader(tabId, index)
-    } else {
+    } else if (type === 'params') {
       removeParam(tabId, index)
+    } else {
+      removeBodyKeyValue(tabId, index)
     }
   }
 
@@ -49,7 +64,7 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
 
     try {
       const fileContent = await FileService.processFile(file, encoding)
-      
+
       const updates = {
         isFile: true,
         fileName: file.name,
@@ -59,8 +74,10 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
 
       if (type === 'headers') {
         updateHeader(tabId, index, updates)
-      } else {
+      } else if (type === 'params') {
         updateParam(tabId, index, updates)
+      } else {
+        updateBodyKeyValue(tabId, index, updates)
       }
     } catch (error) {
       console.error('ファイル処理エラー:', error)
@@ -70,14 +87,16 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
 
   const handleFileEncodingChange = async (index: number, encoding: FileEncoding) => {
     const currentItem = items[index]
-    
+
     // エンコーディング方式を更新
     const updates = { fileEncoding: encoding }
-    
+
     if (type === 'headers') {
       updateHeader(tabId, index, updates)
-    } else {
+    } else if (type === 'params') {
       updateParam(tabId, index, updates)
+    } else {
+      updateBodyKeyValue(tabId, index, updates)
     }
 
     // ファイルが既に選択されている場合は再処理
@@ -89,7 +108,7 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
           fileContent,
           value: encoding === 'base64' ? `[File: ${file.name}]` : fileContent
         }
-        
+
         if (type === 'headers') {
           updateHeader(tabId, index, valueUpdates)
         } else {
@@ -111,8 +130,10 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
 
     if (type === 'headers') {
       updateHeader(tabId, index, updates)
-    } else {
+    } else if (type === 'params') {
       updateParam(tabId, index, updates)
+    } else {
+      updateBodyKeyValue(tabId, index, updates)
     }
 
     // ファイル入力をクリア
@@ -148,7 +169,7 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
               className={styles.input}
               disabled={!item.enabled}
             />
-            
+
             <div className={styles.valueContainer}>
               {item.isFile ? (
                 <div className={styles.fileValue}>
@@ -224,7 +245,7 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
       </div>
 
       <button onClick={handleAdd} className={styles.addButton} type="button">
-        Add {type === 'headers' ? 'Header' : 'Parameter'}
+        Add {type === 'headers' ? 'Header' : type === 'params' ? 'Parameter' : 'Field'}
       </button>
     </div>
   )

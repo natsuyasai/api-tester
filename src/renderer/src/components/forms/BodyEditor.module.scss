@@ -35,6 +35,50 @@
   gap: 12px;
 }
 
+.inputModeToggle {
+  display: flex;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.modeButton {
+  padding: 6px 12px;
+  background-color: var(--color-bg-primary);
+  border: none;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-base);
+  border-right: 1px solid var(--color-border-secondary);
+
+  &:last-child {
+    border-right: none;
+  }
+
+  &:hover {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+  }
+
+  &.active {
+    background-color: var(--color-bg-accent);
+    color: var(--color-text-inverse);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: inset var(--shadow-focus);
+  }
+}
+
+.jsonControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
 .toggleButton {
   padding: 6px 12px;
   background-color: var(--color-bg-secondary);
@@ -158,4 +202,14 @@
   font-weight: 500;
   color: var(--color-text-primary);
   margin: 0;
+}
+
+.keyValueContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius);
+  background-color: var(--color-bg-primary);
 }

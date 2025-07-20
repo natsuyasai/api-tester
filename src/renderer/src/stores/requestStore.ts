@@ -24,6 +24,11 @@ interface RequestActions {
 
   updateGraphQLVariables: (tabId: string, variables: Record<string, unknown>) => void
 
+  // Body KeyValue管理
+  addBodyKeyValue: (tabId: string) => void
+  updateBodyKeyValue: (tabId: string, index: number, keyValue: Partial<KeyValuePair>) => void
+  removeBodyKeyValue: (tabId: string, index: number) => void
+
   setResponse: (tabId: string, response: ApiResponse) => void
   clearResponse: (tabId: string) => void
 
@@ -148,6 +153,42 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         updateTabInStore(tabId, (tab) => ({
           ...tab,
           response: null
+        }))
+      },
+
+      // Body KeyValue管理
+      addBodyKeyValue: (tabId: string) => {
+        updateTabInStore(tabId, (tab) => ({
+          ...tab,
+          request: {
+            ...tab.request,
+            bodyKeyValuePairs: [
+              ...(tab.request.bodyKeyValuePairs || []),
+              { key: '', value: '', enabled: true }
+            ]
+          }
+        }))
+      },
+
+      updateBodyKeyValue: (tabId: string, index: number, keyValueUpdate: Partial<KeyValuePair>) => {
+        updateTabInStore(tabId, (tab) => ({
+          ...tab,
+          request: {
+            ...tab.request,
+            bodyKeyValuePairs: (tab.request.bodyKeyValuePairs || []).map((keyValue, i) =>
+              i === index ? { ...keyValue, ...keyValueUpdate } : keyValue
+            )
+          }
+        }))
+      },
+
+      removeBodyKeyValue: (tabId: string, index: number) => {
+        updateTabInStore(tabId, (tab) => ({
+          ...tab,
+          request: {
+            ...tab.request,
+            bodyKeyValuePairs: (tab.request.bodyKeyValuePairs || []).filter((_, i) => i !== index)
+          }
         }))
       },
 

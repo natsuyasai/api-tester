@@ -35,7 +35,7 @@ describe('FileService', () => {
     it('should process file as base64', async () => {
       const fileContent = 'Hello, World!'
       const file = new MockFile([fileContent], 'test.txt', { type: 'text/plain' })
-      
+
       // base64エンコードされた結果をシミュレート
       const base64Result = 'data:text/plain;base64,SGVsbG8sIFdvcmxkIQ=='
       mockFileReader.result = base64Result
@@ -45,11 +45,14 @@ describe('FileService', () => {
 
       // FileReaderのonloadを実行してPromiseを解決
       if (mockFileReader.onload) {
-        mockFileReader.onload.call(mockFileReader as unknown as FileReader, {} as ProgressEvent<FileReader>)
+        mockFileReader.onload.call(
+          mockFileReader as unknown as FileReader,
+          {} as ProgressEvent<FileReader>
+        )
       }
 
       const result = await processPromise
-      
+
       expect(mockFileReader.readAsDataURL).toHaveBeenCalledWith(file)
       expect(result).toBe('SGVsbG8sIFdvcmxkIQ==') // base64部分のみ
     })
@@ -57,29 +60,35 @@ describe('FileService', () => {
     it('should process file as binary/text', async () => {
       const fileContent = 'Hello, World!'
       const file = new MockFile([fileContent], 'test.txt', { type: 'text/plain' })
-      
+
       mockFileReader.result = fileContent
 
       const processPromise = FileService.processFile(file, 'binary')
 
       if (mockFileReader.onload) {
-        mockFileReader.onload.call(mockFileReader as unknown as FileReader, {} as ProgressEvent<FileReader>)
+        mockFileReader.onload.call(
+          mockFileReader as unknown as FileReader,
+          {} as ProgressEvent<FileReader>
+        )
       }
 
       const result = await processPromise
-      
+
       expect(mockFileReader.readAsText).toHaveBeenCalledWith(file)
       expect(result).toBe(fileContent)
     })
 
     it('should handle file read error', async () => {
       const file = new MockFile(['test'], 'test.txt', { type: 'text/plain' })
-      
+
       const processPromise = FileService.processFile(file, 'base64')
 
       // エラーを発生させる
       if (mockFileReader.onerror) {
-        mockFileReader.onerror.call(mockFileReader as unknown as FileReader, {} as ProgressEvent<FileReader>)
+        mockFileReader.onerror.call(
+          mockFileReader as unknown as FileReader,
+          {} as ProgressEvent<FileReader>
+        )
       }
 
       await expect(processPromise).rejects.toThrow('ファイルの読み取り中にエラーが発生しました')
@@ -87,13 +96,16 @@ describe('FileService', () => {
 
     it('should handle null result', async () => {
       const file = new MockFile(['test'], 'test.txt', { type: 'text/plain' })
-      
+
       mockFileReader.result = null
 
       const processPromise = FileService.processFile(file, 'base64')
 
       if (mockFileReader.onload) {
-        mockFileReader.onload.call(mockFileReader as unknown as FileReader, {} as ProgressEvent<FileReader>)
+        mockFileReader.onload.call(
+          mockFileReader as unknown as FileReader,
+          {} as ProgressEvent<FileReader>
+        )
       }
 
       await expect(processPromise).rejects.toThrow('ファイルの読み取りに失敗しました')
