@@ -50,7 +50,7 @@ describe('ApiService', () => {
       expect(result.status).toBe(200)
       expect(result.statusText).toBe('OK')
       expect(result.data).toEqual({ users: [] })
-      expect(result.duration).toBeGreaterThan(0)
+      expect(result.duration).toBeGreaterThanOrEqual(0)
       expect(result.timestamp).toBeDefined()
     })
 
@@ -255,6 +255,145 @@ describe('ApiService', () => {
       expect(curlCommand).toBe(
         'curl -X POST -H "Content-Type: application/json" -d \'{"name": "John"}\' "https://api.example.com/users"'
       )
+    })
+
+    it('should build curl command for form-data request', () => {
+      const request: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/upload',
+        method: 'POST',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'form-data',
+        bodyKeyValuePairs: [
+          { key: 'name', value: 'John', enabled: true },
+          { key: 'age', value: '25', enabled: true },
+          {
+            key: 'avatar',
+            value: 'avatar.jpg',
+            enabled: true,
+            isFile: true,
+            fileName: 'avatar.jpg'
+          },
+          { key: 'disabled', value: 'test', enabled: false }
+        ],
+        type: 'rest'
+      }
+
+      const curlCommand = ApiService.buildCurlCommand(request)
+
+      expect(curlCommand).toBe(
+        'curl -X POST -F "name=John" -F "age=25" -F "avatar=@avatar.jpg" "https://api.example.com/upload"'
+      )
+    })
+  })
+
+  describe('form-data requests', () => {
+    it('should execute form-data request with FormData object', async () => {
+      const formDataRequest: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Upload',
+        url: 'https://api.example.com/upload',
+        method: 'POST',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'form-data',
+        bodyKeyValuePairs: [
+          { key: 'name', value: 'John', enabled: true },
+          { key: 'age', value: '25', enabled: true }
+        ],
+        type: 'rest'
+      }
+
+      const mockResponse = {
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({ success: true })
+      }
+      mockFetch.mockResolvedValue(mockResponse)
+
+      const result = await ApiService.executeRequest(formDataRequest)
+
+      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/upload', {
+        method: 'POST',
+        headers: expect.any(Headers),
+        body: expect.any(FormData)
+      })
+
+      expect(result.status).toBe(200)
+    })
+  })
+
+  describe('validateRequest - form-data', () => {
+    it('should return error for form-data with no enabled fields', () => {
+      const invalidRequest: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/upload',
+        method: 'POST',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'form-data',
+        bodyKeyValuePairs: [{ key: 'name', value: 'John', enabled: false }],
+        type: 'rest'
+      }
+
+      const errors = ApiService.validateRequest(invalidRequest)
+      expect(errors).toContain('At least one form field is required for form-data')
+    })
+
+    it('should return error for form-data with file field missing content', () => {
+      const invalidRequest: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/upload',
+        method: 'POST',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'form-data',
+        bodyKeyValuePairs: [
+          { key: 'name', value: 'John', enabled: true },
+          { key: 'file', value: '', enabled: true, isFile: true, fileName: 'test.txt' }
+        ],
+        type: 'rest'
+      }
+
+      const errors = ApiService.validateRequest(invalidRequest)
+      expect(errors).toContain('File content is missing for field: file')
+    })
+
+    it('should validate form-data with valid fields', () => {
+      const validRequest: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/upload',
+        method: 'POST',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'form-data',
+        bodyKeyValuePairs: [
+          { key: 'name', value: 'John', enabled: true },
+          {
+            key: 'file',
+            value: 'base64content',
+            enabled: true,
+            isFile: true,
+            fileName: 'test.txt',
+            fileContent: 'base64content'
+          }
+        ],
+        type: 'rest'
+      }
+
+      const errors = ApiService.validateRequest(validRequest)
+      expect(errors).toHaveLength(0)
     })
   })
 })

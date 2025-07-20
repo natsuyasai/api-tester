@@ -20,18 +20,51 @@ export class ApiService {
       })
 
       // リクエストボディの処理
-      let body: string | undefined = undefined
-      if (['POST', 'PUT', 'PATCH'].includes(request.method) && request.body) {
-        if (request.bodyType === 'graphql') {
-          // GraphQLの場合、クエリと変数を適切なフォーマットに変換
-          const graphqlPayload = {
-            query: request.body,
-            variables: request.variables || {},
-            operationName: this.extractOperationName(request.body)
+      let body: string | FormData | undefined = undefined
+      if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
+        if (request.bodyType === 'form-data') {
+          // FormDataの場合、bodyKeyValuePairsからFormDataオブジェクトを生成
+          const formData = new FormData()
+          const enabledPairs =
+            request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
+
+          enabledPairs.forEach((pair) => {
+            if (pair.isFile && pair.fileContent) {
+              // ファイルの場合
+              const fileName = pair.fileName || 'file'
+              if (pair.fileEncoding === 'base64') {
+                // Base64からBlobに変換
+                const byteCharacters = atob(pair.fileContent)
+                const byteNumbers = new Array(byteCharacters.length)
+                for (let i = 0; i < byteCharacters.length; i++) {
+                  byteNumbers[i] = byteCharacters.charCodeAt(i)
+                }
+                const byteArray = new Uint8Array(byteNumbers)
+                const blob = new Blob([byteArray])
+                formData.append(pair.key, blob, fileName)
+              } else {
+                // バイナリデータとして扱う
+                const blob = new Blob([pair.fileContent])
+                formData.append(pair.key, blob, fileName)
+              }
+            } else {
+              // 通常のテキストフィールド
+              formData.append(pair.key, pair.value)
+            }
+          })
+          body = formData
+        } else if (request.body) {
+          if (request.bodyType === 'graphql') {
+            // GraphQLの場合、クエリと変数を適切なフォーマットに変換
+            const graphqlPayload = {
+              query: request.body,
+              variables: request.variables || {},
+              operationName: this.extractOperationName(request.body)
+            }
+            body = JSON.stringify(graphqlPayload)
+          } else {
+            body = request.body
           }
-          body = JSON.stringify(graphqlPayload)
-        } else {
-          body = request.body
         }
 
         // Content-Typeの自動設定
@@ -42,7 +75,7 @@ export class ApiService {
               headers.set('Content-Type', 'application/json')
               break
             case 'form-data':
-              // FormDataの場合、ブラウザが自動でContent-Typeを設定
+              // FormDataの場合、ブラウザが自動でContent-Typeを設定（multipart/form-data; boundary=...）
               break
             case 'x-www-form-urlencoded':
               headers.set('Content-Type', 'application/x-www-form-urlencoded')
@@ -138,6 +171,23 @@ export class ApiService {
       }
     }
 
+    if (request.bodyType === 'form-data') {
+      const enabledPairs =
+        request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
+
+      if (enabledPairs.length === 0) {
+        errors.push('At least one form field is required for form-data')
+      }
+
+      // ファイルフィールドの妥当性チェック
+      const filePairs = enabledPairs.filter((pair) => pair.isFile)
+      filePairs.forEach((pair) => {
+        if (!pair.fileContent) {
+          errors.push(`File content is missing for field: ${pair.key}`)
+        }
+      })
+    }
+
     if (request.bodyType === 'graphql') {
       if (!request.body.trim()) {
         errors.push('GraphQL query is required')
@@ -183,16 +233,32 @@ export class ApiService {
     })
 
     // ボディの追加
-    if (['POST', 'PUT', 'PATCH'].includes(request.method) && request.body) {
-      if (request.bodyType === 'graphql') {
-        const graphqlPayload = {
-          query: request.body,
-          variables: request.variables || {},
-          operationName: this.extractOperationName(request.body)
+    if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
+      if (request.bodyType === 'form-data') {
+        // FormDataの場合、-Fオプションを使用
+        const enabledPairs =
+          request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
+
+        enabledPairs.forEach((pair) => {
+          if (pair.isFile && pair.fileName) {
+            // ファイルの場合
+            command += ` -F "${pair.key}=@${pair.fileName}"`
+          } else {
+            // 通常のフィールドの場合
+            command += ` -F "${pair.key}=${pair.value}"`
+          }
+        })
+      } else if (request.body) {
+        if (request.bodyType === 'graphql') {
+          const graphqlPayload = {
+            query: request.body,
+            variables: request.variables || {},
+            operationName: this.extractOperationName(request.body)
+          }
+          command += ` -d '${JSON.stringify(graphqlPayload)}'`
+        } else {
+          command += ` -d '${request.body}'`
         }
-        command += ` -d '${JSON.stringify(graphqlPayload)}'`
-      } else {
-        command += ` -d '${request.body}'`
       }
     }
 
