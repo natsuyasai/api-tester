@@ -59,7 +59,7 @@ describe('TabBar', () => {
   }
 
   const mockThemeStore = {
-    theme: 'light' as const,
+    theme: 'light' as 'light' | 'dark',
     setTheme: vi.fn(),
     toggleTheme: vi.fn()
   }

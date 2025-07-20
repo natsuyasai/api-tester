@@ -6,7 +6,7 @@ import { ResponseView } from './ResponseView'
 
 // Sample responses are now handled by MSW
 
-const successResponse = {
+const successResponse: ApiResponse = {
   status: 200,
   statusText: 'OK',
   headers: {
@@ -19,10 +19,11 @@ const successResponse = {
       { id: 2, name: 'Jane Smith', email: 'jane@example.com' }
     ]
   },
-  duration: 150
+  duration: 150,
+  timestamp: '2000-01-01T12:00:00Z'
 }
 
-const errorResponse = {
+const errorResponse: ApiResponse = {
   status: 404,
   statusText: 'Not Found',
   headers: {
@@ -32,17 +33,19 @@ const errorResponse = {
     error: 'User not found',
     message: 'The requested user does not exist'
   },
-  duration: 120
+  duration: 120,
+  timestamp: '2000-01-01T12:00:00Z'
 }
 
-const textResponse = {
+const textResponse: ApiResponse = {
   status: 200,
   statusText: 'OK',
   headers: {
     'content-type': 'text/plain'
   },
   data: 'This is a plain text response from the server.',
-  duration: 89
+  duration: 89,
+  timestamp: '2000-01-01T12:00:00Z'
 }
 
 const meta: Meta<typeof ResponseView> = {

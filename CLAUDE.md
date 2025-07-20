@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - TDDおよびテスト駆動開発で実装する際は、すべてt-wadaの推奨する進め方に従ってください。
 - リファクタリングはMartin Fowloerが推奨する進め方に従ってください。
 - セキュリティルールに従うこと。
-- 実装完了時に必ず「npm run format」、「npm run lint」、「npm run markuplint」、「npm run test」を実行し、エラーや警告がない状態としてください。
+- 実装完了時に必ず「npm run format」、「npm run lint」、「npm run markuplint」、「npm run typecheck」、「npm run test」を実行し、エラーや警告がない状態としてください。
 - 実装時は可能な限りテストコードも作成してください
   - UIに関するテストはStorybookのPlayFunctionを用いて作成してください
 - 実装時は適宜コミットを行ってください
