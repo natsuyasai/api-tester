@@ -159,7 +159,10 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
       )}
       <div className={styles.tabList} ref={tabListRef}>
         {tabs.map((tab) => (
-          <div key={tab.id} className={`${styles.tab} ${tab.isActive ? styles.active : ''}`}>
+          <div
+            key={tab.id}
+            className={`${styles.tab} ${tab.isActive ? styles.active : ''} ${editingTabId === tab.id ? styles.editing : ''}`}
+          >
             {editingTabId === tab.id ? (
               <input
                 ref={inputRef}
