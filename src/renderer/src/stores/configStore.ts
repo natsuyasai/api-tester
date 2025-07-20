@@ -55,10 +55,10 @@ export const useConfigStore = create<ConfigState & ConfigActions>()(
                 url: (request.url as string) || '',
                 method: (request.method as HttpMethod) || 'GET',
                 headers: (request.headers as KeyValuePair[]) || [
-                  { key: '', value: '', enabled: true }
+                  { key: '', value: '', enabled: false }
                 ],
                 params: (request.params as KeyValuePair[]) || [
-                  { key: '', value: '', enabled: true }
+                  { key: '', value: '', enabled: false }
                 ],
                 body: (request.body as string) || '',
                 bodyType: (request.bodyType as BodyType) || 'json',

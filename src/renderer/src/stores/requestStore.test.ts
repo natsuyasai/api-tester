@@ -166,7 +166,7 @@ describe('RequestStore', () => {
             request: expect.objectContaining({
               headers: expect.arrayContaining([
                 { key: 'Authorization', value: 'Bearer token', enabled: true },
-                { key: '', value: '', enabled: true }
+                { key: '', value: '', enabled: false }
               ])
             })
           })
@@ -224,7 +224,7 @@ describe('RequestStore', () => {
             request: expect.objectContaining({
               params: expect.arrayContaining([
                 { key: 'limit', value: '10', enabled: true },
-                { key: '', value: '', enabled: true }
+                { key: '', value: '', enabled: false }
               ])
             })
           })

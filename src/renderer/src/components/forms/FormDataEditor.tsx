@@ -22,16 +22,28 @@ export const FormDataEditor = ({
   // テーブルデータを確実に空行を含む状態に保つ
   const tableData =
     data.length === 0 || data[data.length - 1].key !== ''
-      ? [...data, { key: '', value: '', enabled: true }]
+      ? [...data, { key: '', value: '', enabled: false }]
       : data
 
   const handleItemChange = (index: number, field: keyof KeyValuePair, value: string | boolean) => {
     const newData = [...tableData]
-    newData[index] = { ...newData[index], [field]: value }
+    const currentItem = newData[index]
+
+    // キーまたは値に入力があった場合、自動的にチェックボックスを有効にする
+    if (
+      (field === 'key' || field === 'value') &&
+      typeof value === 'string' &&
+      value.trim() !== '' &&
+      !currentItem.enabled
+    ) {
+      newData[index] = { ...currentItem, [field]: value, enabled: true }
+    } else {
+      newData[index] = { ...currentItem, [field]: value }
+    }
 
     // 最後の行に入力があった場合、新しい空行を追加
     if (index === newData.length - 1 && field === 'key' && value !== '') {
-      newData.push({ key: '', value: '', enabled: true })
+      newData.push({ key: '', value: '', enabled: false })
     }
 
     // 空でない行のみを返す（最後の空行は除く）

@@ -79,7 +79,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           ...tab,
           request: {
             ...tab.request,
-            headers: [...tab.request.headers, { key: '', value: '', enabled: true }]
+            headers: [...tab.request.headers, { key: '', value: '', enabled: false }]
           }
         }))
       },
@@ -111,7 +111,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           ...tab,
           request: {
             ...tab.request,
-            params: [...tab.request.params, { key: '', value: '', enabled: true }]
+            params: [...tab.request.params, { key: '', value: '', enabled: false }]
           }
         }))
       },
@@ -164,7 +164,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
             ...tab.request,
             bodyKeyValuePairs: [
               ...(tab.request.bodyKeyValuePairs || []),
-              { key: '', value: '', enabled: true }
+              { key: '', value: '', enabled: false }
             ]
           }
         }))

@@ -287,7 +287,7 @@ export class YamlService {
       : []
 
     // 空の行を追加
-    headers.push({ key: '', value: '', enabled: true })
+    headers.push({ key: '', value: '', enabled: false })
 
     // パラメータを配列形式に変換
     const params = yamlRequest.params
@@ -299,7 +299,7 @@ export class YamlService {
       : []
 
     // 空の行を追加
-    params.push({ key: '', value: '', enabled: true })
+    params.push({ key: '', value: '', enabled: false })
 
     // ボディを文字列に変換
     let body = ''

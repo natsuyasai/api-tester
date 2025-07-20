@@ -35,7 +35,19 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
   }
 
   const handleUpdate = (index: number, field: keyof KeyValuePair, value: string | boolean) => {
-    const update = { [field]: value }
+    const currentItem = items[index]
+    let update = { [field]: value }
+
+    // キーまたは値に入力があった場合、自動的にチェックボックスを有効にする
+    if (
+      (field === 'key' || field === 'value') &&
+      typeof value === 'string' &&
+      value.trim() !== '' &&
+      !currentItem.enabled
+    ) {
+      update = { ...update, enabled: true }
+    }
+
     if (type === 'headers') {
       updateHeader(tabId, index, update)
     } else if (type === 'params') {
@@ -69,7 +81,8 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
         isFile: true,
         fileName: file.name,
         fileContent,
-        value: encoding === 'base64' ? `[File: ${file.name}]` : fileContent
+        value: encoding === 'base64' ? `[File: ${file.name}]` : fileContent,
+        enabled: true // ファイル選択時に自動的に有効化
       }
 
       if (type === 'headers') {

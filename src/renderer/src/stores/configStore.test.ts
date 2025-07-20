@@ -192,8 +192,8 @@ describe('ConfigStore', () => {
             request: expect.objectContaining({
               url: 'https://minimal.example.com',
               method: 'GET',
-              headers: [{ key: '', value: '', enabled: true }],
-              params: [{ key: '', value: '', enabled: true }],
+              headers: [{ key: '', value: '', enabled: false }],
+              params: [{ key: '', value: '', enabled: false }],
               body: '',
               bodyType: 'json',
               type: 'rest'

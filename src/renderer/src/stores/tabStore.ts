@@ -32,11 +32,11 @@ const createInitialTab = (): ApiTab => ({
     name: 'New Request',
     url: '',
     method: 'GET',
-    headers: [{ key: '', value: '', enabled: true }],
-    params: [{ key: '', value: '', enabled: true }],
+    headers: [{ key: '', value: '', enabled: false }],
+    params: [{ key: '', value: '', enabled: false }],
     body: '',
     bodyType: 'json',
-    bodyKeyValuePairs: [{ key: '', value: '', enabled: true }],
+    bodyKeyValuePairs: [{ key: '', value: '', enabled: false }],
     type: 'rest'
   }
 })

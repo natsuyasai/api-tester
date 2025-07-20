@@ -49,7 +49,7 @@ describe('FormDataEditor', () => {
     expect(screen.getByDisplayValue('30')).toBeInTheDocument()
   })
 
-  it('should add new row when typing in last empty row', () => {
+  it('should add new row when typing in last empty row and auto-enable checkbox', () => {
     render(<FormDataEditor {...defaultProps} />)
 
     const keyInput = screen.getByPlaceholderText('Enter key')
@@ -170,5 +170,39 @@ describe('FormDataEditor', () => {
       { key: 'name', value: 'John', enabled: false },
       { key: 'age', value: '30', enabled: false }
     ])
+  })
+
+  it('should auto-enable checkbox when value is entered in disabled row', () => {
+    const data: KeyValuePair[] = [{ key: 'test', value: '', enabled: false }]
+
+    render(<FormDataEditor {...defaultProps} data={data} />)
+
+    const valueInputs = screen.getAllByPlaceholderText('Enter value')
+    const valueInput = valueInputs[0] // 最初のvalue入力欄を選択
+    fireEvent.change(valueInput, { target: { value: 'value' } })
+
+    expect(mockOnChange).toHaveBeenCalledWith([{ key: 'test', value: 'value', enabled: true }])
+  })
+
+  it('should not auto-enable if checkbox is already enabled', () => {
+    const data: KeyValuePair[] = [{ key: 'test', value: '', enabled: true }]
+
+    render(<FormDataEditor {...defaultProps} data={data} />)
+
+    const valueInputs = screen.getAllByPlaceholderText('Enter value')
+    const valueInput = valueInputs[0] // 最初のvalue入力欄を選択
+    fireEvent.change(valueInput, { target: { value: 'value' } })
+
+    expect(mockOnChange).toHaveBeenCalledWith([{ key: 'test', value: 'value', enabled: true }])
+  })
+
+  it('should not auto-enable for empty input', () => {
+    render(<FormDataEditor {...defaultProps} />)
+
+    const keyInput = screen.getByPlaceholderText('Enter key')
+    fireEvent.change(keyInput, { target: { value: '   ' } }) // whitespace only
+
+    // 空白文字のみの場合はenabledがfalseのまま
+    expect(mockOnChange).toHaveBeenCalledWith([{ key: '   ', value: '', enabled: false }])
   })
 })

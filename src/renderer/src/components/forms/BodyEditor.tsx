@@ -26,7 +26,6 @@ export const BodyEditor = ({
   onBodyTypeChange,
   onVariablesChange
 }: BodyEditorProps): JSX.Element => {
-  const [, setFormData] = useState<KeyValuePair[]>([])
   const [inputMode, setInputMode] = useState<'text' | 'keyvalue'>('text')
   const queryTextareaId = useId()
 
@@ -49,7 +48,7 @@ export const BodyEditor = ({
             return {
               key: key.trim(),
               value: valueParts.join('=').trim(),
-              enabled: true
+              enabled: false
             }
           }
           return null
@@ -114,7 +113,7 @@ export const BodyEditor = ({
 
   // テキストからKeyValue方式への変換
   const convertTextToKeyValue = (text: string): KeyValuePair[] => {
-    if (!text.trim()) return [{ key: '', value: '', enabled: true }]
+    if (!text.trim()) return [{ key: '', value: '', enabled: false }]
 
     if (bodyType === 'json') {
       try {
@@ -125,11 +124,11 @@ export const BodyEditor = ({
           enabled: true
         }))
         return pairs.length > 0
-          ? [...pairs, { key: '', value: '', enabled: true }]
-          : [{ key: '', value: '', enabled: true }]
+          ? [...pairs, { key: '', value: '', enabled: false }]
+          : [{ key: '', value: '', enabled: false }]
       } catch {
         // JSONとして解析できない場合は空のペアを返す
-        return [{ key: '', value: '', enabled: true }]
+        return [{ key: '', value: '', enabled: false }]
       }
     } else {
       // key=value形式として解析
@@ -141,7 +140,7 @@ export const BodyEditor = ({
             return {
               key: key.trim(),
               value: valueParts.join('=').trim(),
-              enabled: true
+              enabled: false
             }
           }
           return null
@@ -149,8 +148,8 @@ export const BodyEditor = ({
         .filter((item): item is KeyValuePair => item !== null)
 
       return pairs.length > 0
-        ? [...pairs, { key: '', value: '', enabled: true }]
-        : [{ key: '', value: '', enabled: true }]
+        ? [...pairs, { key: '', value: '', enabled: false }]
+        : [{ key: '', value: '', enabled: false }]
     }
   }
 
@@ -183,13 +182,57 @@ export const BodyEditor = ({
 
   const isJsonBodyType = bodyType === 'json' || bodyType === 'graphql'
   const canUseKeyValueMode = bodyType === 'json'
+  const isFormBodyType = bodyType === 'form-data' || bodyType === 'x-www-form-urlencoded'
+
+  // form-data/urlencoded用のハンドラー
+  const handleFormDataChange = (data: KeyValuePair[]) => {
+    // storeの状態を更新
+    data.forEach((pair, index) => {
+      if (index < bodyKeyValuePairs.length) {
+        updateBodyKeyValue(tabId, index, pair)
+      } else {
+        addBodyKeyValue(tabId)
+        updateBodyKeyValue(tabId, bodyKeyValuePairs.length, pair)
+      }
+    })
+
+    // 余分なペアを削除
+    if (data.length < bodyKeyValuePairs.length) {
+      for (let i = bodyKeyValuePairs.length - 1; i >= data.length; i--) {
+        removeBodyKeyValue(tabId, i)
+      }
+    }
+
+    // bodyテキストも更新
+    const serializedData = serializeFormData(data)
+    onBodyChange(serializedData)
+  }
+
+  // bodyTypeが変更された時の処理
+  const handleBodyTypeChange = (newBodyType: BodyType) => {
+    onBodyTypeChange(newBodyType)
+
+    // form-data/urlencoded への切り替え時にbodyKeyValuePairsを初期化
+    if (
+      (newBodyType === 'form-data' || newBodyType === 'x-www-form-urlencoded') &&
+      bodyKeyValuePairs.length === 0
+    ) {
+      const parsedData = parseFormData(body)
+      if (parsedData.length > 0) {
+        handleFormDataChange(parsedData)
+      } else {
+        // 空の場合は最初のペアを追加
+        addBodyKeyValue(tabId)
+      }
+    }
+  }
 
   return (
     <div className={styles.bodyEditor}>
       <div className={styles.header}>
         <select
           value={bodyType}
-          onChange={(e) => onBodyTypeChange(e.target.value as BodyType)}
+          onChange={(e) => handleBodyTypeChange(e.target.value as BodyType)}
           className={styles.bodyTypeSelect}
         >
           {bodyTypes.map((type) => (
@@ -230,13 +273,10 @@ export const BodyEditor = ({
       </div>
 
       <div className={styles.editorContainer}>
-        {bodyType === 'form-data' || bodyType === 'x-www-form-urlencoded' ? (
+        {isFormBodyType ? (
           <FormDataEditor
-            data={parseFormData(body)}
-            onChange={(data) => {
-              setFormData(data)
-              onBodyChange(serializeFormData(data))
-            }}
+            data={bodyKeyValuePairs}
+            onChange={handleFormDataChange}
             placeholder={{
               key: bodyType === 'form-data' ? 'Enter field name' : 'Enter parameter name',
               value: bodyType === 'form-data' ? 'Enter field value' : 'Enter parameter value'
