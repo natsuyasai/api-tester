@@ -1,12 +1,13 @@
 import { JSX, useRef } from 'react'
 import { FileService } from '@/services/fileService'
 import { KeyValuePair, FileEncoding } from '@/types/types'
+import { useEnvironmentStore } from '@renderer/stores/environmentStore'
 import { useRequestStore } from '@renderer/stores/requestStore'
 import styles from './KeyValueEditor.module.scss'
 
 interface KeyValueEditorProps {
   tabId: string
-  type: 'headers' | 'params' | 'body'
+  type: 'headers' | 'params' | 'body' | 'environment'
   items: KeyValuePair[]
 }
 
@@ -22,6 +23,7 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
     updateBodyKeyValue,
     removeBodyKeyValue
   } = useRequestStore()
+  const { addVariable, updateVariable, removeVariable } = useEnvironmentStore()
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({})
 
   const handleAdd = () => {
@@ -29,6 +31,8 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
       addHeader(tabId)
     } else if (type === 'params') {
       addParam(tabId)
+    } else if (type === 'environment') {
+      addVariable(tabId)
     } else {
       addBodyKeyValue(tabId)
     }
@@ -52,6 +56,8 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
       updateHeader(tabId, index, update)
     } else if (type === 'params') {
       updateParam(tabId, index, update)
+    } else if (type === 'environment') {
+      updateVariable(tabId, index, update)
     } else {
       updateBodyKeyValue(tabId, index, update)
     }
@@ -62,6 +68,8 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
       removeHeader(tabId, index)
     } else if (type === 'params') {
       removeParam(tabId, index)
+    } else if (type === 'environment') {
+      removeVariable(tabId, index)
     } else {
       removeBodyKeyValue(tabId, index)
     }

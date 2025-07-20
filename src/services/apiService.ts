@@ -1,23 +1,65 @@
 import { ApiRequest, ApiResponse } from '@/types/types'
 
 export class ApiService {
-  static async executeRequest(request: ApiRequest): Promise<ApiResponse> {
+  static async executeRequest(
+    request: ApiRequest,
+    variableResolver?: (text: string) => string
+  ): Promise<ApiResponse> {
     const startTime = Date.now()
 
     try {
+      // 変数の解決
+      const resolveVariables = variableResolver || ((text: string) => text)
+      
       // URLパラメータの構築
-      const url = new URL(request.url)
+      const url = new URL(resolveVariables(request.url))
       const enabledParams = request.params.filter((param) => param.enabled && param.key)
       enabledParams.forEach((param) => {
-        url.searchParams.set(param.key, param.value)
+        url.searchParams.set(resolveVariables(param.key), resolveVariables(param.value))
       })
 
       // ヘッダーの構築
       const headers = new Headers()
       const enabledHeaders = request.headers.filter((header) => header.enabled && header.key)
       enabledHeaders.forEach((header) => {
-        headers.set(header.key, header.value)
+        headers.set(resolveVariables(header.key), resolveVariables(header.value))
       })
+
+      // 認証処理
+      if (request.auth) {
+        switch (request.auth.type) {
+          case 'basic':
+            if (request.auth.basic) {
+              const credentials = btoa(
+                `${resolveVariables(request.auth.basic.username)}:${resolveVariables(
+                  request.auth.basic.password
+                )}`
+              )
+              headers.set('Authorization', `Basic ${credentials}`)
+            }
+            break
+          case 'bearer':
+            if (request.auth.bearer) {
+              headers.set('Authorization', `Bearer ${resolveVariables(request.auth.bearer.token)}`)
+            }
+            break
+          case 'api-key':
+            if (request.auth.apiKey) {
+              if (request.auth.apiKey.location === 'header') {
+                headers.set(
+                  resolveVariables(request.auth.apiKey.key),
+                  resolveVariables(request.auth.apiKey.value)
+                )
+              } else if (request.auth.apiKey.location === 'query') {
+                url.searchParams.set(
+                  resolveVariables(request.auth.apiKey.key),
+                  resolveVariables(request.auth.apiKey.value)
+                )
+              }
+            }
+            break
+        }
+      }
 
       // リクエストボディの処理
       let body: string | FormData | undefined = undefined
@@ -41,15 +83,15 @@ export class ApiService {
                 }
                 const byteArray = new Uint8Array(byteNumbers)
                 const blob = new Blob([byteArray])
-                formData.append(pair.key, blob, fileName)
+                formData.append(resolveVariables(pair.key), blob, fileName)
               } else {
                 // バイナリデータとして扱う
                 const blob = new Blob([pair.fileContent])
-                formData.append(pair.key, blob, fileName)
+                formData.append(resolveVariables(pair.key), blob, fileName)
               }
             } else {
               // 通常のテキストフィールド
-              formData.append(pair.key, pair.value)
+              formData.append(resolveVariables(pair.key), resolveVariables(pair.value))
             }
           })
           body = formData
@@ -57,13 +99,13 @@ export class ApiService {
           if (request.bodyType === 'graphql') {
             // GraphQLの場合、クエリと変数を適切なフォーマットに変換
             const graphqlPayload = {
-              query: request.body,
+              query: resolveVariables(request.body),
               variables: request.variables || {},
               operationName: this.extractOperationName(request.body)
             }
             body = JSON.stringify(graphqlPayload)
           } else {
-            body = request.body
+            body = resolveVariables(request.body)
           }
         }
 
@@ -231,6 +273,31 @@ export class ApiService {
     enabledHeaders.forEach((header) => {
       command += ` -H "${header.key}: ${header.value}"`
     })
+
+    // 認証の追加
+    if (request.auth) {
+      switch (request.auth.type) {
+        case 'basic':
+          if (request.auth.basic) {
+            command += ` -u "${request.auth.basic.username}:${request.auth.basic.password}"`
+          }
+          break
+        case 'bearer':
+          if (request.auth.bearer) {
+            command += ` -H "Authorization: Bearer ${request.auth.bearer.token}"`
+          }
+          break
+        case 'api-key':
+          if (request.auth.apiKey) {
+            if (request.auth.apiKey.location === 'header') {
+              command += ` -H "${request.auth.apiKey.key}: ${request.auth.apiKey.value}"`
+            } else if (request.auth.apiKey.location === 'query') {
+              url.searchParams.set(request.auth.apiKey.key, request.auth.apiKey.value)
+            }
+          }
+          break
+      }
+    }
 
     // ボディの追加
     if (['POST', 'PUT', 'PATCH'].includes(request.method)) {

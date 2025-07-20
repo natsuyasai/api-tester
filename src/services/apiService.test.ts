@@ -396,4 +396,214 @@ describe('ApiService', () => {
       expect(errors).toHaveLength(0)
     })
   })
+
+  describe('Authentication', () => {
+    it('should apply Basic authentication to headers', async () => {
+      const request: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/test',
+        method: 'GET',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json',
+        auth: {
+          type: 'basic',
+          basic: {
+            username: 'testuser',
+            password: 'testpass'
+          }
+        },
+        type: 'rest'
+      }
+
+      const mockResponse = {
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({ success: true })
+      }
+      mockFetch.mockResolvedValue(mockResponse)
+
+      await ApiService.executeRequest(request)
+
+      const expectedAuth = btoa('testuser:testpass')
+      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/test', {
+        method: 'GET',
+        headers: expect.objectContaining({
+          get: expect.any(Function),
+          set: expect.any(Function)
+        }),
+        body: undefined
+      })
+
+      // ヘッダーにAuthorizationが設定されていることを確認
+      const callArgs = mockFetch.mock.calls[0]
+      const headers = callArgs[1]?.headers as Headers
+      expect(headers.get('Authorization')).toBe(`Basic ${expectedAuth}`)
+    })
+
+    it('should apply Bearer token authentication to headers', async () => {
+      const request: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/test',
+        method: 'GET',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json',
+        auth: {
+          type: 'bearer',
+          bearer: {
+            token: 'test-token-123'
+          }
+        },
+        type: 'rest'
+      }
+
+      const mockResponse = {
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({ success: true })
+      }
+      mockFetch.mockResolvedValue(mockResponse)
+
+      await ApiService.executeRequest(request)
+
+      const callArgs = mockFetch.mock.calls[0]
+      const headers = callArgs[1]?.headers as Headers
+      expect(headers.get('Authorization')).toBe('Bearer test-token-123')
+    })
+
+    it('should apply API Key authentication to headers', async () => {
+      const request: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/test',
+        method: 'GET',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json',
+        auth: {
+          type: 'api-key',
+          apiKey: {
+            key: 'X-API-Key',
+            value: 'secret-key-123',
+            location: 'header'
+          }
+        },
+        type: 'rest'
+      }
+
+      const mockResponse = {
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({ success: true })
+      }
+      mockFetch.mockResolvedValue(mockResponse)
+
+      await ApiService.executeRequest(request)
+
+      const callArgs = mockFetch.mock.calls[0]
+      const headers = callArgs[1]?.headers as Headers
+      expect(headers.get('X-API-Key')).toBe('secret-key-123')
+    })
+
+    it('should apply API Key authentication to query parameters', async () => {
+      const request: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/test',
+        method: 'GET',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json',
+        auth: {
+          type: 'api-key',
+          apiKey: {
+            key: 'api_key',
+            value: 'secret-key-123',
+            location: 'query'
+          }
+        },
+        type: 'rest'
+      }
+
+      const mockResponse = {
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({ success: true })
+      }
+      mockFetch.mockResolvedValue(mockResponse)
+
+      await ApiService.executeRequest(request)
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.example.com/test?api_key=secret-key-123',
+        {
+          method: 'GET',
+          headers: expect.any(Headers),
+          body: undefined
+        }
+      )
+    })
+
+    it('should build curl command with Basic authentication', () => {
+      const request: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/test',
+        method: 'GET',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json',
+        auth: {
+          type: 'basic',
+          basic: {
+            username: 'testuser',
+            password: 'testpass'
+          }
+        },
+        type: 'rest'
+      }
+
+      const curlCommand = ApiService.buildCurlCommand(request)
+
+      expect(curlCommand).toBe('curl -X GET -u "testuser:testpass" "https://api.example.com/test"')
+    })
+
+    it('should build curl command with Bearer token', () => {
+      const request: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/test',
+        method: 'GET',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json',
+        auth: {
+          type: 'bearer',
+          bearer: {
+            token: 'test-token-123'
+          }
+        },
+        type: 'rest'
+      }
+
+      const curlCommand = ApiService.buildCurlCommand(request)
+
+      expect(curlCommand).toBe(
+        'curl -X GET -H "Authorization: Bearer test-token-123" "https://api.example.com/test"'
+      )
+    })
+  })
 })

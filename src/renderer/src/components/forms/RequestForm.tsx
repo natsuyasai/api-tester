@@ -1,9 +1,12 @@
 import { JSX, useState } from 'react'
 import { ApiService } from '@/services/apiService'
 import { HttpMethod } from '@/types/types'
+import { useEnvironmentStore } from '@renderer/stores/environmentStore'
 import { useRequestStore } from '@renderer/stores/requestStore'
 import { useTabStore } from '@renderer/stores/tabStore'
+import { AuthEditor } from './AuthEditor'
 import { BodyEditor } from './BodyEditor'
+import { EnvironmentEditor } from './EnvironmentEditor'
 import { KeyValueEditor } from './KeyValueEditor'
 import styles from './RequestForm.module.scss'
 
@@ -19,13 +22,17 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
     updateBody,
     updateBodyType,
     updateGraphQLVariables,
+    updateAuth,
     setLoading,
     setResponse,
     isLoading
   } = useRequestStore()
+  const { resolveVariables } = useEnvironmentStore()
 
   const tab = getTab(tabId)
-  const [activeSection, setActiveSection] = useState<'params' | 'headers' | 'body'>('params')
+  const [activeSection, setActiveSection] = useState<
+    'params' | 'headers' | 'auth' | 'body' | 'environment'
+  >('params')
 
   if (!tab) {
     return <div>Tab not found</div>
@@ -45,7 +52,7 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
 
     setLoading(true)
     try {
-      const response = await ApiService.executeRequest(request)
+      const response = await ApiService.executeRequest(request, resolveVariables)
       setResponse(tabId, response)
     } catch (error) {
       console.error('Request failed:', error)
@@ -142,11 +149,25 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
             Headers
           </button>
           <button
+            className={`${styles.tab} ${activeSection === 'auth' ? styles.active : ''}`}
+            onClick={() => setActiveSection('auth')}
+            type="button"
+          >
+            Auth
+          </button>
+          <button
             className={`${styles.tab} ${activeSection === 'body' ? styles.active : ''}`}
             onClick={() => setActiveSection('body')}
             type="button"
           >
             Body
+          </button>
+          <button
+            className={`${styles.tab} ${activeSection === 'environment' ? styles.active : ''}`}
+            onClick={() => setActiveSection('environment')}
+            type="button"
+          >
+            Environment
           </button>
         </div>
 
@@ -156,6 +177,9 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
           )}
           {activeSection === 'headers' && (
             <KeyValueEditor tabId={tabId} type="headers" items={request.headers} />
+          )}
+          {activeSection === 'auth' && (
+            <AuthEditor auth={request.auth} onChange={(auth) => updateAuth(tabId, auth)} />
           )}
           {activeSection === 'body' && (
             <BodyEditor
@@ -168,6 +192,7 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
               onVariablesChange={(variables) => updateGraphQLVariables(tabId, variables)}
             />
           )}
+          {activeSection === 'environment' && <EnvironmentEditor />}
         </div>
       </div>
     </div>

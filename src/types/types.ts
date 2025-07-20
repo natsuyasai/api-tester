@@ -10,6 +10,29 @@ export type BodyType = 'json' | 'form-data' | 'x-www-form-urlencoded' | 'raw' | 
 // ファイルエンコーディング方法の型定義
 export type FileEncoding = 'base64' | 'binary'
 
+// 認証タイプの型定義
+export type AuthType = 'none' | 'basic' | 'bearer' | 'api-key'
+
+// API Key配置場所の型定義
+export type ApiKeyLocation = 'header' | 'query'
+
+// 認証設定の型定義
+export interface AuthConfig {
+  type: AuthType
+  basic?: {
+    username: string
+    password: string
+  }
+  bearer?: {
+    token: string
+  }
+  apiKey?: {
+    key: string
+    value: string
+    location: ApiKeyLocation
+  }
+}
+
 // キーバリューペアの型定義
 export interface KeyValuePair {
   key: string
@@ -32,6 +55,7 @@ export interface ApiRequest {
   body: string
   bodyType: BodyType
   bodyKeyValuePairs?: KeyValuePair[] // KeyValue方式のbody入力用
+  auth?: AuthConfig // 認証設定
   type: ApiType
   variables?: Record<string, unknown> // GraphQL用の変数
 }
@@ -79,4 +103,17 @@ export interface FormData {
   params: KeyValuePair[]
   body: string
   bodyType: BodyType
+}
+
+// 環境変数の型定義
+export interface Environment {
+  id: string
+  name: string
+  variables: KeyValuePair[]
+}
+
+// 環境設定の型定義
+export interface EnvironmentConfig {
+  environments: Environment[]
+  activeEnvironmentId: string | null
 }

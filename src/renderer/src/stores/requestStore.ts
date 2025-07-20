@@ -1,6 +1,14 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import { ApiRequest, ApiResponse, KeyValuePair, HttpMethod, BodyType, ApiTab } from '@/types/types'
+import {
+  ApiRequest,
+  ApiResponse,
+  KeyValuePair,
+  HttpMethod,
+  BodyType,
+  ApiTab,
+  AuthConfig
+} from '@/types/types'
 import { useTabStore } from './tabStore'
 
 interface RequestState {
@@ -23,6 +31,9 @@ interface RequestActions {
   removeParam: (tabId: string, index: number) => void
 
   updateGraphQLVariables: (tabId: string, variables: Record<string, unknown>) => void
+
+  // 認証管理
+  updateAuth: (tabId: string, auth: AuthConfig) => void
 
   // Body KeyValue管理
   addBodyKeyValue: (tabId: string) => void
@@ -140,6 +151,10 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
       updateGraphQLVariables: (tabId: string, variables: Record<string, unknown>) => {
         get().updateRequest(tabId, { variables })
+      },
+
+      updateAuth: (tabId: string, auth: AuthConfig) => {
+        get().updateRequest(tabId, { auth })
       },
 
       setResponse: (tabId: string, response: ApiResponse) => {
