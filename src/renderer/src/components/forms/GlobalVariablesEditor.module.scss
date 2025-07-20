@@ -1,0 +1,229 @@
+.globalVariablesEditor {
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-color);
+}
+
+.header {
+  margin-bottom: 24px;
+
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-color);
+  }
+
+  .description {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+
+    code {
+      background-color: var(--code-background);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.85em;
+    }
+  }
+}
+
+.variablesContainer {
+  margin-bottom: 24px;
+}
+
+.variablesHeader {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr 1fr 60px;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 8px;
+
+  .columnHeader {
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    padding: 0 8px;
+  }
+}
+
+.variablesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.variableRow {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr 1fr 60px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.enabledColumn {
+  display: flex;
+  justify-content: center;
+  padding: 0 8px;
+}
+
+.keyColumn,
+.valueColumn,
+.descriptionColumn {
+  padding: 0 8px;
+}
+
+.actionsColumn {
+  display: flex;
+  justify-content: center;
+  padding: 0 8px;
+}
+
+.checkbox {
+  margin: 0;
+  cursor: pointer;
+}
+
+.input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--input-background);
+  color: var(--text-color);
+  font-size: 0.9rem;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+.removeButton {
+  width: 24px;
+  height: 24px;
+  background-color: var(--danger-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: var(--danger-color-hover);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.3);
+  }
+}
+
+.addVariableSection {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 8px;
+}
+
+.addButton {
+  padding: 8px 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: var(--primary-color-hover);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  }
+}
+
+.usageExamples {
+  border-top: 1px solid var(--border-light);
+  padding-top: 20px;
+
+  h4 {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+  }
+}
+
+.examplesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.example {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background-color: var(--secondary-background);
+  border-radius: 4px;
+  font-size: 0.9rem;
+
+  code {
+    background-color: var(--code-background);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.85em;
+    color: var(--primary-color);
+  }
+
+  .arrow {
+    color: var(--text-muted);
+    font-weight: bold;
+  }
+
+  .result {
+    color: var(--success-color);
+    font-weight: 500;
+  }
+}
+
+@media (max-width: 768px) {
+  .variablesHeader,
+  .variableRow {
+    grid-template-columns: 50px 1fr 1fr 50px;
+    gap: 4px;
+  }
+
+  .descriptionColumn {
+    display: none;
+  }
+
+  .input {
+    font-size: 0.8rem;
+    padding: 4px 6px;
+  }
+}

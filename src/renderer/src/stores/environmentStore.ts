@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { Environment, EnvironmentConfig, KeyValuePair } from '@/types/types'
+import { useGlobalVariablesStore } from './globalVariablesStore'
 
 interface EnvironmentState extends EnvironmentConfig {
   // 環境管理
@@ -154,16 +155,21 @@ export const useEnvironmentStore = create<EnvironmentState>()(
       },
 
       resolveVariables: (text: string) => {
-        const activeEnv = get().getActiveEnvironment()
-        if (!activeEnv) return text
-
         let resolvedText = text
-        const enabledVariables = activeEnv.variables.filter((variable) => variable.enabled)
 
-        enabledVariables.forEach((variable) => {
-          const regex = new RegExp(`{{\\s*${variable.key}\\s*}}`, 'g')
-          resolvedText = resolvedText.replace(regex, variable.value)
-        })
+        // まずグローバル変数を解決
+        const globalVariablesState = useGlobalVariablesStore.getState()
+        resolvedText = globalVariablesState.resolveGlobalVariables(resolvedText)
+
+        // 次に環境変数を解決（環境変数が優先される）
+        const activeEnv = get().getActiveEnvironment()
+        if (activeEnv) {
+          const enabledVariables = activeEnv.variables.filter((variable) => variable.enabled)
+          enabledVariables.forEach((variable) => {
+            const regex = new RegExp(`{{\\s*${variable.key}\\s*}}`, 'g')
+            resolvedText = resolvedText.replace(regex, variable.value)
+          })
+        }
 
         return resolvedText
       },

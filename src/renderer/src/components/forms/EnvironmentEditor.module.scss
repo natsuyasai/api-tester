@@ -31,6 +31,39 @@
   }
 }
 
+.tabs {
+  display: flex;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 24px;
+
+  .tab {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: all 0.2s;
+
+    &:hover {
+      color: var(--text-color);
+      background-color: var(--border-light);
+    }
+
+    &.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    }
+  }
+}
+
 .environmentSelector {
   display: flex;
   align-items: flex-start;

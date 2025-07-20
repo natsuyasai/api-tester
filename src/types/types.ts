@@ -136,3 +136,17 @@ export const DEFAULT_REQUEST_SETTINGS: RequestSettings = {
   validateSSL: true,
   userAgent: 'API Tester 1.0'
 }
+
+// グローバル変数の型定義
+export interface GlobalVariable {
+  id: string
+  key: string
+  value: string
+  enabled: boolean
+  description?: string
+}
+
+// グローバル変数設定の型定義
+export interface GlobalVariablesConfig {
+  variables: GlobalVariable[]
+}
