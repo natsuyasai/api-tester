@@ -150,3 +150,21 @@ export interface GlobalVariable {
 export interface GlobalVariablesConfig {
   variables: GlobalVariable[]
 }
+
+// クッキー管理
+export interface Cookie {
+  id: string
+  name: string
+  value: string
+  domain: string
+  path: string
+  enabled: boolean
+  httpOnly?: boolean
+  secure?: boolean
+  sameSite?: 'Strict' | 'Lax' | 'None'
+  expires?: string
+}
+
+export interface CookieStore {
+  cookies: Cookie[]
+}

@@ -1,5 +1,6 @@
 import { JSX, useState } from 'react'
 import { useEnvironmentStore } from '@renderer/stores/environmentStore'
+import { CookieEditor } from './CookieEditor'
 import styles from './EnvironmentEditor.module.scss'
 import { GlobalVariablesEditor } from './GlobalVariablesEditor'
 import { KeyValueEditor } from './KeyValueEditor'
@@ -16,7 +17,7 @@ export const EnvironmentEditor = (): JSX.Element => {
 
   const [newEnvironmentName, setNewEnvironmentName] = useState('')
   const [isAddingEnvironment, setIsAddingEnvironment] = useState(false)
-  const [activeTab, setActiveTab] = useState<'environments' | 'global'>('environments')
+  const [activeTab, setActiveTab] = useState<'environments' | 'global' | 'cookies'>('environments')
 
   const activeEnvironment = environments.find((env) => env.id === activeEnvironmentId)
 
@@ -41,10 +42,9 @@ export const EnvironmentEditor = (): JSX.Element => {
   return (
     <div className={styles.environmentEditor}>
       <div className={styles.header}>
-        <h3>環境・変数設定</h3>
+        <h3>環境・変数・クッキー設定</h3>
         <p className={styles.description}>
-          環境変数とグローバル変数を管理し、リクエストで<code>{'{{変数名}}'}</code>
-          として使用できます。
+          環境変数、グローバル変数、クッキーを管理し、リクエストで利用できます。
         </p>
       </div>
 
@@ -62,6 +62,13 @@ export const EnvironmentEditor = (): JSX.Element => {
           type="button"
         >
           グローバル変数
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === 'cookies' ? styles.active : ''}`}
+          onClick={() => setActiveTab('cookies')}
+          type="button"
+        >
+          クッキー
         </button>
       </div>
 
@@ -179,6 +186,8 @@ export const EnvironmentEditor = (): JSX.Element => {
       )}
 
       {activeTab === 'global' && <GlobalVariablesEditor />}
+
+      {activeTab === 'cookies' && <CookieEditor />}
     </div>
   )
 }

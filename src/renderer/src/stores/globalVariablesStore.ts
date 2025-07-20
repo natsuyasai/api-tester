@@ -150,15 +150,18 @@ export const useGlobalVariablesStore = create<GlobalVariablesState>()(
         })
 
         // ランダム文字列（カスタム長）
-        resolvedText = resolvedText.replace(/{{\s*\$randomString\((\d+)\)\s*}}/g, (_, length: string) => {
-          const len = parseInt(length, 10)
-          let result = ''
-          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-          for (let i = 0; i < len; i++) {
-            result += chars.charAt(Math.floor(Math.random() * chars.length))
+        resolvedText = resolvedText.replace(
+          /{{\s*\$randomString\((\d+)\)\s*}}/g,
+          (_, length: string) => {
+            const len = parseInt(length, 10)
+            let result = ''
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+            for (let i = 0; i < len; i++) {
+              result += chars.charAt(Math.floor(Math.random() * chars.length))
+            }
+            return result
           }
-          return result
-        })
+        )
 
         return resolvedText
       },

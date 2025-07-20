@@ -1,5 +1,13 @@
 import { ApiRequest, ApiResponse, DEFAULT_REQUEST_SETTINGS } from '@/types/types'
 
+// クッキーストアの型を後で追加
+let getCookieHeader: ((domain: string) => string) | null = null
+
+// クッキーヘッダー取得関数を設定する関数
+export const setCookieResolver = (resolver: (domain: string) => string) => {
+  getCookieHeader = resolver
+}
+
 export class ApiService {
   static async executeRequest(
     request: ApiRequest,
@@ -31,6 +39,14 @@ export class ApiService {
       // User-Agentの設定
       if (settings.userAgent && !headers.has('User-Agent')) {
         headers.set('User-Agent', settings.userAgent)
+      }
+
+      // クッキーの設定
+      if (getCookieHeader && !headers.has('Cookie')) {
+        const cookieValue = getCookieHeader(url.hostname)
+        if (cookieValue) {
+          headers.set('Cookie', cookieValue)
+        }
       }
 
       // 認証処理
