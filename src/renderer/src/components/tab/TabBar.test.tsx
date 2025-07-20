@@ -1,59 +1,73 @@
-import { useApiStore } from '@renderer/stores/apiStore'
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { useYamlOperations } from '@renderer/hooks/useYamlOperations'
+import { useTabStore } from '@renderer/stores/tabStore'
 import { useThemeStore } from '@renderer/stores/themeStore'
 import { TabBar } from './TabBar'
 
 // Zustandストアをモック
-vi.mock('@renderer/stores/apiStore')
+vi.mock('@renderer/stores/tabStore')
 vi.mock('@renderer/stores/themeStore')
+vi.mock('@renderer/hooks/useYamlOperations')
 
-const mockUseApiStore = vi.mocked(useApiStore)
+const mockUseTabStore = vi.mocked(useTabStore)
 const mockUseThemeStore = vi.mocked(useThemeStore)
+const mockUseYamlOperations = vi.mocked(useYamlOperations)
 
 describe('TabBar', () => {
-  const mockStore = {
-    tabs: [
-      {
-        id: 'tab-1',
-        title: 'Tab 1',
-        isActive: true,
-        request: {
-          id: 'req-1',
-          name: 'Request 1',
-          url: '',
-          method: 'GET' as const,
-          headers: [],
-          params: [],
-          body: '',
-          bodyType: 'json' as const,
-          type: 'rest' as const
-        },
-        response: null
+  const mockTabs = [
+    {
+      id: 'tab-1',
+      title: 'Tab 1',
+      isActive: true,
+      request: {
+        id: 'req-1',
+        name: 'Request 1',
+        url: '',
+        method: 'GET' as const,
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json' as const,
+        type: 'rest' as const
       },
-      {
-        id: 'tab-2',
-        title: 'Tab 2',
-        isActive: false,
-        request: {
-          id: 'req-2',
-          name: 'Request 2',
-          url: '',
-          method: 'GET' as const,
-          headers: [],
-          params: [],
-          body: '',
-          bodyType: 'json' as const,
-          type: 'rest' as const
-        },
-        response: null
-      }
-    ],
+      response: null
+    },
+    {
+      id: 'tab-2',
+      title: 'Tab 2',
+      isActive: false,
+      request: {
+        id: 'req-2',
+        name: 'Request 2',
+        url: '',
+        method: 'GET' as const,
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json' as const,
+        type: 'rest' as const
+      },
+      response: null
+    }
+  ]
+
+  const mockTabStore = {
+    tabs: mockTabs,
+    activeTabId: 'tab-1',
     addTab: vi.fn(),
     closeTab: vi.fn(),
     setActiveTab: vi.fn(),
     updateTabTitle: vi.fn(),
+    getActiveTab: vi.fn(),
+    getTab: vi.fn(),
+    resetTabs: vi.fn()
+  }
+
+  const mockYamlOperations = {
+    exportYaml: vi.fn(),
+    importYaml: vi.fn(),
     saveToFile: vi.fn(),
     loadFromFile: vi.fn()
   }
@@ -66,8 +80,9 @@ describe('TabBar', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUseApiStore.mockImplementation(() => mockStore as any)
-    mockUseThemeStore.mockImplementation(() => mockThemeStore as any)
+    mockUseTabStore.mockReturnValue(mockTabStore)
+    mockUseYamlOperations.mockReturnValue(mockYamlOperations)
+    mockUseThemeStore.mockReturnValue(mockThemeStore)
   })
 
   it('should render all tabs', () => {
@@ -94,7 +109,7 @@ describe('TabBar', () => {
     const tab2Button = tab2Buttons[0].closest('button')
     fireEvent.click(tab2Button!)
 
-    expect(mockStore.setActiveTab).toHaveBeenCalledWith('tab-2')
+    expect(mockTabStore.setActiveTab).toHaveBeenCalledWith('tab-2')
   })
 
   it('should render add tab button', () => {
@@ -110,7 +125,7 @@ describe('TabBar', () => {
     const addButton = screen.getByRole('button', { name: /add new tab/i })
     fireEvent.click(addButton)
 
-    expect(mockStore.addTab).toHaveBeenCalled()
+    expect(mockTabStore.addTab).toHaveBeenCalled()
   })
 
   it('should render close buttons for tabs when more than one tab exists', () => {
@@ -126,15 +141,15 @@ describe('TabBar', () => {
     const closeButton = screen.getByRole('button', { name: /close tab 1/i })
     fireEvent.click(closeButton)
 
-    expect(mockStore.closeTab).toHaveBeenCalledWith('tab-1')
+    expect(mockTabStore.closeTab).toHaveBeenCalledWith('tab-1')
   })
 
   it('should not render close buttons when only one tab exists', () => {
     const singleTabStore = {
-      ...mockStore,
-      tabs: [mockStore.tabs[0]]
+      ...mockTabStore,
+      tabs: [mockTabs[0]]
     }
-    mockUseApiStore.mockImplementation(() => singleTabStore as any)
+    mockUseTabStore.mockReturnValue(singleTabStore)
 
     render(<TabBar />)
 
@@ -153,8 +168,8 @@ describe('TabBar', () => {
 
     fireEvent.click(closeButton)
 
-    expect(mockStore.closeTab).toHaveBeenCalledWith('tab-1')
-    expect(mockStore.setActiveTab).not.toHaveBeenCalled()
+    expect(mockTabStore.closeTab).toHaveBeenCalledWith('tab-1')
+    expect(mockTabStore.setActiveTab).not.toHaveBeenCalled()
   })
 
   it('should apply custom className when provided', () => {
@@ -165,15 +180,15 @@ describe('TabBar', () => {
 
   it('should display "Untitled" for tabs without title', () => {
     const storeWithoutTitle = {
-      ...mockStore,
+      ...mockTabStore,
       tabs: [
         {
-          ...mockStore.tabs[0],
+          ...mockTabs[0],
           title: ''
         }
       ]
     }
-    mockUseApiStore.mockImplementation(() => storeWithoutTitle as any)
+    mockUseTabStore.mockReturnValue(storeWithoutTitle)
 
     render(<TabBar />)
 
@@ -208,7 +223,7 @@ describe('TabBar', () => {
     await user.type(input, 'New Title')
     await user.keyboard('{Enter}')
 
-    expect(mockStore.updateTabTitle).toHaveBeenCalledWith('tab-1', 'New Title')
+    expect(mockTabStore.updateTabTitle).toHaveBeenCalledWith('tab-1', 'New Title')
   })
 
   it('should cancel editing when pressing Escape', async () => {
@@ -225,7 +240,7 @@ describe('TabBar', () => {
 
     // 編集がキャンセルされ、元のタイトルが表示される
     expect(screen.getByText('Tab 1')).toBeInTheDocument()
-    expect(mockStore.updateTabTitle).not.toHaveBeenCalled()
+    expect(mockTabStore.updateTabTitle).not.toHaveBeenCalled()
   })
 
   it('should save title when input loses focus', async () => {
@@ -243,7 +258,7 @@ describe('TabBar', () => {
     const addButton = screen.getByLabelText('Add new tab')
     await user.click(addButton)
 
-    expect(mockStore.updateTabTitle).toHaveBeenCalledWith('tab-1', 'Blurred Title')
+    expect(mockTabStore.updateTabTitle).toHaveBeenCalledWith('tab-1', 'Blurred Title')
   })
 
   it('should render file operation buttons', () => {
@@ -260,7 +275,7 @@ describe('TabBar', () => {
     const saveButton = screen.getByLabelText('Save collection to file')
     await user.click(saveButton)
 
-    expect(mockStore.saveToFile).toHaveBeenCalled()
+    expect(mockYamlOperations.saveToFile).toHaveBeenCalled()
   })
 
   it('should call loadFromFile when load button is clicked', async () => {
@@ -270,7 +285,7 @@ describe('TabBar', () => {
     const loadButton = screen.getByLabelText('Load collection from file')
     await user.click(loadButton)
 
-    expect(mockStore.loadFromFile).toHaveBeenCalled()
+    expect(mockYamlOperations.loadFromFile).toHaveBeenCalled()
   })
 
   it('should render theme toggle button', () => {
@@ -297,7 +312,7 @@ describe('TabBar', () => {
 
     // ダークテーマの場合
     mockThemeStore.theme = 'dark'
-    mockUseThemeStore.mockImplementation(() => mockThemeStore as any)
+    mockUseThemeStore.mockReturnValue(mockThemeStore)
 
     render(<TabBar />)
     const lightThemeButton = screen.getByLabelText('Switch to light theme')

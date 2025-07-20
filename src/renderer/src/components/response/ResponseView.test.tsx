@@ -61,15 +61,22 @@ describe('ResponseView', () => {
   })
 
   it('should display "No Response" when there is no response', () => {
-    const storeWithoutResponse = {
-      tabs: [
-        {
-          ...mockStore.tabs[0],
-          response: null
-        }
-      ]
+    const mockTabWithoutResponse = {
+      ...mockTab,
+      response: null
     }
-    mockUseApiStore.mockImplementation(() => storeWithoutResponse as any)
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithoutResponse],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithoutResponse),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithoutResponse : undefined)),
+      resetTabs: vi.fn()
+    })
 
     render(<ResponseView tabId="tab-1" />)
 
@@ -86,18 +93,25 @@ describe('ResponseView', () => {
   })
 
   it('should format response time correctly', () => {
-    const storeWithSlowResponse = {
-      tabs: [
-        {
-          ...mockStore.tabs[0],
-          response: {
-            ...mockResponse,
-            duration: 1500
-          }
-        }
-      ]
+    const mockTabWithSlowResponse = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        duration: 1500
+      }
     }
-    mockUseApiStore.mockImplementation(() => storeWithSlowResponse as any)
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithSlowResponse],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithSlowResponse),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithSlowResponse : undefined)),
+      resetTabs: vi.fn()
+    })
 
     render(<ResponseView tabId="tab-1" />)
 
@@ -112,19 +126,26 @@ describe('ResponseView', () => {
   })
 
   it('should display error status with red styling', () => {
-    const storeWithErrorResponse = {
-      tabs: [
-        {
-          ...mockStore.tabs[0],
-          response: {
-            ...mockResponse,
-            status: 404,
-            statusText: 'Not Found'
-          }
-        }
-      ]
+    const mockTabWithErrorResponse = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        status: 404,
+        statusText: 'Not Found'
+      }
     }
-    mockUseApiStore.mockImplementation(() => storeWithErrorResponse as any)
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithErrorResponse],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithErrorResponse),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithErrorResponse : undefined)),
+      resetTabs: vi.fn()
+    })
 
     render(<ResponseView tabId="tab-1" />)
 
@@ -133,19 +154,26 @@ describe('ResponseView', () => {
   })
 
   it('should display warning status with yellow styling', () => {
-    const storeWithRedirectResponse = {
-      tabs: [
-        {
-          ...mockStore.tabs[0],
-          response: {
-            ...mockResponse,
-            status: 301,
-            statusText: 'Moved Permanently'
-          }
-        }
-      ]
+    const mockTabWithRedirectResponse = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        status: 301,
+        statusText: 'Moved Permanently'
+      }
     }
-    mockUseApiStore.mockImplementation(() => storeWithRedirectResponse as any)
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithRedirectResponse],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithRedirectResponse),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithRedirectResponse : undefined)),
+      resetTabs: vi.fn()
+    })
 
     render(<ResponseView tabId="tab-1" />)
 
@@ -203,18 +231,25 @@ describe('ResponseView', () => {
   })
 
   it('should handle non-JSON response data', () => {
-    const storeWithTextResponse = {
-      tabs: [
-        {
-          ...mockStore.tabs[0],
-          response: {
-            ...mockResponse,
-            data: 'Plain text response'
-          }
-        }
-      ]
+    const mockTabWithTextResponse = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        data: 'Plain text response'
+      }
     }
-    mockUseApiStore.mockImplementation(() => storeWithTextResponse as any)
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithTextResponse],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithTextResponse),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithTextResponse : undefined)),
+      resetTabs: vi.fn()
+    })
 
     render(<ResponseView tabId="tab-1" />)
 
@@ -222,18 +257,25 @@ describe('ResponseView', () => {
   })
 
   it('should handle malformed data gracefully', () => {
-    const storeWithBadData = {
-      tabs: [
-        {
-          ...mockStore.tabs[0],
-          response: {
-            ...mockResponse,
-            data: undefined
-          }
-        }
-      ]
+    const mockTabWithBadData = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        data: undefined
+      }
     }
-    mockUseApiStore.mockImplementation(() => storeWithBadData as any)
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithBadData],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithBadData),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithBadData : undefined)),
+      resetTabs: vi.fn()
+    })
 
     expect(() => {
       render(<ResponseView tabId="tab-1" />)
@@ -241,6 +283,18 @@ describe('ResponseView', () => {
   })
 
   it('should handle missing tab gracefully', () => {
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTab],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTab),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTab : undefined)),
+      resetTabs: vi.fn()
+    })
+
     render(<ResponseView tabId="non-existent-tab" />)
 
     expect(screen.getByText('No Response')).toBeInTheDocument()

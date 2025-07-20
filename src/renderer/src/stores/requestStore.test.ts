@@ -36,7 +36,7 @@ describe('RequestStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    mockUseTabStore.getState.mockReturnValue({
+    mockUseTabStore.getState = vi.fn().mockReturnValue({
       tabs: mockTabs,
       activeTabId: 'tab-1',
       addTab: vi.fn(),
@@ -309,7 +309,7 @@ describe('RequestStore', () => {
 
   describe('Edge Cases', () => {
     it('should handle operations on non-existent tab gracefully', () => {
-      mockUseTabStore.getState.mockReturnValue({
+      mockUseTabStore.getState = vi.fn().mockReturnValue({
         tabs: [],
         activeTabId: '',
         addTab: vi.fn(),

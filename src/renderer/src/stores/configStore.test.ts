@@ -53,7 +53,7 @@ describe('ConfigStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    mockUseTabStore.getState.mockReturnValue({
+    mockUseTabStore.getState = vi.fn().mockReturnValue({
       tabs: mockTabs,
       activeTabId: 'tab-1',
       addTab: vi.fn(),
@@ -92,8 +92,9 @@ describe('ConfigStore', () => {
     it('should export valid JSON format', () => {
       const { exportConfig } = useConfigStore.getState()
 
-      const config = exportConfig()
+      const config: string = exportConfig()
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       expect(() => JSON.parse(config)).not.toThrow()
     })
   })
@@ -234,7 +235,7 @@ describe('ConfigStore', () => {
 
       importConfig(JSON.stringify(config))
 
-      const setStateCall = mockUseTabStore.setState.mock.calls[0][0]
+      const setStateCall = (mockUseTabStore.setState as any).mock.calls[0][0]
       const importedTabs = setStateCall.tabs
 
       expect(importedTabs[0].id).toBeDefined()

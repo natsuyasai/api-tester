@@ -1,10 +1,12 @@
-import { useApiStore } from '@renderer/stores/apiStore'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { useRequestStore } from '@renderer/stores/requestStore'
+import { useTabStore } from '@renderer/stores/tabStore'
 import { TabContent } from './TabContent'
 
-// APIストアをモック
-vi.mock('@renderer/stores/apiStore')
+// ストアをモック
+vi.mock('@renderer/stores/tabStore')
+vi.mock('@renderer/stores/requestStore')
 
 // マウスイベントをモック
 global.MouseEvent = class MouseEvent extends Event {
@@ -23,32 +25,58 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 }))
 
 describe('TabContent', () => {
-  const mockStore = {
-    tabs: [
-      {
-        id: 'tab-1',
-        title: 'Test Tab',
-        isActive: true,
-        request: {
-          id: 'req-1',
-          name: 'Test Request',
-          url: 'https://api.example.com/test',
-          method: 'GET',
-          headers: [],
-          params: [],
-          body: '',
-          bodyType: 'json',
-          type: 'rest'
-        },
-        response: null
-      }
-    ],
-    activeTabId: 'tab-1'
+  const mockTab = {
+    id: 'tab-1',
+    title: 'Test Tab',
+    isActive: true,
+    request: {
+      id: 'req-1',
+      name: 'Test Request',
+      url: 'https://api.example.com/test',
+      method: 'GET',
+      headers: [],
+      params: [],
+      body: '',
+      bodyType: 'json',
+      type: 'rest'
+    },
+    response: null
+  }
+
+  const mockTabStore = {
+    tabs: [mockTab],
+    activeTabId: 'tab-1',
+    addTab: vi.fn(),
+    closeTab: vi.fn(),
+    setActiveTab: vi.fn(),
+    updateTabTitle: vi.fn(),
+    getActiveTab: vi.fn(() => mockTab),
+    getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTab : undefined)),
+    resetTabs: vi.fn()
+  }
+
+  const mockRequestStore = {
+    isLoading: false,
+    setLoading: vi.fn(),
+    updateUrl: vi.fn(),
+    updateMethod: vi.fn(),
+    updateBody: vi.fn(),
+    updateBodyType: vi.fn(),
+    updateGraphQLVariables: vi.fn(),
+    addHeader: vi.fn(),
+    updateHeader: vi.fn(),
+    removeHeader: vi.fn(),
+    addParam: vi.fn(),
+    updateParam: vi.fn(),
+    removeParam: vi.fn(),
+    setResponse: vi.fn(),
+    clearResponse: vi.fn()
   }
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(useApiStore).mockImplementation(() => mockStore as any)
+    vi.mocked(useTabStore).mockReturnValue(mockTabStore)
+    vi.mocked(useRequestStore).mockReturnValue(mockRequestStore)
   })
 
   it('should render TabContent with grid-based resizable layout', () => {
@@ -64,12 +92,15 @@ describe('TabContent', () => {
   })
 
   it('should render "No active tab" when no active tab exists', () => {
-    const emptyStore = {
+    const emptyTabStore = {
+      ...mockTabStore,
       tabs: [],
-      activeTabId: ''
+      activeTabId: '',
+      getActiveTab: vi.fn(() => undefined)
     }
 
-    vi.mocked(useApiStore).mockImplementation(() => emptyStore as any)
+    vi.mocked(useTabStore).mockReturnValue(emptyTabStore)
+    vi.mocked(useRequestStore).mockReturnValue(mockRequestStore)
 
     const { container } = render(<TabContent />)
 
