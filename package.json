@@ -14,6 +14,7 @@
     "dev": "electron-vite dev",
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
+    "markuplint": "markuplint -p \"./src/**/*.{jsx,tsx}\"",
     "postinstall": "electron-builder install-app-deps",
     "start": "electron-vite preview",
     "test": "vitest --config vitest.config.mjs",

@@ -1,4 +1,4 @@
-import { JSX, useState } from 'react'
+import { JSX, useId, useState } from 'react'
 import styles from './GraphQLVariablesEditor.module.scss'
 
 interface GraphQLVariablesEditorProps {
@@ -11,6 +11,8 @@ export const GraphQLVariablesEditor = ({
   onVariablesChange
 }: GraphQLVariablesEditorProps): JSX.Element => {
   const [error, setError] = useState<string | null>(null)
+
+  const editorId = useId()
 
   const handleVariablesChange = (value: string) => {
     onVariablesChange(value)
@@ -44,7 +46,7 @@ export const GraphQLVariablesEditor = ({
   return (
     <div className={styles.variablesEditor}>
       <div className={styles.header}>
-        <label htmlFor="variables-textarea" className={styles.label}>
+        <label htmlFor={editorId} className={styles.label}>
           Variables (JSON)
         </label>
         <button
@@ -59,7 +61,7 @@ export const GraphQLVariablesEditor = ({
 
       <div className={styles.editorContainer}>
         <textarea
-          id="variables-textarea"
+          id={editorId}
           value={variables}
           onChange={(e) => handleVariablesChange(e.target.value)}
           placeholder={`{\n  "limit": 10,\n  "offset": 0\n}`}
