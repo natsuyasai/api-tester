@@ -135,6 +135,40 @@ export const GlobalVariablesEditor = (): JSX.Element => {
             <span className={styles.result}>Authorization: Bearer your-api-key-here</span>
           </div>
         </div>
+
+        <h4>動的変数</h4>
+        <div className={styles.examplesList}>
+          <div className={styles.example}>
+            <code>{'{{$timestamp}}'}</code>
+            <span className={styles.arrow}>→</span>
+            <span className={styles.result}>1609459200 (UNIXタイムスタンプ)</span>
+          </div>
+          <div className={styles.example}>
+            <code>{'{{$uuid}}'}</code>
+            <span className={styles.arrow}>→</span>
+            <span className={styles.result}>550e8400-e29b-41d4-a716-446655440000</span>
+          </div>
+          <div className={styles.example}>
+            <code>{'{{$randomInt}}'}</code>
+            <span className={styles.arrow}>→</span>
+            <span className={styles.result}>123 (0-999のランダム数値)</span>
+          </div>
+          <div className={styles.example}>
+            <code>{'{{$randomInt(1,100)}}'}</code>
+            <span className={styles.arrow}>→</span>
+            <span className={styles.result}>42 (1-100のランダム数値)</span>
+          </div>
+          <div className={styles.example}>
+            <code>{'{{$randomString}}'}</code>
+            <span className={styles.arrow}>→</span>
+            <span className={styles.result}>abc123xy (8文字のランダム文字列)</span>
+          </div>
+          <div className={styles.example}>
+            <code>{'{{$isoTimestamp}}'}</code>
+            <span className={styles.arrow}>→</span>
+            <span className={styles.result}>2021-01-01T00:00:00.000Z</span>
+          </div>
+        </div>
       </div>
     </div>
   )

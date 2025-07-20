@@ -44,7 +44,8 @@ describe('ApiService', () => {
       expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', {
         method: 'GET',
         headers: new Headers({ 'Content-Type': 'application/json' }),
-        body: undefined
+        body: undefined,
+        redirect: 'follow'
       })
 
       expect(result.status).toBe(200)
@@ -75,7 +76,8 @@ describe('ApiService', () => {
       expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', {
         method: 'POST',
         headers: new Headers({ 'Content-Type': 'application/json' }),
-        body: '{"name": "John Doe"}'
+        body: '{"name": "John Doe"}',
+        redirect: 'follow'
       })
 
       expect(result.status).toBe(201)
@@ -109,7 +111,8 @@ describe('ApiService', () => {
       expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', {
         method: 'GET',
         headers: new Headers({ 'Content-Type': 'application/json' }),
-        body: undefined
+        body: undefined,
+        redirect: 'follow'
       })
     })
 
@@ -321,7 +324,8 @@ describe('ApiService', () => {
       expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/upload', {
         method: 'POST',
         headers: expect.any(Headers),
-        body: expect.any(FormData)
+        body: expect.any(FormData),
+        redirect: 'follow'
       })
 
       expect(result.status).toBe(200)
@@ -435,7 +439,8 @@ describe('ApiService', () => {
           get: expect.any(Function),
           set: expect.any(Function)
         }),
-        body: undefined
+        body: undefined,
+        redirect: 'follow'
       })
 
       // ヘッダーにAuthorizationが設定されていることを確認
@@ -550,7 +555,9 @@ describe('ApiService', () => {
         {
           method: 'GET',
           headers: expect.any(Headers),
-          body: undefined
+          body: undefined,
+          redirect: 'follow',
+          signal: expect.any(Object)
         }
       )
     })
