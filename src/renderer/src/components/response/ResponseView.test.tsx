@@ -76,7 +76,7 @@ describe('ResponseView', () => {
 
     expect(screen.getByText('200 OK')).toBeInTheDocument()
     expect(screen.getByText('150ms')).toBeInTheDocument()
-    expect(screen.getByText(/7:30:00 PM/)).toBeInTheDocument()
+    expect(screen.getByText(/19:30:00/)).toBeInTheDocument()
   })
 
   it('should format response time correctly', () => {

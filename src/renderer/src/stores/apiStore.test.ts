@@ -316,6 +316,9 @@ describe('ApiStore', () => {
     it('should handle invalid import configuration', () => {
       const store = useApiStore.getState()
 
+      // コンソールエラーを抑制
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
       expect(() => {
         store.importConfig('invalid json')
       }).toThrow('Unexpected token')
@@ -323,6 +326,9 @@ describe('ApiStore', () => {
       expect(() => {
         store.importConfig('{"tabs": "not an array"}')
       }).toThrow('Invalid config format')
+
+      // コンソールエラーのモックを復元
+      consoleSpy.mockRestore()
     })
   })
 })
