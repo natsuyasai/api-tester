@@ -45,6 +45,71 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
     return 'default'
   }
 
+  const getCurrentContent = (): string => {
+    if (activeTab === 'body') {
+      return formatJson(response.data)
+    } else if (activeTab === 'headers') {
+      return Object.entries(response.headers)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('\n')
+    } else if (activeTab === 'cookies') {
+      return 'No cookies found in response'
+    }
+    return ''
+  }
+
+  const handleCopyToClipboard = async (): Promise<void> => {
+    try {
+      const content = getCurrentContent()
+      await navigator.clipboard.writeText(content)
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error)
+    }
+  }
+
+  const handleExportResponse = async (): Promise<void> => {
+    if (!tab || !response) return
+
+    const exportData = {
+      request: {
+        url: tab.request.url,
+        method: tab.request.method,
+        headers: tab.request.headers.filter((h) => h.enabled && h.key),
+        params: tab.request.params.filter((p) => p.enabled && p.key),
+        body: tab.request.body
+      },
+      response: {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+        data: response.data,
+        duration: response.duration,
+        timestamp: response.timestamp
+      }
+    }
+
+    try {
+      const jsonContent = JSON.stringify(exportData, null, 2)
+      const result = await window.dialogAPI.showSaveDialog({
+        title: 'Export API Response',
+        defaultPath: `api-response-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`,
+        filters: [
+          { name: 'JSON Files', extensions: ['json'] },
+          { name: 'All Files', extensions: ['*'] }
+        ]
+      })
+
+      if (!result.canceled && result.filePath) {
+        const writeResult = await window.fileAPI.writeFile(result.filePath, jsonContent)
+        if (!writeResult.success) {
+          throw new Error(writeResult.error || 'Failed to export file')
+        }
+      }
+    } catch (error) {
+      console.error('Failed to export response:', error)
+    }
+  }
+
   return (
     <div className={styles.responseView}>
       <div className={styles.header}>
@@ -56,6 +121,29 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
           <span className={styles.timestamp}>
             {new Date(response.timestamp).toLocaleTimeString()}
           </span>
+        </div>
+
+        <div className={styles.actionButtons}>
+          <button
+            className={styles.copyButton}
+            onClick={() => {
+              handleCopyToClipboard().catch(console.error)
+            }}
+            type="button"
+            title="Copy current tab content to clipboard"
+          >
+            📋 Copy
+          </button>
+          <button
+            className={styles.exportButton}
+            onClick={() => {
+              handleExportResponse().catch(console.error)
+            }}
+            type="button"
+            title="Export response data"
+          >
+            📄 Export
+          </button>
         </div>
 
         <div className={styles.tabs}>
@@ -86,12 +174,14 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
       <div className={styles.content}>
         {activeTab === 'body' && (
           <div className={styles.bodyContent}>
-            <pre className={styles.responseBody}>{formatJson(response.data)}</pre>
+            <pre className={styles.responseBody} style={{ userSelect: 'text', cursor: 'text' }}>
+              {formatJson(response.data)}
+            </pre>
           </div>
         )}
 
         {activeTab === 'headers' && (
-          <div className={styles.headersContent}>
+          <div className={styles.headersContent} style={{ userSelect: 'text', cursor: 'text' }}>
             {Object.entries(response.headers).map(([key, value]) => (
               <div key={key} className={styles.headerRow}>
                 <span className={styles.headerKey}>{key}:</span>
@@ -102,7 +192,7 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
         )}
 
         {activeTab === 'cookies' && (
-          <div className={styles.cookiesContent}>
+          <div className={styles.cookiesContent} style={{ userSelect: 'text', cursor: 'text' }}>
             <div className={styles.placeholder}>No cookies found in response</div>
           </div>
         )}

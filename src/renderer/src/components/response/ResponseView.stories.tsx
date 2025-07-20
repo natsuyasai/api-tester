@@ -281,3 +281,159 @@ export const SlowResponse: Story = {
     await expect(canvas.getByText('2.50s')).toBeInTheDocument()
   }
 }
+
+export const TextSelection: Story = {
+  args: {
+    tabId: 'tab-1'
+  },
+  decorators: [
+    (Story) => {
+      const store = useApiStore.getState()
+
+      if (store.tabs.length === 0) {
+        store.addTab()
+      }
+
+      const activeTab = store.tabs[0]
+      store.updateUrl(activeTab.id, 'https://api.example.com/users')
+      store.setResponse(activeTab.id, successResponse)
+
+      return (
+        <div style={{ width: '100%', height: '500px' }}>
+          <Story />
+        </div>
+      )
+    }
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // レスポンスボディが表示されていることを確認
+    const responseBody = canvas.getByText(/"users":/)
+
+    // テキスト選択可能であることを確認（style属性のチェック）
+    const preElement = responseBody.closest('pre')
+    await expect(preElement).toHaveStyle('user-select: text')
+    await expect(preElement).toHaveStyle('cursor: text')
+  }
+}
+
+export const ActionButtons: Story = {
+  args: {
+    tabId: 'tab-1'
+  },
+  decorators: [
+    (Story) => {
+      const store = useApiStore.getState()
+
+      if (store.tabs.length === 0) {
+        store.addTab()
+      }
+
+      const activeTab = store.tabs[0]
+      store.updateUrl(activeTab.id, 'https://api.example.com/users')
+      store.setResponse(activeTab.id, successResponse)
+
+      return (
+        <div style={{ width: '100%', height: '500px' }}>
+          <Story />
+        </div>
+      )
+    }
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // コピーボタンの存在確認
+    const copyButton = canvas.getByTitle('Copy current tab content to clipboard')
+    await expect(copyButton).toBeInTheDocument()
+    await expect(copyButton).toHaveTextContent('📋 Copy')
+    await expect(copyButton).toBeEnabled()
+
+    // エクスポートボタンの存在確認
+    const exportButton = canvas.getByTitle('Export response data')
+    await expect(exportButton).toBeInTheDocument()
+    await expect(exportButton).toHaveTextContent('📄 Export')
+    await expect(exportButton).toBeEnabled()
+  }
+}
+
+export const HeadersTextSelection: Story = {
+  args: {
+    tabId: 'tab-1'
+  },
+  decorators: [
+    (Story) => {
+      const store = useApiStore.getState()
+
+      if (store.tabs.length === 0) {
+        store.addTab()
+      }
+
+      const activeTab = store.tabs[0]
+      store.updateUrl(activeTab.id, 'https://api.example.com/users')
+      store.setResponse(activeTab.id, successResponse)
+
+      return (
+        <div style={{ width: '100%', height: '500px' }}>
+          <Story />
+        </div>
+      )
+    }
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // ヘッダータブをクリック
+    const headersTab = canvas.getByRole('button', { name: 'Headers' })
+    await userEvent.click(headersTab)
+
+    // ヘッダー内容の表示確認
+    const headersContent = canvas.getByText('content-type:').closest('div')
+
+    // ヘッダー領域でテキスト選択可能であることを確認
+    const headersContainer = headersContent?.parentElement
+    await expect(headersContainer).toHaveStyle('user-select: text')
+    await expect(headersContainer).toHaveStyle('cursor: text')
+  }
+}
+
+export const CopyFunctionality: Story = {
+  args: {
+    tabId: 'tab-1'
+  },
+  decorators: [
+    (Story) => {
+      const store = useApiStore.getState()
+
+      if (store.tabs.length === 0) {
+        store.addTab()
+      }
+
+      const activeTab = store.tabs[0]
+      store.updateUrl(activeTab.id, 'https://api.example.com/users')
+      store.setResponse(activeTab.id, successResponse)
+
+      return (
+        <div style={{ width: '100%', height: '500px' }}>
+          <Story />
+        </div>
+      )
+    }
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // コピーボタンをクリック（Bodyタブ）
+    const copyButton = canvas.getByTitle('Copy current tab content to clipboard')
+    await userEvent.click(copyButton)
+
+    // ヘッダータブに切り替えてコピーボタンをクリック
+    const headersTab = canvas.getByRole('button', { name: 'Headers' })
+    await userEvent.click(headersTab)
+    await userEvent.click(copyButton)
+
+    // ボタンが正常に動作することを確認
+    await expect(copyButton).toBeEnabled()
+  }
+}
