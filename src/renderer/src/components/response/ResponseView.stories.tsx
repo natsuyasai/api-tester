@@ -235,3 +235,108 @@ export const CopyFunctionality: Story = {
     await expect(canvas.getByText('No Response')).toBeInTheDocument()
   }
 }
+
+export const HtmlPreview: Story = {
+  args: {
+    tabId: 'tab-1'
+  },
+  decorators: [
+    (Story) => {
+      return (
+        <div style={{ width: '100%', height: '500px' }}>
+          <Story />
+        </div>
+      )
+    }
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // NoResponseメッセージが表示されることを確認（ストアなしでは初期状態）
+    await expect(canvas.getByText('No Response')).toBeInTheDocument()
+  }
+}
+
+export const XmlPreview: Story = {
+  args: {
+    tabId: 'tab-1'
+  },
+  decorators: [
+    (Story) => {
+      return (
+        <div style={{ width: '100%', height: '500px' }}>
+          <Story />
+        </div>
+      )
+    }
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // NoResponseメッセージが表示されることを確認
+    await expect(canvas.getByText('No Response')).toBeInTheDocument()
+  }
+}
+
+export const ImagePreview: Story = {
+  args: {
+    tabId: 'tab-1'
+  },
+  decorators: [
+    (Story) => {
+      return (
+        <div style={{ width: '100%', height: '500px' }}>
+          <Story />
+        </div>
+      )
+    }
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // NoResponseメッセージが表示されることを確認
+    await expect(canvas.getByText('No Response')).toBeInTheDocument()
+  }
+}
+
+export const ResponseWithSize: Story = {
+  args: {
+    tabId: 'tab-1'
+  },
+  decorators: [
+    (Story) => {
+      return (
+        <div style={{ width: '100%', height: '500px' }}>
+          <Story />
+        </div>
+      )
+    }
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // NoResponseメッセージが表示されることを確認
+    await expect(canvas.getByText('No Response')).toBeInTheDocument()
+  }
+}
+
+export const DownloadFunctionality: Story = {
+  args: {
+    tabId: 'tab-1'
+  },
+  decorators: [
+    (Story) => {
+      return (
+        <div style={{ width: '100%', height: '500px' }}>
+          <Story />
+        </div>
+      )
+    }
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // NoResponseメッセージが表示されることを確認
+    await expect(canvas.getByText('No Response')).toBeInTheDocument()
+  }
+}

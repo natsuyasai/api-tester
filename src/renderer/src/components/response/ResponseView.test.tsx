@@ -299,4 +299,156 @@ describe('ResponseView', () => {
 
     expect(screen.getByText('No Response')).toBeInTheDocument()
   })
+
+  it('should display response size information', () => {
+    render(<ResponseView tabId="tab-1" />)
+
+    // JSON データのサイズが表示されることを確認
+    expect(screen.getByText(/B$/)).toBeInTheDocument()
+  })
+
+  it('should show preview tab for HTML response', () => {
+    const mockTabWithHtmlResponse = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        headers: {
+          'content-type': 'text/html'
+        },
+        data: '<html><body>Test HTML</body></html>'
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithHtmlResponse],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithHtmlResponse),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithHtmlResponse : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    expect(screen.getByRole('button', { name: 'Preview' })).toBeInTheDocument()
+  })
+
+  it('should show preview tab for XML response', () => {
+    const mockTabWithXmlResponse = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        headers: {
+          'content-type': 'application/xml'
+        },
+        data: '<?xml version="1.0"?><root><test>value</test></root>'
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithXmlResponse],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithXmlResponse),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithXmlResponse : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    expect(screen.getByRole('button', { name: 'Preview' })).toBeInTheDocument()
+  })
+
+  it('should show preview tab for image response', () => {
+    const mockTabWithImageResponse = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        headers: {
+          'content-type': 'image/png'
+        },
+        data: 'base64imagedata'
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithImageResponse],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithImageResponse),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithImageResponse : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    expect(screen.getByRole('button', { name: 'Preview' })).toBeInTheDocument()
+  })
+
+  it('should not show preview tab for JSON response', () => {
+    render(<ResponseView tabId="tab-1" />)
+
+    expect(screen.queryByRole('button', { name: 'Preview' })).not.toBeInTheDocument()
+  })
+
+  it('should render HTML content in iframe when preview tab is active', () => {
+    const mockTabWithHtmlResponse = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        headers: {
+          'content-type': 'text/html'
+        },
+        data: '<html><body>Test HTML</body></html>'
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithHtmlResponse],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithHtmlResponse),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithHtmlResponse : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const previewTab = screen.getByRole('button', { name: 'Preview' })
+    fireEvent.click(previewTab)
+
+    const iframe = screen.getByTitle('HTML Preview')
+    expect(iframe).toBeInTheDocument()
+    expect(iframe).toHaveAttribute('srcDoc', '<html><body>Test HTML</body></html>')
+  })
+
+  it('should have download button', () => {
+    render(<ResponseView tabId="tab-1" />)
+
+    expect(screen.getByRole('button', { name: /Download/ })).toBeInTheDocument()
+  })
+
+  it('should have export button', () => {
+    render(<ResponseView tabId="tab-1" />)
+
+    expect(screen.getByRole('button', { name: /Export/ })).toBeInTheDocument()
+  })
+
+  it('should have copy button', () => {
+    render(<ResponseView tabId="tab-1" />)
+
+    expect(screen.getByRole('button', { name: /Copy/ })).toBeInTheDocument()
+  })
 })

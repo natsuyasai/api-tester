@@ -8,7 +8,7 @@ interface ResponseViewProps {
 
 export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
   const { getTab } = useTabStore()
-  const [activeTab, setActiveTab] = useState<'body' | 'headers' | 'cookies'>('body')
+  const [activeTab, setActiveTab] = useState<'body' | 'headers' | 'cookies' | 'preview'>('body')
 
   const tab = getTab(tabId)
   const response = tab?.response
@@ -30,6 +30,21 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
     return `${(duration / 1000).toFixed(2)}s`
   }
 
+  const formatResponseSize = (data: unknown): string => {
+    const dataString = typeof data === 'string' ? data : JSON.stringify(data)
+    const sizeInBytes = new Blob([dataString]).size
+
+    if (sizeInBytes < 1024) {
+      return `${sizeInBytes} B`
+    } else if (sizeInBytes < 1024 * 1024) {
+      return `${(sizeInBytes / 1024).toFixed(1)} KB`
+    } else if (sizeInBytes < 1024 * 1024 * 1024) {
+      return `${(sizeInBytes / (1024 * 1024)).toFixed(1)} MB`
+    } else {
+      return `${(sizeInBytes / (1024 * 1024 * 1024)).toFixed(1)} GB`
+    }
+  }
+
   const formatJson = (data: unknown): string => {
     try {
       return JSON.stringify(data, null, 2)
@@ -45,6 +60,27 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
     return 'default'
   }
 
+  const isHtmlResponse = (): boolean => {
+    if (!response?.headers) return false
+    const contentType = response.headers['content-type'] || response.headers['Content-Type'] || ''
+    return contentType.toLowerCase().includes('text/html')
+  }
+
+  const isXmlResponse = (): boolean => {
+    if (!response?.headers) return false
+    const contentType = response.headers['content-type'] || response.headers['Content-Type'] || ''
+    return (
+      contentType.toLowerCase().includes('xml') ||
+      contentType.toLowerCase().includes('application/xml')
+    )
+  }
+
+  const isImageResponse = (): boolean => {
+    if (!response?.headers) return false
+    const contentType = response.headers['content-type'] || response.headers['Content-Type'] || ''
+    return contentType.toLowerCase().startsWith('image/')
+  }
+
   const getCurrentContent = (): string => {
     if (activeTab === 'body') {
       return formatJson(response.data)
@@ -54,6 +90,8 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
         .join('\n')
     } else if (activeTab === 'cookies') {
       return 'No cookies found in response'
+    } else if (activeTab === 'preview') {
+      return typeof response.data === 'string' ? response.data : formatJson(response.data)
     }
     return ''
   }
@@ -110,6 +148,50 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
     }
   }
 
+  const handleDownloadResponse = async (): Promise<void> => {
+    if (!response) return
+
+    try {
+      const contentType =
+        response.headers['content-type'] ||
+        response.headers['Content-Type'] ||
+        'application/octet-stream'
+      const content =
+        typeof response.data === 'string' ? response.data : JSON.stringify(response.data, null, 2)
+
+      let defaultExtension = 'txt'
+      if (contentType.includes('json')) {
+        defaultExtension = 'json'
+      } else if (contentType.includes('html')) {
+        defaultExtension = 'html'
+      } else if (contentType.includes('xml')) {
+        defaultExtension = 'xml'
+      } else if (contentType.includes('csv')) {
+        defaultExtension = 'csv'
+      } else if (contentType.startsWith('image/')) {
+        defaultExtension = contentType.split('/')[1] || 'jpg'
+      }
+
+      const result = await window.dialogAPI.showSaveDialog({
+        title: 'Download Response',
+        defaultPath: `response-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${defaultExtension}`,
+        filters: [
+          { name: 'Response File', extensions: [defaultExtension] },
+          { name: 'All Files', extensions: ['*'] }
+        ]
+      })
+
+      if (!result.canceled && result.filePath) {
+        const writeResult = await window.fileAPI.writeFile(result.filePath, content)
+        if (!writeResult.success) {
+          throw new Error(writeResult.error || 'Failed to download file')
+        }
+      }
+    } catch (error) {
+      console.error('Failed to download response:', error)
+    }
+  }
+
   return (
     <div className={styles.responseView}>
       <div className={styles.header}>
@@ -118,6 +200,7 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
             {response.status} {response.statusText}
           </span>
           <span className={styles.time}>{formatResponseTime(response.duration)}</span>
+          <span className={styles.size}>{formatResponseSize(response.data)}</span>
           <span className={styles.timestamp}>
             {new Date(response.timestamp).toLocaleTimeString()}
           </span>
@@ -144,6 +227,16 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
           >
             📄 Export
           </button>
+          <button
+            className={styles.downloadButton}
+            onClick={() => {
+              handleDownloadResponse().catch(console.error)
+            }}
+            type="button"
+            title="Download response as file"
+          >
+            💾 Download
+          </button>
         </div>
 
         <div className={styles.tabs}>
@@ -168,6 +261,15 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
           >
             Cookies
           </button>
+          {(isHtmlResponse() || isXmlResponse() || isImageResponse()) && (
+            <button
+              className={`${styles.tab} ${activeTab === 'preview' ? styles.active : ''}`}
+              onClick={() => setActiveTab('preview')}
+              type="button"
+            >
+              Preview
+            </button>
+          )}
         </div>
       </div>
 
@@ -194,6 +296,36 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
         {activeTab === 'cookies' && (
           <div className={styles.cookiesContent} style={{ userSelect: 'text', cursor: 'text' }}>
             <div className={styles.placeholder}>No cookies found in response</div>
+          </div>
+        )}
+
+        {activeTab === 'preview' && (
+          <div className={styles.previewContent}>
+            {isHtmlResponse() && (
+              <iframe
+                className={styles.htmlPreview}
+                srcDoc={typeof response.data === 'string' ? response.data : ''}
+                title="HTML Preview"
+                sandbox="allow-same-origin"
+                loading="lazy"
+              />
+            )}
+            {isXmlResponse() && !isHtmlResponse() && (
+              <pre className={styles.xmlPreview} style={{ userSelect: 'text', cursor: 'text' }}>
+                {typeof response.data === 'string' ? response.data : formatJson(response.data)}
+              </pre>
+            )}
+            {isImageResponse() && (
+              <div className={styles.imagePreview}>
+                <img
+                  src={`data:${response.headers['content-type'] || response.headers['Content-Type']};base64,${String(response.data)}`}
+                  alt="Response"
+                  className={styles.previewImage}
+                  width={800}
+                  height={600}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

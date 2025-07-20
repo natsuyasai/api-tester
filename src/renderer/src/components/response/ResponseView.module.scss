@@ -47,7 +47,8 @@
 }
 
 .copyButton,
-.exportButton {
+.exportButton,
+.downloadButton {
   padding: 6px 12px;
   background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
@@ -104,6 +105,12 @@
 }
 
 .time {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.size {
   font-size: 14px;
   color: var(--color-text-secondary);
   font-weight: 500;
@@ -212,4 +219,48 @@
   height: 200px;
   color: var(--color-text-secondary);
   font-style: italic;
+}
+
+.previewContent {
+  height: 100%;
+  overflow: auto;
+  background-color: var(--color-bg-primary);
+}
+
+.htmlPreview {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background-color: white;
+}
+
+.xmlPreview {
+  margin: 0;
+  padding: 16px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  height: 100%;
+  overflow: auto;
+}
+
+.imagePreview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 16px;
+  background-color: var(--color-bg-primary);
+}
+
+.previewImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
