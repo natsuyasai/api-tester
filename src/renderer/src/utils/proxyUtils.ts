@@ -66,13 +66,13 @@ export const validateProxyUrl = (url: string): { valid: boolean; error?: string 
 
   try {
     const parsedUrl = new URL(url)
-    
+
     // サポートされているプロトコルのチェック
     const supportedProtocols = ['http:', 'https:', 'socks4:', 'socks5:']
     if (!supportedProtocols.includes(parsedUrl.protocol)) {
-      return { 
-        valid: false, 
-        error: `サポートされていないプロトコルです: ${parsedUrl.protocol}` 
+      return {
+        valid: false,
+        error: `サポートされていないプロトコルです: ${parsedUrl.protocol}`
       }
     }
 
@@ -82,7 +82,10 @@ export const validateProxyUrl = (url: string): { valid: boolean; error?: string 
     }
 
     // ポート番号のチェック
-    if (parsedUrl.port && (isNaN(parseInt(parsedUrl.port, 10)) || parseInt(parsedUrl.port, 10) <= 0)) {
+    if (
+      parsedUrl.port &&
+      (isNaN(parseInt(parsedUrl.port, 10)) || parseInt(parsedUrl.port, 10) <= 0)
+    ) {
       return { valid: false, error: '無効なポート番号です' }
     }
 
@@ -102,12 +105,12 @@ export const formatProxyForElectron = (config: ProxyConfig): string | null => {
 
   const protocol = config.protocol || 'http'
   const port = config.port || getDefaultPort(`${protocol}:`)
-  
+
   // 認証情報がある場合
   if (config.auth?.username && config.auth?.password) {
     return `${protocol}://${config.auth.username}:${config.auth.password}@${config.host}:${port}`
   }
-  
+
   return `${protocol}://${config.host}:${port}`
 }
 
@@ -118,12 +121,10 @@ export const formatBypassList = (bypassList?: string[]): string => {
   if (!bypassList || bypassList.length === 0) {
     return '<local>'
   }
-  
+
   // <local>が既に含まれている場合は重複しないようにする
-  const filteredList = bypassList.includes('<local>') 
-    ? bypassList 
-    : [...bypassList, '<local>']
-  
+  const filteredList = bypassList.includes('<local>') ? bypassList : [...bypassList, '<local>']
+
   return filteredList.join(',')
 }
 
@@ -137,18 +138,20 @@ export const getProxyTestUrl = (): string => {
 /**
  * プロキシ経由でのテストリクエストを実行
  */
-export const testProxyConnection = async (_config: ProxyConfig): Promise<{
+export const testProxyConnection = async (
+  _config: ProxyConfig
+): Promise<{
   success: boolean
   message: string
   responseTime?: number
   ipAddress?: string
 }> => {
   const startTime = Date.now()
-  
+
   try {
     // テスト用のリクエストを実行
     const testUrl = getProxyTestUrl()
-    
+
     // プロキシ設定を適用してリクエストを送信
     // 注意: 実際のプロキシ設定はElectronのセッションレベルで行う必要がある
     const response = await fetch(testUrl, {
@@ -162,7 +165,7 @@ export const testProxyConnection = async (_config: ProxyConfig): Promise<{
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
-    const data = await response.json() as { origin?: string }
+    const data = (await response.json()) as { origin?: string }
     const endTime = Date.now()
     const responseTime = endTime - startTime
 
@@ -204,8 +207,8 @@ export const getCurrentIpAddress = async (): Promise<{
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
-    const data = await response.json() as { origin?: string }
-    
+    const data = (await response.json()) as { origin?: string }
+
     return {
       success: true,
       ipAddress: data.origin

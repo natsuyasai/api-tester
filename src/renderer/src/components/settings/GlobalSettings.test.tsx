@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useGlobalSettingsStore, getGlobalSettings } from '@renderer/stores/globalSettingsStore'
+import { GlobalSettings as GlobalSettingsType } from '@renderer/stores/globalSettingsStore'
 import { GlobalSettings } from './GlobalSettings'
 
 // Zustandストアをモック
@@ -36,7 +37,7 @@ global.alert = vi.fn()
 global.confirm = vi.fn()
 
 describe('GlobalSettings', () => {
-  const mockSettings = {
+  const mockSettings: GlobalSettingsType = {
     defaultTimeout: 30000,
     defaultFollowRedirects: true,
     defaultMaxRedirects: 5,
@@ -47,7 +48,6 @@ describe('GlobalSettings', () => {
     tabSize: 2,
     wordWrap: true,
     lineNumbers: true,
-    devMode: false,
     debugLogs: false,
     saveHistory: true,
     maxHistorySize: 100,
@@ -56,8 +56,7 @@ describe('GlobalSettings', () => {
     certificateValidation: true,
     autoSave: true,
     autoSaveInterval: 30,
-    checkForUpdates: true,
-    telemetryEnabled: true
+    checkForUpdates: true
   }
 
   const mockStoreActions = {
@@ -69,7 +68,7 @@ describe('GlobalSettings', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     mockUseGlobalSettingsStore.mockReturnValue({
       settings: mockSettings,
       ...mockStoreActions
@@ -209,9 +208,7 @@ describe('GlobalSettings', () => {
     })
 
     await waitFor(() => {
-      expect(mockStoreActions.importSettings).toHaveBeenCalledWith(
-        JSON.stringify(mockSettings)
-      )
+      expect(mockStoreActions.importSettings).toHaveBeenCalledWith(JSON.stringify(mockSettings))
     })
 
     expect(global.alert).toHaveBeenCalledWith('設定をインポートしました')
@@ -222,7 +219,7 @@ describe('GlobalSettings', () => {
 
     const importTextarea = screen.getByPlaceholderText('設定のJSONデータをここに貼り付けてください')
     const testSettings = JSON.stringify({ theme: 'dark' })
-    
+
     fireEvent.change(importTextarea, { target: { value: testSettings } })
 
     const importButton = screen.getByText('設定をインポート')
@@ -277,7 +274,7 @@ describe('GlobalSettings', () => {
 
     const importTextarea = screen.getByPlaceholderText('設定のJSONデータをここに貼り付けてください')
     const testSettings = JSON.stringify({ theme: 'dark' }, null, 2)
-    
+
     fireEvent.change(importTextarea, { target: { value: testSettings } })
 
     expect(screen.getByText('プレビュー:')).toBeInTheDocument()

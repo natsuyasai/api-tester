@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { GlobalSettings } from '@renderer/stores/globalSettingsStore'
-import { 
-  extractProxyConfig, 
-  validateProxyUrl, 
+import {
+  extractProxyConfig,
+  validateProxyUrl,
   formatProxyForElectron,
-  formatBypassList 
+  formatBypassList
 } from './proxyUtils'
 
 describe('proxyUtils', () => {

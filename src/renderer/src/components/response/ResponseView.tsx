@@ -63,7 +63,7 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
 
   // レスポンスデータを分離
   const separatedData = separateResponseData(response.data)
-  
+
   // ヘルパー関数を作成
   const isHtml = () => isHtmlResponse(response.headers)
   const isXml = () => isXmlResponse(response.headers)
@@ -77,7 +77,7 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
     isXml,
     isImage
   )
-  
+
   // メタデータがある場合のみタブを表示
   const hasMetadata = Object.keys(separatedData.metadata).length > 0
 
@@ -181,10 +181,10 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
       <div className={styles.content}>
         {activeTab === 'body' && (
           <div className={styles.bodyContent}>
-            <pre 
-              className={styles.responseBody} 
-              style={{ 
-                userSelect: 'text', 
+            <pre
+              className={styles.responseBody}
+              style={{
+                userSelect: 'text',
                 cursor: 'text',
                 tabSize: settings.tabSize,
                 whiteSpace: settings.wordWrap ? 'pre-wrap' : 'pre',
@@ -237,10 +237,10 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
               <p className={styles.sectionDescription}>
                 このセクションには、レスポンス処理時に追加された情報が表示されます
               </p>
-              <pre 
-                className={styles.metadataData} 
-                style={{ 
-                  userSelect: 'text', 
+              <pre
+                className={styles.metadataData}
+                style={{
+                  userSelect: 'text',
                   cursor: 'text',
                   tabSize: settings.tabSize,
                   whiteSpace: settings.wordWrap ? 'pre-wrap' : 'pre',
@@ -271,10 +271,10 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
 
         {activeTab === 'raw' && (
           <div className={styles.rawContent}>
-            <pre 
-              className={styles.rawData} 
-              style={{ 
-                userSelect: 'text', 
+            <pre
+              className={styles.rawData}
+              style={{
+                userSelect: 'text',
                 cursor: 'text',
                 tabSize: settings.tabSize,
                 whiteSpace: settings.wordWrap ? 'pre-wrap' : 'pre',

@@ -17,10 +17,10 @@ export interface Lizard {
 }
 
 export interface ProxyAPI {
-  setProxyConfig: (settings: ProxySettings) => Promise<{ 
-    success: boolean; 
-    message: string; 
-    error?: string 
+  setProxyConfig: (settings: ProxySettings) => Promise<{
+    success: boolean
+    message: string
+    error?: string
   }>
   getProxyConfig: () => Promise<ProxySettings>
   testProxyConnection: (testUrl?: string) => Promise<{

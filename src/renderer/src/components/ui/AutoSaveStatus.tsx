@@ -33,7 +33,7 @@ export const AutoSaveStatus = (): JSX.Element => {
   const formatLastSaveTime = (timestamp: number) => {
     const now = Date.now()
     const diff = Math.floor((now - timestamp) / 1000)
-    
+
     if (diff < 60) {
       return `${diff}秒前に保存`
     } else if (diff < 3600) {

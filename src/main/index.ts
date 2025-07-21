@@ -164,7 +164,7 @@ let currentProxySettings: ProxySettings = { enabled: false }
 ipcMain.handle('setProxyConfig', async (_event, proxySettings: ProxySettings) => {
   try {
     const defaultSession = session.defaultSession
-    
+
     if (!proxySettings.enabled || !proxySettings.url) {
       // プロキシを無効化
       await defaultSession.setProxy({
@@ -176,7 +176,7 @@ ipcMain.handle('setProxyConfig', async (_event, proxySettings: ProxySettings) =>
 
     // プロキシ設定を構築
     let proxyRules = proxySettings.url
-    
+
     // 認証情報がある場合はURLに埋め込む
     if (proxySettings.auth?.username && proxySettings.auth?.password) {
       try {
@@ -188,7 +188,7 @@ ipcMain.handle('setProxyConfig', async (_event, proxySettings: ProxySettings) =>
         console.error('Failed to add auth to proxy URL:', error)
       }
     }
-    
+
     const bypassRules = proxySettings.bypassList?.join(',') || '<local>'
 
     await defaultSession.setProxy({
@@ -198,9 +198,9 @@ ipcMain.handle('setProxyConfig', async (_event, proxySettings: ProxySettings) =>
     })
 
     currentProxySettings = proxySettings
-    return { 
-      success: true, 
-      message: `プロキシが設定されました: ${proxySettings.url}` 
+    return {
+      success: true,
+      message: `プロキシが設定されました: ${proxySettings.url}`
     }
   } catch (error) {
     return {
@@ -217,45 +217,48 @@ ipcMain.handle('getProxyConfig', () => {
 })
 
 // プロキシ接続テスト
-ipcMain.handle('testProxyConnection', async (_event, testUrl: string = 'https://httpbin.org/ip') => {
-  const startTime = Date.now()
-  
-  try {
-    // テスト用のリクエストを送信
-    const response = await fetch(testUrl, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'API Tester Proxy Test'
+ipcMain.handle(
+  'testProxyConnection',
+  async (_event, testUrl: string = 'https://httpbin.org/ip') => {
+    const startTime = Date.now()
+
+    try {
+      // テスト用のリクエストを送信
+      const response = await fetch(testUrl, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'API Tester Proxy Test'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
-    })
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    }
+      const data = (await response.json()) as { origin?: string }
+      const endTime = Date.now()
+      const responseTime = endTime - startTime
 
-    const data = await response.json() as { origin?: string }
-    const endTime = Date.now()
-    const responseTime = endTime - startTime
+      return {
+        success: true,
+        message: 'プロキシ接続テストが成功しました',
+        responseTime,
+        ipAddress: data.origin,
+        proxyEnabled: currentProxySettings.enabled
+      }
+    } catch (error) {
+      const endTime = Date.now()
+      const responseTime = endTime - startTime
 
-    return {
-      success: true,
-      message: 'プロキシ接続テストが成功しました',
-      responseTime,
-      ipAddress: data.origin,
-      proxyEnabled: currentProxySettings.enabled
-    }
-  } catch (error) {
-    const endTime = Date.now()
-    const responseTime = endTime - startTime
-
-    return {
-      success: false,
-      message: `プロキシ接続テストが失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      responseTime,
-      proxyEnabled: currentProxySettings.enabled
+      return {
+        success: false,
+        message: `プロキシ接続テストが失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        responseTime,
+        proxyEnabled: currentProxySettings.enabled
+      }
     }
   }
-})
+)
 
 // 現在のIPアドレスを取得
 ipcMain.handle('getCurrentIpAddress', async () => {
@@ -271,8 +274,8 @@ ipcMain.handle('getCurrentIpAddress', async () => {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
-    const data = await response.json() as { origin?: string }
-    
+    const data = (await response.json()) as { origin?: string }
+
     return {
       success: true,
       ipAddress: data.origin,

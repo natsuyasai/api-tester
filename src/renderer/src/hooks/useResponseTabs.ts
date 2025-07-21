@@ -22,7 +22,7 @@ export const useResponseTabs = ({ tabId, response }: UseResponseTabsProps) => {
 
   const getCurrentContent = useCallback((): string => {
     const separatedData = separateResponseData(response.data)
-    
+
     if (activeTab === 'body') {
       return formatJson(separatedData.actualData)
     } else if (activeTab === 'headers') {

@@ -129,14 +129,21 @@ export const separateResponseData = (data: unknown): SeparatedResponseData => {
   if (data && typeof data === 'object' && 'type' in data && data.type === 'binary') {
     const binaryData = data as Record<string, unknown>
     const metadata: Record<string, unknown> = {}
-    
+
     // メタデータプロパティを抽出
     const metadataKeys = [
-      'type', 'subType', 'size', 'contentType', 'isPreviewable',
-      'dataUrl', 'originalBlob', 'error', 'notice'
+      'type',
+      'subType',
+      'size',
+      'contentType',
+      'isPreviewable',
+      'dataUrl',
+      'originalBlob',
+      'error',
+      'notice'
     ]
-    
-    metadataKeys.forEach(key => {
+
+    metadataKeys.forEach((key) => {
       if (key in binaryData) {
         metadata[key] = binaryData[key]
       }
@@ -168,18 +175,18 @@ export const formatMetadata = (metadata: Record<string, unknown>): string => {
       if (key === 'originalBlob' || key === 'dataUrl') {
         return null
       }
-      
+
       // サイズは人間が読みやすい形式に
       if (key === 'size' && typeof value === 'number') {
         return `${key}: ${formatBinarySize(value)}`
       }
-      
+
       // その他のプロパティは文字列として表示
       return `${key}: ${String(value)}`
     })
     .filter(Boolean)
     .join('\n')
-    
+
   return formatted
 }
 

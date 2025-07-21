@@ -10,7 +10,7 @@ import { useTabStore } from './stores/tabStore'
 function App(): JSX.Element {
   const [showSettings, setShowSettings] = useState(false)
   const { loadAllTabs } = useTabStore()
-  
+
   useKeyboardShortcuts()
   useAutoSave() // 自動保存機能を有効化
 

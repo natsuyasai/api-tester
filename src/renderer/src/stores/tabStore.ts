@@ -226,7 +226,7 @@ export const useTabStore = create<TabState & TabActions>()(
               activeTabId: string
               timestamp: number
             }
-            
+
             // 基本的な型チェック
             if (Array.isArray(tabsData.tabs) && tabsData.tabs.length > 0) {
               set(
