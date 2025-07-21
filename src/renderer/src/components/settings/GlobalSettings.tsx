@@ -6,7 +6,8 @@ import { validateProxyUrl } from '@renderer/utils/proxyUtils'
 import styles from './GlobalSettings.module.scss'
 
 export const GlobalSettings = (): JSX.Element => {
-  const { settings, updateSettings, resetSettings, exportSettings, importSettings } = useGlobalSettingsStore()
+  const { settings, updateSettings, resetSettings, exportSettings, importSettings } =
+    useGlobalSettingsStore()
   const { forceSave } = useAutoSave()
   const [importData, setImportData] = useState('')
   const [showImportPreview, setShowImportPreview] = useState(false)
@@ -14,7 +15,7 @@ export const GlobalSettings = (): JSX.Element => {
     testing: boolean
     result?: { success: boolean; message: string; responseTime?: number; ipAddress?: string }
   }>({ testing: false })
-  
+
   // IDの生成
   const timeoutId = useId()
   const maxRedirectsId = useId()
@@ -99,7 +100,7 @@ export const GlobalSettings = (): JSX.Element => {
 
   const handleProxyTest = async () => {
     setProxyTestResult({ testing: true })
-    
+
     try {
       if (!settings.proxyEnabled || !settings.proxyUrl) {
         // プロキシが無効の場合、現在のIPアドレスを取得
@@ -153,9 +154,7 @@ export const GlobalSettings = (): JSX.Element => {
     <div className={styles.globalSettings}>
       <div className={styles.header}>
         <h1>グローバル設定</h1>
-        <p className={styles.description}>
-          アプリケーション全体の動作とデフォルト値を設定します
-        </p>
+        <p className={styles.description}>アプリケーション全体の動作とデフォルト値を設定します</p>
       </div>
 
       <div className={styles.settingsContainer}>
@@ -163,11 +162,9 @@ export const GlobalSettings = (): JSX.Element => {
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <h2>デフォルトリクエスト設定</h2>
-            <p className={styles.sectionDescription}>
-              新しいリクエストを作成する際のデフォルト値
-            </p>
+            <p className={styles.sectionDescription}>新しいリクエストを作成する際のデフォルト値</p>
           </div>
-          
+
           <div className={styles.settingsGrid}>
             <div className={styles.fieldGroup}>
               <label htmlFor={timeoutId}>デフォルトタイムアウト (ミリ秒):</label>
@@ -203,7 +200,9 @@ export const GlobalSettings = (): JSX.Element => {
                 min="0"
                 max="20"
                 value={settings.defaultMaxRedirects}
-                onChange={(e) => updateSettings({ defaultMaxRedirects: parseInt(e.target.value, 10) })}
+                onChange={(e) =>
+                  updateSettings({ defaultMaxRedirects: parseInt(e.target.value, 10) })
+                }
                 className={styles.input}
               />
             </div>
@@ -236,11 +235,9 @@ export const GlobalSettings = (): JSX.Element => {
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <h2>UI設定</h2>
-            <p className={styles.sectionDescription}>
-              アプリケーションの外観と操作性
-            </p>
+            <p className={styles.sectionDescription}>アプリケーションの外観と操作性</p>
           </div>
-          
+
           <div className={styles.settingsGrid}>
             <div className={styles.fieldGroup}>
               <span className={styles.fieldLabel}>テーマ:</span>
@@ -320,11 +317,9 @@ export const GlobalSettings = (): JSX.Element => {
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <h2>エディタ設定</h2>
-            <p className={styles.sectionDescription}>
-              JSONエディタやコード表示の設定
-            </p>
+            <p className={styles.sectionDescription}>JSONエディタやコード表示の設定</p>
           </div>
-          
+
           <div className={styles.settingsGrid}>
             <div className={styles.rangeGroup}>
               <label htmlFor={tabSizeId}>タブサイズ:</label>
@@ -371,11 +366,9 @@ export const GlobalSettings = (): JSX.Element => {
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <h2>アプリケーション設定</h2>
-            <p className={styles.sectionDescription}>
-              自動保存やアップデートなどの一般的な設定
-            </p>
+            <p className={styles.sectionDescription}>自動保存やアップデートなどの一般的な設定</p>
           </div>
-          
+
           <div className={styles.settingsGrid}>
             <div className={styles.checkboxGroup}>
               <label className={styles.checkboxLabel}>
@@ -452,18 +445,6 @@ export const GlobalSettings = (): JSX.Element => {
                 <span>アップデートを自動チェック</span>
               </label>
             </div>
-
-            <div className={styles.checkboxGroup}>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  checked={settings.telemetryEnabled}
-                  onChange={(e) => updateSettings({ telemetryEnabled: e.target.checked })}
-                />
-                <span>使用状況データの送信を許可</span>
-              </label>
-              <span className={styles.hint}>アプリケーションの改善に役立ちます</span>
-            </div>
           </div>
         </div>
 
@@ -471,11 +452,9 @@ export const GlobalSettings = (): JSX.Element => {
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <h2>プロキシ設定</h2>
-            <p className={styles.sectionDescription}>
-              ネットワークプロキシの設定
-            </p>
+            <p className={styles.sectionDescription}>ネットワークプロキシの設定</p>
           </div>
-          
+
           <div className={styles.settingsGrid}>
             <div className={styles.checkboxGroup}>
               <label className={styles.checkboxLabel}>
@@ -507,13 +486,15 @@ export const GlobalSettings = (): JSX.Element => {
                 id={proxyUsernameId}
                 type="text"
                 value={settings.proxyAuth?.username || ''}
-                onChange={(e) => updateSettings({ 
-                  proxyAuth: { 
-                    ...settings.proxyAuth,
-                    username: e.target.value,
-                    password: settings.proxyAuth?.password || ''
-                  }
-                })}
+                onChange={(e) =>
+                  updateSettings({
+                    proxyAuth: {
+                      ...settings.proxyAuth,
+                      username: e.target.value,
+                      password: settings.proxyAuth?.password || ''
+                    }
+                  })
+                }
                 disabled={!settings.proxyEnabled}
                 className={styles.input}
               />
@@ -525,13 +506,15 @@ export const GlobalSettings = (): JSX.Element => {
                 id={proxyPasswordId}
                 type="password"
                 value={settings.proxyAuth?.password || ''}
-                onChange={(e) => updateSettings({ 
-                  proxyAuth: { 
-                    ...settings.proxyAuth,
-                    username: settings.proxyAuth?.username || '',
-                    password: e.target.value
-                  }
-                })}
+                onChange={(e) =>
+                  updateSettings({
+                    proxyAuth: {
+                      ...settings.proxyAuth,
+                      username: settings.proxyAuth?.username || '',
+                      password: e.target.value
+                    }
+                  })
+                }
                 disabled={!settings.proxyEnabled}
                 className={styles.input}
               />
@@ -546,12 +529,12 @@ export const GlobalSettings = (): JSX.Element => {
               >
                 {proxyTestResult.testing ? '接続テスト中...' : 'プロキシ接続テスト'}
               </button>
-              
+
               {proxyTestResult.result && (
-                <div className={`${styles.testResult} ${proxyTestResult.result.success ? styles.success : styles.error}`}>
-                  <div className={styles.testMessage}>
-                    {proxyTestResult.result.message}
-                  </div>
+                <div
+                  className={`${styles.testResult} ${proxyTestResult.result.success ? styles.success : styles.error}`}
+                >
+                  <div className={styles.testMessage}>{proxyTestResult.result.message}</div>
                   {proxyTestResult.result.success && (
                     <div className={styles.testDetails}>
                       {proxyTestResult.result.ipAddress && (
@@ -572,24 +555,10 @@ export const GlobalSettings = (): JSX.Element => {
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <h2>開発者設定</h2>
-            <p className={styles.sectionDescription}>
-              デバッグやセキュリティに関する設定
-            </p>
+            <p className={styles.sectionDescription}>デバッグやセキュリティに関する設定</p>
           </div>
-          
-          <div className={styles.settingsGrid}>
-            <div className={styles.checkboxGroup}>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  checked={settings.devMode}
-                  onChange={(e) => updateSettings({ devMode: e.target.checked })}
-                />
-                <span>開発者モード</span>
-              </label>
-              <span className={styles.hint}>追加の開発ツールとデバッグ機能を有効にします</span>
-            </div>
 
+          <div className={styles.settingsGrid}>
             <div className={styles.checkboxGroup}>
               <label className={styles.checkboxLabel}>
                 <input
@@ -611,7 +580,9 @@ export const GlobalSettings = (): JSX.Element => {
                 />
                 <span>安全でない接続を許可</span>
               </label>
-              <span className={styles.hint}>HTTPSでない接続や無効な証明書を許可します（非推奨）</span>
+              <span className={styles.hint}>
+                HTTPSでない接続や無効な証明書を許可します（非推奨）
+              </span>
             </div>
 
             <div className={styles.checkboxGroup}>
@@ -631,11 +602,9 @@ export const GlobalSettings = (): JSX.Element => {
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <h2>設定のバックアップ</h2>
-            <p className={styles.sectionDescription}>
-              設定をファイルで保存・復元
-            </p>
+            <p className={styles.sectionDescription}>設定をファイルで保存・復元</p>
           </div>
-          
+
           <div className={styles.importExport}>
             <div className={styles.settingsGrid}>
               <div className={styles.fieldGroup}>
@@ -681,14 +650,10 @@ export const GlobalSettings = (): JSX.Element => {
 
       {/* アクションボタン */}
       <div className={styles.actionButtons}>
-        <button
-          type="button"
-          onClick={() => void handleExport()}
-          className={styles.primaryButton}
-        >
+        <button type="button" onClick={() => void handleExport()} className={styles.primaryButton}>
           設定をエクスポート
         </button>
-        
+
         <button
           type="button"
           onClick={() => void handleImport()}
@@ -696,12 +661,8 @@ export const GlobalSettings = (): JSX.Element => {
         >
           ファイルからインポート
         </button>
-        
-        <button
-          type="button"
-          onClick={handleReset}
-          className={styles.dangerButton}
-        >
+
+        <button type="button" onClick={handleReset} className={styles.dangerButton}>
           設定をリセット
         </button>
       </div>

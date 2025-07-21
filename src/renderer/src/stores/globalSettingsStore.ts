@@ -9,22 +9,21 @@ export interface GlobalSettings {
   defaultMaxRedirects: number
   defaultValidateSSL: boolean
   defaultUserAgent: string
-  
+
   // UIの設定
   theme: 'light' | 'dark' | 'auto'
   fontSize: 'small' | 'medium' | 'large'
-  
+
   // エディタの設定
   tabSize: number
   wordWrap: boolean
   lineNumbers: boolean
-  
+
   // 開発者向け設定
-  devMode: boolean
   debugLogs: boolean
   saveHistory: boolean
   maxHistorySize: number
-  
+
   // ネットワーク設定
   proxyEnabled: boolean
   proxyUrl?: string
@@ -32,16 +31,15 @@ export interface GlobalSettings {
     username: string
     password: string
   }
-  
+
   // セキュリティ設定
   allowInsecureConnections: boolean
   certificateValidation: boolean
-  
+
   // アプリケーション設定
   autoSave: boolean
   autoSaveInterval: number // 秒
   checkForUpdates: boolean
-  telemetryEnabled: boolean
 }
 
 // デフォルト設定
@@ -52,34 +50,32 @@ export const DEFAULT_GLOBAL_SETTINGS: GlobalSettings = {
   defaultMaxRedirects: 5,
   defaultValidateSSL: true,
   defaultUserAgent: 'API Tester 1.0',
-  
+
   // UIの設定
   theme: 'auto',
   fontSize: 'medium',
-  
+
   // エディタの設定
   tabSize: 2,
   wordWrap: true,
   lineNumbers: true,
-  
+
   // 開発者向け設定
-  devMode: false,
   debugLogs: false,
   saveHistory: true,
-  maxHistorySize: 100,
-  
+  maxHistorySize: 10,
+
   // ネットワーク設定
   proxyEnabled: false,
-  
+
   // セキュリティ設定
   allowInsecureConnections: false,
   certificateValidation: true,
-  
+
   // アプリケーション設定
   autoSave: true,
-  autoSaveInterval: 30,
-  checkForUpdates: true,
-  telemetryEnabled: true
+  autoSaveInterval: 60,
+  checkForUpdates: true
 }
 
 interface GlobalSettingsState {
@@ -170,7 +166,7 @@ const applyProxySettings = async (settings: GlobalSettings): Promise<void> => {
         auth: settings.proxyAuth,
         bypassList: ['localhost', '127.0.0.1', '::1']
       }
-      
+
       const result = await window.proxyAPI.setProxyConfig(proxySettings)
       if (!result.success) {
         console.error('Failed to apply proxy settings:', result.error)
@@ -194,7 +190,7 @@ const applyThemeAndFont = (settings: GlobalSettings): void => {
     // autoの場合はシステム設定に従う
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
     document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light')
-    
+
     // システム設定変更の監視
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     const handleSystemThemeChange = (e: MediaQueryListEvent) => {
@@ -202,12 +198,12 @@ const applyThemeAndFont = (settings: GlobalSettings): void => {
         document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light')
       }
     }
-    
+
     // 既存のリスナーを削除してから新しいリスナーを追加
     mediaQuery.removeEventListener('change', handleSystemThemeChange)
     mediaQuery.addEventListener('change', handleSystemThemeChange)
   }
-  
+
   // フォントサイズの適用
   document.documentElement.setAttribute('data-font-size', settings.fontSize)
 }
@@ -221,19 +217,16 @@ useGlobalSettingsStore.subscribe(
   (state) => state.settings,
   (settings, prevSettings) => {
     // テーマまたはフォントサイズが変更された場合に適用
-    if (
-      settings.theme !== prevSettings?.theme ||
-      settings.fontSize !== prevSettings?.fontSize
-    ) {
+    if (settings.theme !== prevSettings?.theme || settings.fontSize !== prevSettings?.fontSize) {
       applyThemeAndFont(settings)
     }
 
     // プロキシ設定の変更をElectronに適用
-    const proxyChanged = 
+    const proxyChanged =
       settings.proxyEnabled !== prevSettings?.proxyEnabled ||
       settings.proxyUrl !== prevSettings?.proxyUrl ||
       JSON.stringify(settings.proxyAuth) !== JSON.stringify(prevSettings?.proxyAuth)
-    
+
     if (proxyChanged) {
       applyProxySettings(settings).catch(console.error)
     }
