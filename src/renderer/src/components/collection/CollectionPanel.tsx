@@ -1,6 +1,7 @@
 import { JSX, useState } from 'react'
 import { Collection } from '@/types/types'
 import { useCollectionStore } from '@renderer/stores/collectionStore'
+import { useTabStore } from '@renderer/stores/tabStore'
 import styles from './CollectionPanel.module.scss'
 
 interface CollectionPanelProps {
@@ -9,13 +10,8 @@ interface CollectionPanelProps {
 }
 
 export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): JSX.Element => {
-  const {
-    collections,
-    getCollectionsByParent,
-    createCollection,
-    updateCollection,
-    deleteCollection
-  } = useCollectionStore()
+  const collectionStore = useCollectionStore()
+  const tabStore = useTabStore()
 
   const [expandedCollections, setExpandedCollections] = useState<Set<string>>(new Set())
   const [editingCollection, setEditingCollection] = useState<string | null>(null)
@@ -41,7 +37,7 @@ export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): 
 
   const saveEdit = () => {
     if (editingCollection && editingName.trim()) {
-      updateCollection(editingCollection, { name: editingName.trim() })
+      collectionStore.updateCollection(editingCollection, { name: editingName.trim() })
     }
     setEditingCollection(null)
     setEditingName('')
@@ -54,24 +50,86 @@ export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): 
 
   const handleDelete = (collectionId: string) => {
     if (confirm('このコレクションを削除しますか？')) {
-      deleteCollection(collectionId)
+      collectionStore.deleteCollection(collectionId)
     }
   }
 
   const handleCreateCollection = () => {
     if (newCollectionName.trim()) {
-      createCollection(newCollectionName.trim(), undefined, newCollectionParent)
+      collectionStore.createCollection(newCollectionName.trim(), undefined, newCollectionParent)
       setNewCollectionName('')
       setNewCollectionParent(undefined)
       setShowCreateForm(false)
     }
   }
 
+  const handleSelectCollection = (collectionId: string) => {
+    const currentActive = collectionStore.activeCollectionId
+    collectionStore.setActiveCollection(currentActive === collectionId ? undefined : collectionId)
+  }
+
+  const handleAddTabToCollection = (collectionId: string) => {
+    tabStore.addTab(collectionId)
+  }
+
+  const handleRemoveTabFromCollection = (collectionId: string, tabId: string) => {
+    collectionStore.removeTabFromCollection(collectionId, tabId)
+    tabStore.setTabCollection(tabId, undefined)
+  }
+
+  const renderCollectionTabs = (collection: Collection): JSX.Element => {
+    const collectionTabs = tabStore.getTabsByCollection(collection.id)
+
+    if (collectionTabs.length === 0) {
+      return (
+        <div className={styles.noTabs}>
+          <p>このコレクションにタブがありません</p>
+          <button
+            onClick={() => handleAddTabToCollection(collection.id)}
+            className={styles.addTabButton}
+            type="button"
+          >
+            + 新しいタブ
+          </button>
+        </div>
+      )
+    }
+
+    return (
+      <div className={styles.tabsList}>
+        <div className={styles.tabsHeader}>
+          <span>タブ ({collectionTabs.length})</span>
+          <button
+            onClick={() => handleAddTabToCollection(collection.id)}
+            className={styles.addTabButton}
+            type="button"
+          >
+            +
+          </button>
+        </div>
+        {collectionTabs.map((tab) => (
+          <div key={tab.id} className={styles.tabItem}>
+            <span className={styles.tabName}>{tab.title}</span>
+            <button
+              onClick={() => handleRemoveTabFromCollection(collection.id, tab.id)}
+              className={styles.removeTabButton}
+              type="button"
+              title="コレクションから削除"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   const renderCollection = (collection: Collection, level: number = 0): JSX.Element => {
     const isExpanded = expandedCollections.has(collection.id)
     const isEditing = editingCollection === collection.id
-    const children = getCollectionsByParent(collection.id)
+    const children = collectionStore.getCollectionsByParent(collection.id)
     const hasChildren = children.length > 0
+    const isActive = collectionStore.activeCollectionId === collection.id
 
     return (
       <div
@@ -80,7 +138,7 @@ export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): 
         style={{ paddingLeft: `${level * 16}px` }}
       >
         <div className={styles.collectionHeader}>
-          {hasChildren && (
+          {(hasChildren || isActive) && (
             <button
               className={`${styles.expandButton} ${isExpanded ? styles.expanded : ''}`}
               onClick={() => toggleExpand(collection.id)}
@@ -112,7 +170,20 @@ export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): 
             </div>
           ) : (
             <div className={styles.collectionInfo}>
-              <span className={styles.collectionName}>{collection.name}</span>
+              <div
+                className={`${styles.collectionName} ${isActive ? styles.active : ''}`}
+                onClick={() => handleSelectCollection(collection.id)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleSelectCollection(collection.id)
+                  }
+                }}
+              >
+                {collection.name}
+                {isActive && <span className={styles.activeIndicator}>●</span>}
+              </div>
               <div className={styles.collectionActions}>
                 <button
                   onClick={() => startEditing(collection)}
@@ -135,16 +206,23 @@ export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): 
           )}
         </div>
 
-        {isExpanded && hasChildren && (
+        {isExpanded && (
           <div className={styles.children}>
-            {children.map((child) => renderCollection(child, level + 1))}
+            {hasChildren && (
+              <div className={styles.subCollections}>
+                {children.map((child) => renderCollection(child, level + 1))}
+              </div>
+            )}
+            {isActive && (
+              <div className={styles.collectionTabs}>{renderCollectionTabs(collection)}</div>
+            )}
           </div>
         )}
       </div>
     )
   }
 
-  const rootCollections = getCollectionsByParent()
+  const rootCollections = collectionStore.getCollectionsByParent()
 
   return (
     <div className={`${styles.collectionPanel} ${isVisible ? styles.visible : ''}`}>
@@ -187,7 +265,7 @@ export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): 
                 className={styles.parentSelect}
               >
                 <option value="">ルートフォルダ</option>
-                {collections.map((collection) => (
+                {collectionStore.collections.map((collection) => (
                   <option key={collection.id} value={collection.id}>
                     {collection.name}
                   </option>

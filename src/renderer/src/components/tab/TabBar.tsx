@@ -1,5 +1,6 @@
 import { JSX, useState, useRef, useEffect, useCallback } from 'react'
 import { useYamlOperations } from '@renderer/hooks/useYamlOperations'
+import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { useTabStore } from '@renderer/stores/tabStore'
 import styles from './TabBar.module.scss'
 
@@ -16,8 +17,16 @@ export const TabBar = ({
   onToggleCollections,
   onToggleHistory
 }: TabBarProps): JSX.Element => {
-  const { tabs, addTab, closeTab, setActiveTab, updateTabTitle, startEditingActiveTab } =
-    useTabStore()
+  const {
+    tabs,
+    addTab,
+    closeTab,
+    setActiveTab,
+    updateTabTitle,
+    startEditingActiveTab,
+    getTabsByCollection
+  } = useTabStore()
+  const { activeCollectionId, getActiveCollection } = useCollectionStore()
   const { saveToFile, loadFromFile } = useYamlOperations()
   const [editingTabId, setEditingTabId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
@@ -36,7 +45,7 @@ export const TabBar = ({
   }
 
   const handleAddTab = () => {
-    addTab()
+    addTab(activeCollectionId)
   }
 
   const handleSaveFile = async () => {
@@ -171,7 +180,8 @@ export const TabBar = ({
         </button>
       )}
       <div className={styles.tabList} ref={tabListRef}>
-        {tabs.map((tab) => (
+        {/* コレクションがアクティブな場合はそのコレクションのタブのみ表示 */}
+        {(activeCollectionId ? getTabsByCollection(activeCollectionId) : tabs).map((tab) => (
           <div
             key={tab.id}
             className={`${styles.tab} ${tab.isActive ? styles.active : ''} ${editingTabId === tab.id ? styles.editing : ''}`}
@@ -223,6 +233,13 @@ export const TabBar = ({
         </button>
       )}
       <div className={styles.controls}>
+        {activeCollectionId && (
+          <div className={styles.collectionIndicator}>
+            <span className={styles.collectionName}>
+              {getActiveCollection()?.name || 'コレクション'}
+            </span>
+          </div>
+        )}
         <button
           className={styles.fileButton}
           onClick={() => void handleLoadFile()}

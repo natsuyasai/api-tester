@@ -12,6 +12,10 @@ import {
 type CollectionState = CollectionStore
 
 interface CollectionActions {
+  // アクティブコレクション管理
+  setActiveCollection: (collectionId?: string) => void
+  getActiveCollection: () => Collection | undefined
+
   // コレクション管理
   createCollection: (name: string, description?: string, parentId?: string) => string
   updateCollection: (id: string, updates: Partial<Omit<Collection, 'id'>>) => void
@@ -28,6 +32,13 @@ interface CollectionActions {
     fromCollectionId: string,
     toCollectionId: string
   ) => void
+
+  // タブ管理
+  addTabToCollection: (collectionId: string, tabId: string) => void
+  removeTabFromCollection: (collectionId: string, tabId: string) => void
+  setCollectionActiveTab: (collectionId: string, tabId?: string) => void
+  getCollectionTabs: (collectionId: string) => string[]
+  getCollectionActiveTab: (collectionId: string) => string | undefined
 
   // 実行履歴管理
   addExecutionHistory: (
@@ -58,6 +69,7 @@ const initialState: CollectionState = {
   executionHistory: [],
   maxHistorySize: 100,
   searchQuery: '',
+  activeCollectionId: undefined,
   filterOptions: {}
 }
 
@@ -65,6 +77,18 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
   devtools(
     (set, get) => ({
       ...initialState,
+
+      // アクティブコレクション管理
+      setActiveCollection: (collectionId?: string) => {
+        set({ activeCollectionId: collectionId }, false, 'setActiveCollection')
+      },
+
+      getActiveCollection: () => {
+        const state = get()
+        return state.activeCollectionId
+          ? state.collections.find((collection) => collection.id === state.activeCollectionId)
+          : undefined
+      },
 
       // コレクション管理
       createCollection: (name: string, description?: string, parentId?: string): string => {
@@ -77,7 +101,9 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
           children: [],
           requests: [],
           created: new Date().toISOString(),
-          updated: new Date().toISOString()
+          updated: new Date().toISOString(),
+          tabs: [],
+          activeTabId: undefined
         }
 
         set(
@@ -192,6 +218,75 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
         const actions = get()
         actions.removeRequestFromCollection(fromCollectionId, requestId)
         actions.addRequestToCollection(toCollectionId, requestId)
+      },
+
+      // タブ管理
+      addTabToCollection: (collectionId: string, tabId: string) => {
+        set(
+          (state) => ({
+            collections: state.collections.map((collection) =>
+              collection.id === collectionId
+                ? {
+                    ...collection,
+                    tabs: [...(collection.tabs || []), tabId],
+                    updated: new Date().toISOString()
+                  }
+                : collection
+            )
+          }),
+          false,
+          'addTabToCollection'
+        )
+      },
+
+      removeTabFromCollection: (collectionId: string, tabId: string) => {
+        set(
+          (state) => ({
+            collections: state.collections.map((collection) =>
+              collection.id === collectionId
+                ? {
+                    ...collection,
+                    tabs: (collection.tabs || []).filter((id) => id !== tabId),
+                    activeTabId:
+                      collection.activeTabId === tabId ? undefined : collection.activeTabId,
+                    updated: new Date().toISOString()
+                  }
+                : collection
+            )
+          }),
+          false,
+          'removeTabFromCollection'
+        )
+      },
+
+      setCollectionActiveTab: (collectionId: string, tabId?: string) => {
+        set(
+          (state) => ({
+            collections: state.collections.map((collection) =>
+              collection.id === collectionId
+                ? {
+                    ...collection,
+                    activeTabId: tabId,
+                    updated: new Date().toISOString()
+                  }
+                : collection
+            )
+          }),
+          false,
+          'setCollectionActiveTab'
+        )
+      },
+
+      getCollectionTabs: (collectionId: string) => {
+        const state = get()
+        const collection = state.collections.find((c) => c.id === collectionId)
+        return collection?.tabs || []
+      },
+
+      getCollectionActiveTab: (collectionId: string) => {
+        const state = get()
+        const collection = state.collections.find((c) => c.id === collectionId)
+        return collection?.activeTabId
       },
 
       // 実行履歴管理

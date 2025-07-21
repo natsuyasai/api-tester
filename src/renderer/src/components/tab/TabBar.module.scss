@@ -146,6 +146,19 @@
   padding-right: 8px;
 }
 
+.collectionIndicator {
+  background: var(--color-primary);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  margin-right: 8px;
+}
+
+.collectionName {
+  font-weight: 500;
+}
+
 .fileButton,
 .settingsButton,
 .collectionsButton,

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { RequestSettings, DEFAULT_REQUEST_SETTINGS } from '@/types/types'
@@ -49,12 +49,13 @@ describe('RequestSettingsEditor', () => {
     render(<RequestSettingsEditor {...defaultProps} />)
 
     const timeoutInput = screen.getByLabelText('タイムアウト (ミリ秒):')
-    await user.clear(timeoutInput)
-    await user.type(timeoutInput, '15000')
+
+    // 値を直接設定してchangeイベントを発火
+    fireEvent.change(timeoutInput, { target: { value: '15000' } })
 
     // onChangeが呼ばれたことを確認
     expect(mockOnChange).toHaveBeenCalled()
-    // タイムアウト値が変更されていることを確認（デフォルトの30000から変更される）
+    // タイムアウト値が変更されていることを確認
     const timeoutCall = mockOnChange.mock.calls.find((call) => call[0].timeout === 15000)
     expect(timeoutCall).toBeDefined()
   })
@@ -77,12 +78,13 @@ describe('RequestSettingsEditor', () => {
     render(<RequestSettingsEditor {...defaultProps} />)
 
     const maxRedirectsInput = screen.getByLabelText('最大リダイレクト回数:')
-    await user.clear(maxRedirectsInput)
-    await user.type(maxRedirectsInput, '3')
+
+    // 値を直接設定してchangeイベントを発火
+    fireEvent.change(maxRedirectsInput, { target: { value: '3' } })
 
     // onChangeが呼ばれたことを確認
     expect(mockOnChange).toHaveBeenCalled()
-    // maxRedirects値が変更されていることを確認（デフォルトの5から変更される）
+    // maxRedirects値が変更されていることを確認
     const redirectCall = mockOnChange.mock.calls.find((call) => call[0].maxRedirects === 3)
     expect(redirectCall).toBeDefined()
   })
@@ -117,8 +119,9 @@ describe('RequestSettingsEditor', () => {
     render(<RequestSettingsEditor {...defaultProps} />)
 
     const userAgentInput = screen.getByLabelText('User-Agent:')
-    await user.clear(userAgentInput)
-    await user.type(userAgentInput, 'TestAgent')
+
+    // 値を直接設定してchangeイベントを発火
+    fireEvent.change(userAgentInput, { target: { value: 'TestAgent' } })
 
     // onChangeが呼ばれたことを確認
     expect(mockOnChange).toHaveBeenCalled()

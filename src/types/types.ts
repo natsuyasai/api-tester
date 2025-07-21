@@ -78,6 +78,7 @@ export interface ApiTab {
   request: ApiRequest
   response: ApiResponse | null
   isActive: boolean
+  collectionId?: string // どのコレクションに属するかを示す
 }
 
 // アプリケーション全体の設定
@@ -188,6 +189,8 @@ export interface Collection {
   parentId?: string // フォルダ機能用
   children?: Collection[] // サブフォルダ
   requests?: string[] // リクエストIDの配列
+  tabs?: string[] // このコレクションに属するタブIDの配列
+  activeTabId?: string // コレクション内のアクティブなタブID
   created: string
   updated: string
 }
@@ -198,6 +201,7 @@ export interface CollectionStore {
   executionHistory: RequestExecutionHistory[]
   maxHistorySize: number
   searchQuery: string
+  activeCollectionId?: string // 現在アクティブなコレクション
   filterOptions: {
     status?: 'success' | 'error'
     dateRange?: {

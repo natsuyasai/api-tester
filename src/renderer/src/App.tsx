@@ -7,6 +7,7 @@ import { TabBar } from './components/tab/TabBar'
 import { TabContent } from './components/tab/TabContent'
 import { useAutoSave } from './hooks/useAutoSave'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { useTabCollectionSync } from './hooks/useTabCollectionSync'
 import { useCollectionStore } from './stores/collectionStore'
 import { useTabStore } from './stores/tabStore'
 
@@ -19,6 +20,7 @@ function App(): JSX.Element {
 
   useKeyboardShortcuts()
   useAutoSave() // 自動保存機能を有効化
+  useTabCollectionSync() // タブとコレクションの同期
 
   // テーマ管理はglobalSettingsStoreで自動的に処理される
 

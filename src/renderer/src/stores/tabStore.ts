@@ -9,12 +9,14 @@ interface TabState {
 }
 
 interface TabActions {
-  addTab: () => void
+  addTab: (collectionId?: string) => void
   closeTab: (tabId: string) => void
   setActiveTab: (tabId: string) => void
   updateTabTitle: (tabId: string, title: string) => void
+  setTabCollection: (tabId: string, collectionId?: string) => void
   getActiveTab: () => ApiTab | undefined
   getTab: (tabId: string) => ApiTab | undefined
+  getTabsByCollection: (collectionId?: string) => ApiTab[]
   resetTabs: () => void
   switchToNextTab: () => void
   switchToPreviousTab: () => void
@@ -24,11 +26,12 @@ interface TabActions {
   loadAllTabs: () => void
 }
 
-const createInitialTab = (): ApiTab => ({
+const createInitialTab = (collectionId?: string): ApiTab => ({
   id: uuidv4(),
   title: 'New Request',
   isActive: true,
   response: null,
+  collectionId,
   request: {
     id: uuidv4(),
     name: 'New Request',
@@ -54,8 +57,8 @@ export const useTabStore = create<TabState & TabActions>()(
     (set, get) => ({
       ...initialState,
 
-      addTab: () => {
-        const newTab = createInitialTab()
+      addTab: (collectionId?: string) => {
+        const newTab = createInitialTab(collectionId)
         set(
           (state) => ({
             tabs: [...state.tabs.map((tab) => ({ ...tab, isActive: false })), newTab],
@@ -123,6 +126,16 @@ export const useTabStore = create<TabState & TabActions>()(
         )
       },
 
+      setTabCollection: (tabId: string, collectionId?: string) => {
+        set(
+          (state) => ({
+            tabs: state.tabs.map((tab) => (tab.id === tabId ? { ...tab, collectionId } : tab))
+          }),
+          false,
+          'setTabCollection'
+        )
+      },
+
       getActiveTab: () => {
         const state = get()
         return state.tabs.find((tab) => tab.id === state.activeTabId)
@@ -131,6 +144,11 @@ export const useTabStore = create<TabState & TabActions>()(
       getTab: (tabId: string) => {
         const state = get()
         return state.tabs.find((tab) => tab.id === tabId)
+      },
+
+      getTabsByCollection: (collectionId?: string) => {
+        const state = get()
+        return state.tabs.filter((tab) => tab.collectionId === collectionId)
       },
 
       resetTabs: () => {
