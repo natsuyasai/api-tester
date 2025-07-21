@@ -1,10 +1,13 @@
 import { JSX, useState, useId } from 'react'
+import { AutoSaveStatus } from '@renderer/components/ui/AutoSaveStatus'
+import { useAutoSave } from '@renderer/hooks/useAutoSave'
 import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
 import { validateProxyUrl } from '@renderer/utils/proxyUtils'
 import styles from './GlobalSettings.module.scss'
 
 export const GlobalSettings = (): JSX.Element => {
   const { settings, updateSettings, resetSettings, exportSettings, importSettings } = useGlobalSettingsStore()
+  const { forceSave } = useAutoSave()
   const [importData, setImportData] = useState('')
   const [showImportPreview, setShowImportPreview] = useState(false)
   const [proxyTestResult, setProxyTestResult] = useState<{
@@ -399,6 +402,18 @@ export const GlobalSettings = (): JSX.Element => {
                 disabled={!settings.autoSave}
                 className={styles.input}
               />
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <AutoSaveStatus />
+              <button
+                type="button"
+                onClick={forceSave}
+                className={styles.secondaryButton}
+                disabled={!settings.autoSave}
+              >
+                手動保存を実行
+              </button>
             </div>
 
             <div className={styles.checkboxGroup}>

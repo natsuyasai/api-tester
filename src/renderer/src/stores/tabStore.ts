@@ -20,6 +20,8 @@ interface TabActions {
   switchToPreviousTab: () => void
   closeActiveTab: () => void
   startEditingActiveTab: () => string | null
+  saveAllTabs: () => void
+  loadAllTabs: () => void
 }
 
 const createInitialTab = (): ApiTab => ({
@@ -199,6 +201,50 @@ export const useTabStore = create<TabState & TabActions>()(
         const state = get()
         const activeTab = state.getActiveTab()
         return activeTab ? activeTab.id : null
+      },
+
+      saveAllTabs: () => {
+        const state = get()
+        try {
+          const tabsData = {
+            tabs: state.tabs,
+            activeTabId: state.activeTabId,
+            timestamp: Date.now()
+          }
+          localStorage.setItem('api-tester-tabs', JSON.stringify(tabsData))
+        } catch (error) {
+          console.error('Failed to save tabs to localStorage:', error)
+        }
+      },
+
+      loadAllTabs: () => {
+        try {
+          const stored = localStorage.getItem('api-tester-tabs')
+          if (stored) {
+            const tabsData = JSON.parse(stored) as {
+              tabs: ApiTab[]
+              activeTabId: string
+              timestamp: number
+            }
+            
+            // 基本的な型チェック
+            if (Array.isArray(tabsData.tabs) && tabsData.tabs.length > 0) {
+              set(
+                {
+                  tabs: tabsData.tabs.map((tab) => ({
+                    ...tab,
+                    isActive: tab.id === tabsData.activeTabId
+                  })),
+                  activeTabId: tabsData.activeTabId
+                },
+                false,
+                'loadAllTabs'
+              )
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load tabs from localStorage:', error)
+        }
       }
     }),
     {

@@ -183,23 +183,50 @@ const applyProxySettings = async (settings: GlobalSettings): Promise<void> => {
   }
 }
 
+// テーマとフォントサイズを適用する関数
+const applyThemeAndFont = (settings: GlobalSettings): void => {
+  // テーマの適用
+  if (settings.theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark')
+  } else if (settings.theme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light')
+  } else {
+    // autoの場合はシステム設定に従う
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light')
+    
+    // システム設定変更の監視
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+      if (useGlobalSettingsStore.getState().settings.theme === 'auto') {
+        document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light')
+      }
+    }
+    
+    // 既存のリスナーを削除してから新しいリスナーを追加
+    mediaQuery.removeEventListener('change', handleSystemThemeChange)
+    mediaQuery.addEventListener('change', handleSystemThemeChange)
+  }
+  
+  // フォントサイズの適用
+  document.documentElement.setAttribute('data-font-size', settings.fontSize)
+}
+
+// 起動時にテーマとフォントを適用
+const initialSettings = loadSettings()
+applyThemeAndFont(initialSettings)
+
 // 設定変更の監視
 useGlobalSettingsStore.subscribe(
   (state) => state.settings,
   (settings, prevSettings) => {
-    // テーマの変更をドキュメントに反映
-    if (settings.theme === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark')
-    } else if (settings.theme === 'light') {
-      document.documentElement.setAttribute('data-theme', 'light')
-    } else {
-      // autoの場合はシステム設定に従う
-      const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-      document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light')
+    // テーマまたはフォントサイズが変更された場合に適用
+    if (
+      settings.theme !== prevSettings?.theme ||
+      settings.fontSize !== prevSettings?.fontSize
+    ) {
+      applyThemeAndFont(settings)
     }
-    
-    // フォントサイズの変更をドキュメントに反映
-    document.documentElement.setAttribute('data-font-size', settings.fontSize)
 
     // プロキシ設定の変更をElectronに適用
     const proxyChanged = 

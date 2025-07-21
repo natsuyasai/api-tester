@@ -1,15 +1,25 @@
-import { JSX, useState } from 'react'
+import { JSX, useState, useEffect } from 'react'
 import styles from './App.module.scss'
 import { GlobalSettings } from './components/settings/GlobalSettings'
 import { TabBar } from './components/tab/TabBar'
 import { TabContent } from './components/tab/TabContent'
+import { useAutoSave } from './hooks/useAutoSave'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { useTabStore } from './stores/tabStore'
 
 function App(): JSX.Element {
   const [showSettings, setShowSettings] = useState(false)
+  const { loadAllTabs } = useTabStore()
+  
   useKeyboardShortcuts()
+  useAutoSave() // 自動保存機能を有効化
 
   // テーマ管理はglobalSettingsStoreで自動的に処理される
+
+  // アプリケーション起動時にタブを復元
+  useEffect(() => {
+    loadAllTabs()
+  }, [loadAllTabs])
 
   const handleShowSettings = () => {
     setShowSettings(true)
