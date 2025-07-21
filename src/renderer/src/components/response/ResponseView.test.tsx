@@ -755,4 +755,253 @@ describe('ResponseView', () => {
 
     expect(screen.queryByRole('button', { name: 'Preview' })).not.toBeInTheDocument()
   })
+
+  it('should display raw tab', () => {
+    render(<ResponseView tabId="tab-1" />)
+
+    expect(screen.getByRole('button', { name: 'Raw' })).toBeInTheDocument()
+  })
+
+  it('should switch to raw tab when clicked', () => {
+    render(<ResponseView tabId="tab-1" />)
+
+    const rawTab = screen.getByRole('button', { name: 'Raw' })
+    fireEvent.click(rawTab)
+
+    expect(rawTab).toHaveClass(/active/)
+    expect(screen.getByText(/=== REQUEST ===/)).toBeInTheDocument()
+    expect(screen.getByText(/=== RESPONSE ===/)).toBeInTheDocument()
+  })
+
+  it('should display formatted HTTP request in raw tab', () => {
+    const mockTabWithPostRequest = {
+      ...mockTab,
+      request: {
+        ...mockTab.request,
+        method: 'POST',
+        url: 'https://api.example.com/users',
+        params: [
+          { key: 'limit', value: '10', enabled: true },
+          { key: 'offset', value: '0', enabled: false }
+        ],
+        headers: [
+          { key: 'Content-Type', value: 'application/json', enabled: true },
+          { key: 'Authorization', value: 'Bearer token123', enabled: true }
+        ],
+        body: '{"name": "John Doe"}',
+        bodyType: 'json' as const
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithPostRequest],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithPostRequest),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithPostRequest : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const rawTab = screen.getByRole('button', { name: 'Raw' })
+    fireEvent.click(rawTab)
+
+    expect(screen.getByText(/POST \/users\?limit=10 HTTP\/1\.1/)).toBeInTheDocument()
+    expect(screen.getByText(/Host: api\.example\.com/)).toBeInTheDocument()
+    expect(screen.getByText(/Content-Type: application\/json/)).toBeInTheDocument()
+    expect(screen.getByText(/Authorization: Bearer token123/)).toBeInTheDocument()
+    expect(screen.getByText(/"name": "John Doe"/)).toBeInTheDocument()
+  })
+
+  it('should display formatted HTTP response in raw tab', () => {
+    render(<ResponseView tabId="tab-1" />)
+
+    const rawTab = screen.getByRole('button', { name: 'Raw' })
+    fireEvent.click(rawTab)
+
+    expect(screen.getByText(/HTTP\/1\.1 200 OK/)).toBeInTheDocument()
+    expect(screen.getByText(/content-type: application\/json/)).toBeInTheDocument()
+    expect(screen.getByText(/x-ratelimit-remaining: 99/)).toBeInTheDocument()
+  })
+
+  it('should handle authentication in raw request display', () => {
+    const mockTabWithAuth = {
+      ...mockTab,
+      request: {
+        ...mockTab.request,
+        auth: {
+          type: 'basic' as const,
+          basic: {
+            username: 'testuser',
+            password: 'testpass'
+          }
+        }
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithAuth],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithAuth),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithAuth : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const rawTab = screen.getByRole('button', { name: 'Raw' })
+    fireEvent.click(rawTab)
+
+    expect(screen.getByText(/Authorization: Basic/)).toBeInTheDocument()
+  })
+
+  it('should handle form-data requests in raw display', () => {
+    const mockTabWithFormData = {
+      ...mockTab,
+      request: {
+        ...mockTab.request,
+        method: 'POST',
+        bodyType: 'form-data' as const,
+        body: '',
+        bodyKeyValuePairs: [
+          { key: 'name', value: 'John Doe', enabled: true },
+          { key: 'file', value: 'content', enabled: true, isFile: true, fileName: 'test.txt' }
+        ]
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithFormData],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithFormData),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithFormData : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const rawTab = screen.getByRole('button', { name: 'Raw' })
+    fireEvent.click(rawTab)
+
+    expect(screen.getByText(/\[Form Data\]/)).toBeInTheDocument()
+    expect(screen.getByText(/name: John Doe/)).toBeInTheDocument()
+    expect(screen.getByText(/file: \[File: test\.txt\]/)).toBeInTheDocument()
+  })
+
+  it('should handle binary response data in raw display', () => {
+    const mockTabWithBinaryResponse = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        data: {
+          type: 'binary',
+          subType: 'image',
+          contentType: 'image/png',
+          size: 1024
+        }
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithBinaryResponse],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithBinaryResponse),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithBinaryResponse : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const rawTab = screen.getByRole('button', { name: 'Raw' })
+    fireEvent.click(rawTab)
+
+    expect(screen.getByText(/\[Binary Data: image\/png, Size: 1024 bytes\]/)).toBeInTheDocument()
+  })
+
+  it('should include query parameters in raw request display', () => {
+    const mockTabWithParams = {
+      ...mockTab,
+      request: {
+        ...mockTab.request,
+        url: 'https://api.example.com/search',
+        params: [
+          { key: 'q', value: 'test query', enabled: true },
+          { key: 'limit', value: '20', enabled: true },
+          { key: 'disabled', value: 'ignore', enabled: false }
+        ]
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithParams],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithParams),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithParams : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const rawTab = screen.getByRole('button', { name: 'Raw' })
+    fireEvent.click(rawTab)
+
+    expect(screen.getByText(/GET \/search\?q=test\+query&limit=20 HTTP\/1\.1/)).toBeInTheDocument()
+  })
+
+  it('should include API key in query parameters when configured', () => {
+    const mockTabWithApiKeyQuery = {
+      ...mockTab,
+      request: {
+        ...mockTab.request,
+        url: 'https://api.example.com/data',
+        auth: {
+          type: 'api-key' as const,
+          apiKey: {
+            key: 'api_key',
+            value: 'secret123',
+            location: 'query' as const
+          }
+        }
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithApiKeyQuery],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithApiKeyQuery),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithApiKeyQuery : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const rawTab = screen.getByRole('button', { name: 'Raw' })
+    fireEvent.click(rawTab)
+
+    expect(screen.getByText(/GET \/data\?api_key=secret123 HTTP\/1\.1/)).toBeInTheDocument()
+  })
 })

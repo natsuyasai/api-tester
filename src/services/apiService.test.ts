@@ -41,12 +41,15 @@ describe('ApiService', () => {
 
       const result = await ApiService.executeRequest(basicRequest)
 
-      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', expect.objectContaining({
-        method: 'GET',
-        headers: new Headers({ 'Content-Type': 'application/json' }),
-        body: undefined,
-        redirect: 'follow'
-      }))
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.example.com/users?limit=10',
+        expect.objectContaining({
+          method: 'GET',
+          headers: new Headers({ 'Content-Type': 'application/json' }),
+          body: undefined,
+          redirect: 'follow'
+        })
+      )
 
       expect(result.status).toBe(200)
       expect(result.statusText).toBe('OK')
@@ -73,12 +76,15 @@ describe('ApiService', () => {
 
       const result = await ApiService.executeRequest(postRequest)
 
-      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', expect.objectContaining({
-        method: 'POST',
-        headers: new Headers({ 'Content-Type': 'application/json' }),
-        body: '{"name": "John Doe"}',
-        redirect: 'follow'
-      }))
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.example.com/users?limit=10',
+        expect.objectContaining({
+          method: 'POST',
+          headers: new Headers({ 'Content-Type': 'application/json' }),
+          body: '{"name": "John Doe"}',
+          redirect: 'follow'
+        })
+      )
 
       expect(result.status).toBe(201)
       expect(result.data).toEqual({ id: 1, name: 'John Doe' })
@@ -108,12 +114,15 @@ describe('ApiService', () => {
 
       await ApiService.executeRequest(basicRequest)
 
-      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', expect.objectContaining({
-        method: 'GET',
-        headers: new Headers({ 'Content-Type': 'application/json' }),
-        body: undefined,
-        redirect: 'follow'
-      }))
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.example.com/users?limit=10',
+        expect.objectContaining({
+          method: 'GET',
+          headers: new Headers({ 'Content-Type': 'application/json' }),
+          body: undefined,
+          redirect: 'follow'
+        })
+      )
     })
 
     it('should handle text responses', async () => {
@@ -328,12 +337,15 @@ describe('ApiService', () => {
 
       const result = await ApiService.executeRequest(formDataRequest)
 
-      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/upload', expect.objectContaining({
-        method: 'POST',
-        headers: expect.any(Headers),
-        body: expect.any(FormData),
-        redirect: 'follow'
-      }))
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.example.com/upload',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.any(Headers),
+          body: expect.any(FormData),
+          redirect: 'follow'
+        })
+      )
 
       expect(result.status).toBe(200)
     })
@@ -440,12 +452,15 @@ describe('ApiService', () => {
       await ApiService.executeRequest(request)
 
       const expectedAuth = btoa('testuser:testpass')
-      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/test', expect.objectContaining({
-        method: 'GET',
-        headers: expect.any(Headers),
-        body: undefined,
-        redirect: 'follow'
-      }))
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.example.com/test',
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.any(Headers),
+          body: undefined,
+          redirect: 'follow'
+        })
+      )
 
       // ヘッダーにAuthorizationが設定されていることを確認
       const callArgs = mockFetch.mock.calls[0]
@@ -644,7 +659,9 @@ describe('ApiService', () => {
         readAsDataURL: vi.fn().mockImplementation(() => {
           setTimeout(() => {
             if (mockFileReader.onload) {
-              mockFileReader.onload({ target: { result: 'data:image/png;base64,iVBORw0KGgo=' } } as any)
+              mockFileReader.onload({
+                target: { result: 'data:image/png;base64,iVBORw0KGgo=' }
+              } as any)
             }
           }, 0)
         }),
@@ -702,7 +719,9 @@ describe('ApiService', () => {
         readAsDataURL: vi.fn().mockImplementation(() => {
           setTimeout(() => {
             if (mockFileReader.onload) {
-              mockFileReader.onload({ target: { result: 'data:application/pdf;base64,JVBERi0=' } } as any)
+              mockFileReader.onload({
+                target: { result: 'data:application/pdf;base64,JVBERi0=' }
+              } as any)
             }
           }, 0)
         }),

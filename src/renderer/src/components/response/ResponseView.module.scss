@@ -1,8 +1,8 @@
+// Response view styles
 .responseView {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-bg-primary);
 }
 
 .noResponse {
@@ -11,18 +11,17 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: var(--color-text-secondary);
   text-align: center;
+  color: var(--color-text-secondary);
 
   .icon {
     font-size: 48px;
     margin-bottom: 16px;
   }
 
-  h3 {
+  h2 {
     margin: 0 0 8px 0;
-    font-size: 18px;
-    font-weight: 600;
+    color: var(--color-text-primary);
   }
 
   p {
@@ -32,34 +31,81 @@
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
   border-bottom: 1px solid var(--color-border-primary);
   background-color: var(--color-bg-secondary);
+  padding: 12px 16px;
+}
+
+.statusInfo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 14px;
+
+  &.success {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: rgb(34, 197, 94);
+  }
+
+  &.warning {
+    background-color: rgba(251, 191, 36, 0.1);
+    color: rgb(251, 191, 36);
+  }
+
+  &.error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: rgb(239, 68, 68);
+  }
+
+  &.default {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-secondary);
+  }
+}
+
+.time {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.size {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.timestamp {
+  font-size: 13px;
+  color: var(--color-text-secondary);
 }
 
 .actionButtons {
   display: flex;
-  align-items: center;
   gap: 8px;
+  margin-bottom: 12px;
 }
 
 .copyButton,
 .exportButton,
 .downloadButton {
   padding: 6px 12px;
-  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
-  border: none;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
     background-color: var(--color-bg-hover);
+    border-color: var(--color-border-secondary);
   }
 
   &:focus {
@@ -68,83 +114,33 @@
   }
 }
 
-.statusInfo {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.status {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 14px;
-
-  &.success {
-    background-color: var(--color-success);
-    color: var(--color-text-inverse);
-    opacity: 0.8;
-  }
-
-  &.warning {
-    background-color: var(--color-warning);
-    color: var(--color-text-inverse);
-    opacity: 0.8;
-  }
-
-  &.error {
-    background-color: var(--color-error);
-    color: var(--color-text-inverse);
-    opacity: 0.8;
-  }
-
-  &.default {
-    background-color: var(--color-bg-hover);
-    color: var(--color-text-primary);
-  }
-}
-
-.time {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-.size {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-.timestamp {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-}
-
 .tabs {
   display: flex;
-  gap: 4px;
+  gap: 1px;
+  background-color: var(--color-border-primary);
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 .tab {
   padding: 8px 16px;
-  background: transparent;
   border: none;
-  border-bottom: 2px solid transparent;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-secondary);
   font-size: 14px;
-  color: var(--color-text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
+  flex: 1;
+  text-align: center;
 
   &:hover {
     background-color: var(--color-bg-hover);
-    border-radius: 4px 4px 0 0;
+    color: var(--color-text-primary);
   }
 
   &.active {
-    color: var(--color-text-accent);
-    border-bottom-color: var(--color-text-accent);
-    background-color: var(--color-bg-primary);
+    background-color: var(--color-text-accent);
+    color: white;
   }
 
   &:focus {
@@ -156,16 +152,18 @@
 .content {
   flex: 1;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .bodyContent {
   height: 100%;
   overflow: auto;
+  padding: 16px;
 }
 
 .responseBody {
   margin: 0;
-  padding: 16px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
   line-height: 1.5;
@@ -173,8 +171,6 @@
   background-color: var(--color-bg-primary);
   white-space: pre-wrap;
   word-wrap: break-word;
-  height: 100%;
-  overflow: auto;
 }
 
 .headersContent {
@@ -185,18 +181,15 @@
 
 .headerRow {
   display: flex;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--color-border-secondary);
-
-  &:last-child {
-    border-bottom: none;
-  }
+  margin-bottom: 8px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
 }
 
 .headerKey {
-  min-width: 200px;
   font-weight: 600;
   color: var(--color-text-primary);
+  min-width: 150px;
   margin-right: 16px;
 }
 
@@ -312,39 +305,38 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
 }
 
 .selectorLabel {
   font-size: 14px;
   font-weight: 500;
   color: var(--color-text-primary);
-  white-space: nowrap;
+  margin-bottom: 0;
 }
 
 .propertySelect {
-  min-width: 200px;
+  flex: 1;
   padding: 6px 12px;
   border: 1px solid var(--color-border-primary);
   border-radius: 4px;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 13px;
+  max-width: 300px;
 
   &:focus {
     outline: none;
     border-color: var(--color-text-accent);
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
   }
 }
 
 .propertySelectorToggle {
   padding: 6px 12px;
-  background-color: var(--color-bg-secondary);
-  color: var(--color-text-primary);
   border: 1px solid var(--color-border-primary);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -440,4 +432,28 @@
   word-wrap: break-word;
   height: 100%;
   overflow: auto;
+}
+
+.rawContent {
+  padding: 16px;
+  height: 100%;
+  overflow: auto;
+  background-color: var(--color-bg-primary);
+}
+
+.rawData {
+  margin: 0;
+  padding: 16px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 4px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
 }
