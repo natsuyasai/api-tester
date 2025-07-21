@@ -1,4 +1,5 @@
-import { ApiRequest, ApiResponse, DEFAULT_REQUEST_SETTINGS } from '@/types/types'
+import { ApiRequest, ApiResponse } from '@/types/types'
+import { getGlobalSettings } from '@renderer/stores/globalSettingsStore'
 
 // クッキーストアの型を後で追加
 let getCookieHeader: ((domain: string) => string) | null = null
@@ -19,8 +20,15 @@ export class ApiService {
       // 変数の解決
       const resolveVariables = variableResolver || ((text: string) => text)
 
-      // リクエスト設定の取得
-      const settings = request.settings || DEFAULT_REQUEST_SETTINGS
+      // リクエスト設定の取得（グローバル設定をフォールバックとして使用）
+      const globalSettings = getGlobalSettings()
+      const settings = {
+        timeout: request.settings?.timeout ?? globalSettings.defaultTimeout,
+        followRedirects: request.settings?.followRedirects ?? globalSettings.defaultFollowRedirects,
+        maxRedirects: request.settings?.maxRedirects ?? globalSettings.defaultMaxRedirects,
+        validateSSL: request.settings?.validateSSL ?? globalSettings.defaultValidateSSL,
+        userAgent: request.settings?.userAgent ?? globalSettings.defaultUserAgent
+      }
 
       // URLパラメータの構築
       const url = new URL(resolveVariables(request.url))

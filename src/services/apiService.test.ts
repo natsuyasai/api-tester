@@ -2,6 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ApiRequest } from '@/types/types'
 import { ApiService } from './apiService'
 
+// グローバル設定ストアをモック
+vi.mock('@renderer/stores/globalSettingsStore', () => ({
+  getGlobalSettings: vi.fn(() => ({
+    defaultTimeout: 30000,
+    defaultFollowRedirects: true,
+    defaultMaxRedirects: 5,
+    defaultValidateSSL: true,
+    defaultUserAgent: 'API Tester 1.0'
+  }))
+}))
+
 // Mock fetch
 const mockFetch = vi.fn()
 global.fetch = mockFetch

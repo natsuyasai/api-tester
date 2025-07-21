@@ -1,17 +1,16 @@
 import { JSX, useState, useRef, useEffect, useCallback } from 'react'
 import { useYamlOperations } from '@renderer/hooks/useYamlOperations'
 import { useTabStore } from '@renderer/stores/tabStore'
-import { useThemeStore } from '@renderer/stores/themeStore'
 import styles from './TabBar.module.scss'
 
 interface TabBarProps {
   className?: string
+  onShowSettings?: () => void
 }
 
-export const TabBar = ({ className }: TabBarProps): JSX.Element => {
+export const TabBar = ({ className, onShowSettings }: TabBarProps): JSX.Element => {
   const { tabs, addTab, closeTab, setActiveTab, updateTabTitle, startEditingActiveTab } =
     useTabStore()
-  const { theme, toggleTheme } = useThemeStore()
   const { saveToFile, loadFromFile } = useYamlOperations()
   const [editingTabId, setEditingTabId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
@@ -47,10 +46,6 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
     } catch (error) {
       console.error('Failed to load file:', error)
     }
-  }
-
-  const handleToggleTheme = () => {
-    toggleTheme()
   }
 
   const handleDoubleClick = (tabId: string, currentTitle: string) => {
@@ -228,15 +223,17 @@ export const TabBar = ({ className }: TabBarProps): JSX.Element => {
         >
           💾
         </button>
-        <button
-          className={styles.themeButton}
-          onClick={handleToggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-          type="button"
-          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-        >
-          {theme === 'light' ? '🌙' : '☀️'}
-        </button>
+        {onShowSettings && (
+          <button
+            className={styles.settingsButton}
+            onClick={onShowSettings}
+            aria-label="Open global settings"
+            type="button"
+            title="グローバル設定"
+          >
+            ⚙️
+          </button>
+        )}
         <button
           className={styles.addButton}
           onClick={handleAddTab}

@@ -1,0 +1,357 @@
+// グローバル設定画面のスタイル
+.globalSettings {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+  background-color: var(--color-bg-primary);
+  min-height: 100vh;
+}
+
+.header {
+  margin-bottom: 32px;
+  text-align: center;
+
+  h1 {
+    margin: 0 0 8px 0;
+    color: var(--color-text-primary);
+    font-size: 28px;
+    font-weight: 600;
+  }
+
+  .description {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 16px;
+  }
+}
+
+.settingsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.section {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 8px;
+  padding: 24px;
+
+  .sectionHeader {
+    margin-bottom: 20px;
+
+    h2 {
+      margin: 0 0 4px 0;
+      color: var(--color-text-primary);
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .sectionDescription {
+      margin: 0;
+      color: var(--color-text-secondary);
+      font-size: 14px;
+    }
+  }
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label,
+  .fieldLabel {
+    font-weight: 500;
+    color: var(--color-text-primary);
+    font-size: 14px;
+  }
+
+  .input,
+  .select {
+    padding: 8px 12px;
+    border: 1px solid var(--color-border-primary);
+    border-radius: 4px;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-text-accent);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .textarea {
+    @extend .input;
+    min-height: 80px;
+    resize: vertical;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  }
+
+  .hint {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-style: italic;
+  }
+}
+
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--color-text-primary);
+
+    input[type='checkbox'] {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+    }
+  }
+
+  .hint {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-style: italic;
+    margin-left: 24px;
+  }
+}
+
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .radioOption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--color-text-primary);
+
+    input[type='radio'] {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+    }
+  }
+}
+
+.rangeGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .rangeContainer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .rangeInput {
+      flex: 1;
+      height: 6px;
+      background: var(--color-bg-hover);
+      outline: none;
+      border-radius: 3px;
+
+      &::-webkit-slider-thumb {
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        background: var(--color-text-accent);
+        cursor: pointer;
+        border-radius: 50%;
+      }
+
+      &::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        background: var(--color-text-accent);
+        cursor: pointer;
+        border-radius: 50%;
+        border: none;
+      }
+    }
+
+    .rangeValue {
+      min-width: 40px;
+      text-align: center;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      font-size: 14px;
+    }
+  }
+}
+
+.actionButtons {
+  display: flex;
+  gap: 16px;
+  margin-top: 32px;
+  padding-top: 24px;
+  padding-bottom: 24px;
+  border-top: 1px solid var(--color-border-primary);
+
+  .primaryButton,
+  .secondaryButton,
+  .dangerButton {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid;
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .primaryButton {
+    background-color: var(--color-text-accent);
+    color: white;
+    border-color: var(--color-text-accent);
+
+    &:hover:not(:disabled) {
+      background-color: var(--color-text-accent-hover);
+      border-color: var(--color-text-accent-hover);
+    }
+  }
+
+  .secondaryButton {
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border-color: var(--color-border-primary);
+
+    &:hover:not(:disabled) {
+      background-color: var(--color-bg-hover);
+    }
+  }
+
+  .dangerButton {
+    background-color: #ef4444;
+    color: white;
+    border-color: #ef4444;
+
+    &:hover:not(:disabled) {
+      background-color: #dc2626;
+      border-color: #dc2626;
+    }
+  }
+}
+
+.importExport {
+  .fileInput {
+    display: none;
+  }
+
+  .fileInputLabel {
+    @extend .secondaryButton;
+    display: inline-block;
+    text-align: center;
+  }
+}
+
+.previewContainer {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 4px;
+
+  .previewTitle {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+
+  .previewContent {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+}
+
+// ダークモード対応
+[data-theme='dark'] {
+  .globalSettings {
+    background-color: #1a1a1a;
+  }
+
+  .section {
+    background-color: #2a2a2a;
+    border-color: #3a3a3a;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    background-color: #1a1a1a;
+    border-color: #3a3a3a;
+    color: #e5e5e5;
+
+    &:focus {
+      border-color: #60a5fa;
+    }
+  }
+
+  .rangeInput {
+    background: #3a3a3a;
+
+    &::-webkit-slider-thumb {
+      background: #60a5fa;
+    }
+
+    &::-moz-range-thumb {
+      background: #60a5fa;
+    }
+  }
+
+  .previewContainer {
+    background-color: #1a1a1a;
+    border-color: #3a3a3a;
+  }
+}
+
+// フォントサイズ対応
+[data-font-size='small'] {
+  .globalSettings {
+    font-size: 12px;
+  }
+}
+
+[data-font-size='large'] {
+  .globalSettings {
+    font-size: 16px;
+  }
+}

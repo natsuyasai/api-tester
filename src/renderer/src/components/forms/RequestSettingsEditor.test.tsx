@@ -18,7 +18,7 @@ describe('RequestSettingsEditor', () => {
   it('should render with default settings when no settings provided', () => {
     render(<RequestSettingsEditor {...defaultProps} />)
 
-    expect(screen.getByText('リクエスト設定')).toBeInTheDocument()
+    expect(screen.getByText('このリクエストの設定')).toBeInTheDocument()
     expect(screen.getByDisplayValue(DEFAULT_REQUEST_SETTINGS.timeout)).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: /リダイレクトを自動フォロー/ })).toBeChecked()
     expect(screen.getByDisplayValue(DEFAULT_REQUEST_SETTINGS.maxRedirects)).toBeInTheDocument()

@@ -39,9 +39,9 @@ export const RequestSettingsEditor = ({
   return (
     <div className={styles.requestSettingsEditor}>
       <div className={styles.header}>
-        <h3>リクエスト設定</h3>
+        <h3>このリクエストの設定</h3>
         <p className={styles.description}>
-          リクエストのタイムアウト、リダイレクト処理、SSL検証などの設定を行います。
+          このリクエスト専用の設定です。空欄の場合はグローバル設定が使用されます。
         </p>
       </div>
 
