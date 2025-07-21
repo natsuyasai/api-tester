@@ -1,6 +1,7 @@
 import { JSX } from 'react'
 import { useResponseActions } from '@renderer/hooks/useResponseActions'
 import { useResponseTabs } from '@renderer/hooks/useResponseTabs'
+import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
 import { useTabStore } from '@renderer/stores/tabStore'
 import {
   getAvailableProperties,
@@ -28,6 +29,7 @@ interface ResponseViewProps {
 
 export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
   const { getTab } = useTabStore()
+  const { settings } = useGlobalSettingsStore()
   const tab = getTab(tabId)
   const response = tab?.response
 
@@ -179,7 +181,16 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
       <div className={styles.content}>
         {activeTab === 'body' && (
           <div className={styles.bodyContent}>
-            <pre className={styles.responseBody} style={{ userSelect: 'text', cursor: 'text' }}>
+            <pre 
+              className={styles.responseBody} 
+              style={{ 
+                userSelect: 'text', 
+                cursor: 'text',
+                tabSize: settings.tabSize,
+                whiteSpace: settings.wordWrap ? 'pre-wrap' : 'pre',
+                lineHeight: settings.lineNumbers ? '1.5' : '1.4'
+              }}
+            >
               {formatJson(separatedData.actualData)}
             </pre>
           </div>
@@ -226,7 +237,16 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
               <p className={styles.sectionDescription}>
                 このセクションには、レスポンス処理時に追加された情報が表示されます
               </p>
-              <pre className={styles.metadataData} style={{ userSelect: 'text', cursor: 'text' }}>
+              <pre 
+                className={styles.metadataData} 
+                style={{ 
+                  userSelect: 'text', 
+                  cursor: 'text',
+                  tabSize: settings.tabSize,
+                  whiteSpace: settings.wordWrap ? 'pre-wrap' : 'pre',
+                  lineHeight: settings.lineNumbers ? '1.5' : '1.4'
+                }}
+              >
                 {formatMetadata(separatedData.metadata)}
               </pre>
             </div>
@@ -251,7 +271,16 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
 
         {activeTab === 'raw' && (
           <div className={styles.rawContent}>
-            <pre className={styles.rawData} style={{ userSelect: 'text', cursor: 'text' }}>
+            <pre 
+              className={styles.rawData} 
+              style={{ 
+                userSelect: 'text', 
+                cursor: 'text',
+                tabSize: settings.tabSize,
+                whiteSpace: settings.wordWrap ? 'pre-wrap' : 'pre',
+                lineHeight: settings.lineNumbers ? '1.5' : '1.4'
+              }}
+            >
               {getCurrentContent()}
             </pre>
           </div>

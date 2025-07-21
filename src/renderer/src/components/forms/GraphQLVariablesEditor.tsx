@@ -1,4 +1,5 @@
 import { JSX, useId, useState } from 'react'
+import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
 import styles from './GraphQLVariablesEditor.module.scss'
 
 interface GraphQLVariablesEditorProps {
@@ -11,6 +12,7 @@ export const GraphQLVariablesEditor = ({
   onVariablesChange
 }: GraphQLVariablesEditorProps): JSX.Element => {
   const [error, setError] = useState<string | null>(null)
+  const { settings } = useGlobalSettingsStore()
 
   const editorId = useId()
 
@@ -67,6 +69,11 @@ export const GraphQLVariablesEditor = ({
           placeholder={`{\n  "limit": 10,\n  "offset": 0\n}`}
           className={`${styles.textarea} ${error ? styles.error : ''}`}
           spellCheck={false}
+          style={{
+            tabSize: settings.tabSize,
+            whiteSpace: settings.wordWrap ? 'pre-wrap' : 'pre',
+            lineHeight: settings.lineNumbers ? '1.5' : '1.4'
+          }}
         />
         {error && <div className={styles.errorMessage}>{error}</div>}
       </div>

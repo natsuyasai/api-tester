@@ -3,16 +3,13 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useYamlOperations } from '@renderer/hooks/useYamlOperations'
 import { useTabStore } from '@renderer/stores/tabStore'
-import { useThemeStore } from '@renderer/stores/themeStore'
 import { TabBar } from './TabBar'
 
 // Zustandストアをモック
 vi.mock('@renderer/stores/tabStore')
-vi.mock('@renderer/stores/themeStore')
 vi.mock('@renderer/hooks/useYamlOperations')
 
 const mockUseTabStore = vi.mocked(useTabStore)
-const mockUseThemeStore = vi.mocked(useThemeStore)
 const mockUseYamlOperations = vi.mocked(useYamlOperations)
 
 describe('TabBar', () => {
@@ -72,17 +69,10 @@ describe('TabBar', () => {
     loadFromFile: vi.fn()
   }
 
-  const mockThemeStore = {
-    theme: 'light' as 'light' | 'dark',
-    setTheme: vi.fn(),
-    toggleTheme: vi.fn()
-  }
-
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseTabStore.mockReturnValue(mockTabStore)
     mockUseYamlOperations.mockReturnValue(mockYamlOperations)
-    mockUseThemeStore.mockReturnValue(mockThemeStore)
   })
 
   it('should render all tabs', () => {
@@ -288,34 +278,21 @@ describe('TabBar', () => {
     expect(mockYamlOperations.loadFromFile).toHaveBeenCalled()
   })
 
-  it('should render theme toggle button', () => {
-    render(<TabBar />)
+  it('should render settings button when onShowSettings is provided', () => {
+    const mockOnShowSettings = vi.fn()
+    render(<TabBar onShowSettings={mockOnShowSettings} />)
 
-    expect(screen.getByLabelText('Switch to dark theme')).toBeInTheDocument()
+    expect(screen.getByLabelText('Open global settings')).toBeInTheDocument()
   })
 
-  it('should call toggleTheme when theme button is clicked', async () => {
+  it('should call onShowSettings when settings button is clicked', async () => {
     const user = userEvent.setup()
-    render(<TabBar />)
+    const mockOnShowSettings = vi.fn()
+    render(<TabBar onShowSettings={mockOnShowSettings} />)
 
-    const themeButton = screen.getByLabelText('Switch to dark theme')
-    await user.click(themeButton)
+    const settingsButton = screen.getByLabelText('Open global settings')
+    await user.click(settingsButton)
 
-    expect(mockThemeStore.toggleTheme).toHaveBeenCalled()
-  })
-
-  it('should show correct theme icon based on current theme', () => {
-    render(<TabBar />)
-
-    const themeButton = screen.getByLabelText('Switch to dark theme')
-    expect(themeButton.textContent).toBe('🌙')
-
-    // ダークテーマの場合
-    mockThemeStore.theme = 'dark'
-    mockUseThemeStore.mockReturnValue(mockThemeStore)
-
-    render(<TabBar />)
-    const lightThemeButton = screen.getByLabelText('Switch to light theme')
-    expect(lightThemeButton.textContent).toBe('☀️')
+    expect(mockOnShowSettings).toHaveBeenCalled()
   })
 })

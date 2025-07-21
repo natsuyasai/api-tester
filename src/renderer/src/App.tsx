@@ -1,19 +1,15 @@
-import { JSX, useEffect, useState } from 'react'
+import { JSX, useState } from 'react'
 import styles from './App.module.scss'
 import { GlobalSettings } from './components/settings/GlobalSettings'
 import { TabBar } from './components/tab/TabBar'
 import { TabContent } from './components/tab/TabContent'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
-import { useThemeStore } from './stores/themeStore'
 
 function App(): JSX.Element {
-  const { theme } = useThemeStore()
   const [showSettings, setShowSettings] = useState(false)
   useKeyboardShortcuts()
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-  }, [theme])
+  // テーマ管理はglobalSettingsStoreで自動的に処理される
 
   const handleShowSettings = () => {
     setShowSettings(true)

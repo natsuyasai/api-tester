@@ -1,5 +1,6 @@
 import { JSX, useId, useState } from 'react'
 import { BodyType, KeyValuePair } from '@/types/types'
+import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
 import { useRequestStore } from '@renderer/stores/requestStore'
 import { useTabStore } from '@renderer/stores/tabStore'
 import styles from './BodyEditor.module.scss'
@@ -31,6 +32,7 @@ export const BodyEditor = ({
 
   const { getTab } = useTabStore()
   const { addBodyKeyValue, updateBodyKeyValue, removeBodyKeyValue } = useRequestStore()
+  const { settings } = useGlobalSettingsStore()
 
   const tab = getTab(tabId)
   const bodyKeyValuePairs = tab?.request.bodyKeyValuePairs || []
@@ -300,6 +302,11 @@ export const BodyEditor = ({
                 placeholder="query {\n  users {\n    id\n    name\n    email\n  }\n}"
                 className={styles.textarea}
                 spellCheck={false}
+                style={{
+                  tabSize: settings.tabSize,
+                  whiteSpace: settings.wordWrap ? 'pre-wrap' : 'pre',
+                  lineHeight: settings.lineNumbers ? '1.5' : '1.4'
+                }}
               />
             </div>
             <div className={styles.variablesSection}>
@@ -335,6 +342,11 @@ export const BodyEditor = ({
             }
             className={styles.textarea}
             spellCheck={false}
+            style={{
+              tabSize: settings.tabSize,
+              whiteSpace: settings.wordWrap ? 'pre-wrap' : 'pre',
+              lineHeight: settings.lineNumbers ? '1.5' : '1.4'
+            }}
           />
         )}
       </div>
