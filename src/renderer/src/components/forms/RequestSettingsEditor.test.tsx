@@ -45,7 +45,6 @@ describe('RequestSettingsEditor', () => {
   })
 
   it('should call onChange when timeout is updated', async () => {
-    const user = userEvent.setup()
     render(<RequestSettingsEditor {...defaultProps} />)
 
     const timeoutInput = screen.getByLabelText('タイムアウト (ミリ秒):')
@@ -74,7 +73,6 @@ describe('RequestSettingsEditor', () => {
   })
 
   it('should call onChange when max redirects is updated', async () => {
-    const user = userEvent.setup()
     render(<RequestSettingsEditor {...defaultProps} />)
 
     const maxRedirectsInput = screen.getByLabelText('最大リダイレクト回数:')
@@ -115,7 +113,6 @@ describe('RequestSettingsEditor', () => {
   })
 
   it('should call onChange when user agent is updated', async () => {
-    const user = userEvent.setup()
     render(<RequestSettingsEditor {...defaultProps} />)
 
     const userAgentInput = screen.getByLabelText('User-Agent:')
