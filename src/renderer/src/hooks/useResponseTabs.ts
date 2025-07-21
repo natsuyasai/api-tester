@@ -3,9 +3,9 @@ import { ApiResponse } from '@/types/types'
 import { useTabStore } from '@renderer/stores/tabStore'
 import { generateRawContent } from '@renderer/utils/httpFormatters'
 import { getPropertyValue } from '@renderer/utils/propertyUtils'
-import { formatJson } from '@renderer/utils/responseUtils'
+import { formatJson, separateResponseData, formatMetadata } from '@renderer/utils/responseUtils'
 
-export type ResponseTabType = 'body' | 'headers' | 'cookies' | 'preview' | 'raw'
+export type ResponseTabType = 'body' | 'headers' | 'cookies' | 'preview' | 'metadata' | 'raw'
 
 interface UseResponseTabsProps {
   tabId: string
@@ -21,8 +21,10 @@ export const useResponseTabs = ({ tabId, response }: UseResponseTabsProps) => {
   const tab = getTab(tabId)
 
   const getCurrentContent = useCallback((): string => {
+    const separatedData = separateResponseData(response.data)
+    
     if (activeTab === 'body') {
-      return formatJson(response.data)
+      return formatJson(separatedData.actualData)
     } else if (activeTab === 'headers') {
       return Object.entries(response.headers)
         .map(([key, value]) => `${key}: ${value}`)
@@ -32,6 +34,8 @@ export const useResponseTabs = ({ tabId, response }: UseResponseTabsProps) => {
     } else if (activeTab === 'preview') {
       const previewValue = getPropertyValue(response, selectedPreviewProperty)
       return typeof previewValue === 'string' ? previewValue : formatJson(previewValue)
+    } else if (activeTab === 'metadata') {
+      return formatMetadata(separatedData.metadata)
     } else if (activeTab === 'raw') {
       if (!tab) return ''
       return generateRawContent(tab.request, response)

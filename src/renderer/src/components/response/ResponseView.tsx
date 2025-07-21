@@ -14,7 +14,9 @@ import {
   getStatusColor,
   isHtmlResponse,
   isXmlResponse,
-  isImageResponse
+  isImageResponse,
+  separateResponseData,
+  formatMetadata
 } from '@renderer/utils/responseUtils'
 import { PreviewRenderer } from './PreviewRenderer'
 import { PropertySelector } from './PropertySelector'
@@ -57,6 +59,9 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
     )
   }
 
+  // レスポンスデータを分離
+  const separatedData = separateResponseData(response.data)
+  
   // ヘルパー関数を作成
   const isHtml = () => isHtmlResponse(response.headers)
   const isXml = () => isXmlResponse(response.headers)
@@ -70,6 +75,9 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
     isXml,
     isImage
   )
+  
+  // メタデータがある場合のみタブを表示
+  const hasMetadata = Object.keys(separatedData.metadata).length > 0
 
   return (
     <div className={styles.responseView}>
@@ -149,6 +157,15 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
               Preview
             </button>
           )}
+          {hasMetadata && (
+            <button
+              className={`${styles.tab} ${activeTab === 'metadata' ? styles.active : ''}`}
+              onClick={() => handleTabChange('metadata')}
+              type="button"
+            >
+              Metadata
+            </button>
+          )}
           <button
             className={`${styles.tab} ${activeTab === 'raw' ? styles.active : ''}`}
             onClick={() => handleTabChange('raw')}
@@ -163,7 +180,7 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
         {activeTab === 'body' && (
           <div className={styles.bodyContent}>
             <pre className={styles.responseBody} style={{ userSelect: 'text', cursor: 'text' }}>
-              {formatJson(response.data)}
+              {formatJson(separatedData.actualData)}
             </pre>
           </div>
         )}
@@ -199,6 +216,36 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
             <div className={styles.previewDisplay}>
               <PreviewRenderer previewContent={previewContent} />
             </div>
+          </div>
+        )}
+
+        {activeTab === 'metadata' && (
+          <div className={styles.metadataContent}>
+            <div className={styles.metadataSection}>
+              <h3 className={styles.sectionTitle}>Response Processing Information</h3>
+              <p className={styles.sectionDescription}>
+                このセクションには、レスポンス処理時に追加された情報が表示されます
+              </p>
+              <pre className={styles.metadataData} style={{ userSelect: 'text', cursor: 'text' }}>
+                {formatMetadata(separatedData.metadata)}
+              </pre>
+            </div>
+            {separatedData.isBinary && (
+              <div className={styles.binaryInfo}>
+                <h4 className={styles.subSectionTitle}>Binary Data Information</h4>
+                <p className={styles.infoText}>
+                  このレスポンスはバイナリデータです。実際のデータはBodyタブで確認できます。
+                </p>
+              </div>
+            )}
+            {separatedData.isError && (
+              <div className={styles.errorInfo}>
+                <h4 className={styles.subSectionTitle}>Error Information</h4>
+                <p className={styles.infoText}>
+                  このレスポンスはエラー情報です。詳細はBodyタブで確認できます。
+                </p>
+              </div>
+            )}
           </div>
         )}
 
