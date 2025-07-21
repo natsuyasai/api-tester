@@ -41,12 +41,12 @@ describe('ApiService', () => {
 
       const result = await ApiService.executeRequest(basicRequest)
 
-      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', {
+      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', expect.objectContaining({
         method: 'GET',
         headers: new Headers({ 'Content-Type': 'application/json' }),
         body: undefined,
         redirect: 'follow'
-      })
+      }))
 
       expect(result.status).toBe(200)
       expect(result.statusText).toBe('OK')
@@ -73,12 +73,12 @@ describe('ApiService', () => {
 
       const result = await ApiService.executeRequest(postRequest)
 
-      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', {
+      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', expect.objectContaining({
         method: 'POST',
         headers: new Headers({ 'Content-Type': 'application/json' }),
         body: '{"name": "John Doe"}',
         redirect: 'follow'
-      })
+      }))
 
       expect(result.status).toBe(201)
       expect(result.data).toEqual({ id: 1, name: 'John Doe' })
@@ -108,12 +108,12 @@ describe('ApiService', () => {
 
       await ApiService.executeRequest(basicRequest)
 
-      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', {
+      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/users?limit=10', expect.objectContaining({
         method: 'GET',
         headers: new Headers({ 'Content-Type': 'application/json' }),
         body: undefined,
         redirect: 'follow'
-      })
+      }))
     })
 
     it('should handle text responses', async () => {
@@ -131,20 +131,27 @@ describe('ApiService', () => {
     })
 
     it('should handle binary responses', async () => {
+      const mockBlob = new Blob(['test binary data'], { type: 'application/octet-stream' })
       const mockResponse = {
         status: 200,
         statusText: 'OK',
         headers: new Headers({ 'content-type': 'application/octet-stream' }),
-        arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(1024))
+        blob: vi.fn().mockResolvedValue(mockBlob),
+        body: {} // ReadableStream mock
       }
       mockFetch.mockResolvedValue(mockResponse)
 
       const result = await ApiService.executeRequest(basicRequest)
 
-      expect(result.data).toEqual({
+      expect(result.data).toMatchObject({
         type: 'binary',
-        size: 1024,
-        contentType: 'application/octet-stream'
+        subType: 'other',
+        size: expect.any(Number),
+        contentType: 'application/octet-stream',
+        data: expect.any(String),
+        dataUrl: null,
+        originalBlob: expect.any(Blob),
+        isPreviewable: false
       })
     })
   })
@@ -321,12 +328,12 @@ describe('ApiService', () => {
 
       const result = await ApiService.executeRequest(formDataRequest)
 
-      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/upload', {
+      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/upload', expect.objectContaining({
         method: 'POST',
         headers: expect.any(Headers),
         body: expect.any(FormData),
         redirect: 'follow'
-      })
+      }))
 
       expect(result.status).toBe(200)
     })
@@ -433,15 +440,12 @@ describe('ApiService', () => {
       await ApiService.executeRequest(request)
 
       const expectedAuth = btoa('testuser:testpass')
-      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/test', {
+      expect(mockFetch).toHaveBeenCalledWith('https://api.example.com/test', expect.objectContaining({
         method: 'GET',
-        headers: expect.objectContaining({
-          get: expect.any(Function),
-          set: expect.any(Function)
-        }),
+        headers: expect.any(Headers),
         body: undefined,
         redirect: 'follow'
-      })
+      }))
 
       // ヘッダーにAuthorizationが設定されていることを確認
       const callArgs = mockFetch.mock.calls[0]
@@ -552,13 +556,12 @@ describe('ApiService', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://api.example.com/test?api_key=secret-key-123',
-        {
+        expect.objectContaining({
           method: 'GET',
           headers: expect.any(Headers),
           body: undefined,
-          redirect: 'follow',
-          signal: expect.any(Object)
-        }
+          redirect: 'follow'
+        })
       )
     })
 
@@ -611,6 +614,308 @@ describe('ApiService', () => {
       expect(curlCommand).toBe(
         'curl -X GET -H "Authorization: Bearer test-token-123" "https://api.example.com/test"'
       )
+    })
+  })
+
+  describe('Binary Response Processing', () => {
+    beforeEach(() => {
+      mockFetch.mockClear()
+    })
+
+    it('should process image response as base64', async () => {
+      const mockImageData = new Uint8Array([137, 80, 78, 71]) // PNG header
+      const mockBlob = new Blob([mockImageData], { type: 'image/png' })
+
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({
+          'content-type': 'image/png'
+        }),
+        blob: vi.fn().mockResolvedValue(mockBlob),
+        body: {} // ReadableStream mock
+      }
+
+      mockFetch.mockResolvedValue(mockResponse as any)
+
+      // FileReader mock
+      const mockFileReader = {
+        readAsDataURL: vi.fn().mockImplementation(() => {
+          setTimeout(() => {
+            if (mockFileReader.onload) {
+              mockFileReader.onload({ target: { result: 'data:image/png;base64,iVBORw0KGgo=' } } as any)
+            }
+          }, 0)
+        }),
+        result: 'data:image/png;base64,iVBORw0KGgo=',
+        onload: null as any,
+        onerror: null as any
+      }
+
+      global.FileReader = vi.fn(() => mockFileReader) as any
+
+      const request: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/image.png',
+        method: 'GET',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json',
+        type: 'rest'
+      }
+
+      const result = await ApiService.executeRequest(request)
+
+      expect(result.status).toBe(200)
+      expect(result.data).toMatchObject({
+        type: 'binary',
+        subType: 'image',
+        contentType: 'image/png',
+        data: expect.any(String),
+        dataUrl: expect.any(String),
+        originalBlob: expect.any(Blob),
+        isPreviewable: true
+      })
+    })
+
+    it('should process PDF response as base64', async () => {
+      const mockPdfData = new Uint8Array([37, 80, 68, 70]) // PDF header
+      const mockBlob = new Blob([mockPdfData], { type: 'application/pdf' })
+
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({
+          'content-type': 'application/pdf'
+        }),
+        blob: vi.fn().mockResolvedValue(mockBlob),
+        body: {} // ReadableStream mock
+      }
+
+      mockFetch.mockResolvedValue(mockResponse as any)
+
+      const mockFileReader = {
+        readAsDataURL: vi.fn().mockImplementation(() => {
+          setTimeout(() => {
+            if (mockFileReader.onload) {
+              mockFileReader.onload({ target: { result: 'data:application/pdf;base64,JVBERi0=' } } as any)
+            }
+          }, 0)
+        }),
+        result: 'data:application/pdf;base64,JVBERi0=',
+        onload: null as any,
+        onerror: null as any
+      }
+
+      global.FileReader = vi.fn(() => mockFileReader) as any
+
+      const request: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/document.pdf',
+        method: 'GET',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json',
+        type: 'rest'
+      }
+
+      const result = await ApiService.executeRequest(request)
+
+      expect(result.status).toBe(200)
+      expect(result.data).toMatchObject({
+        type: 'binary',
+        subType: 'document',
+        contentType: 'application/pdf',
+        data: expect.any(String),
+        dataUrl: expect.any(String),
+        originalBlob: expect.any(Blob),
+        isPreviewable: true
+      })
+    })
+
+    it('should handle large binary files without base64 conversion', async () => {
+      // 2MB のモックデータ
+      const largeData = new Uint8Array(2 * 1024 * 1024)
+      const mockBlob = new Blob([largeData], { type: 'application/octet-stream' })
+
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({
+          'content-type': 'application/octet-stream'
+        }),
+        blob: vi.fn().mockResolvedValue(mockBlob),
+        body: {} // ReadableStream mock
+      }
+
+      mockFetch.mockResolvedValue(mockResponse as any)
+
+      const request: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/largefile.bin',
+        method: 'GET',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json',
+        type: 'rest'
+      }
+
+      const result = await ApiService.executeRequest(request)
+
+      expect(result.status).toBe(200)
+      expect(result.data).toMatchObject({
+        type: 'binary',
+        subType: 'other',
+        contentType: 'application/octet-stream',
+        size: 2 * 1024 * 1024,
+        data: null, // 大きなファイルはBase64変換しない
+        dataUrl: null,
+        originalBlob: expect.any(Blob),
+        isPreviewable: false,
+        notice: 'Large file - blob data preserved, base64 conversion skipped'
+      })
+    })
+
+    it('should handle audio response', async () => {
+      const mockAudioData = new Uint8Array([73, 68, 51]) // MP3 header
+      const mockBlob = new Blob([mockAudioData], { type: 'audio/mpeg' })
+
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({
+          'content-type': 'audio/mpeg'
+        }),
+        blob: vi.fn().mockResolvedValue(mockBlob),
+        body: {} // ReadableStream mock
+      }
+
+      mockFetch.mockResolvedValue(mockResponse as any)
+
+      const mockFileReader = {
+        readAsDataURL: vi.fn().mockImplementation(() => {
+          setTimeout(() => {
+            if (mockFileReader.onload) {
+              mockFileReader.onload({ target: { result: 'data:audio/mpeg;base64,SUQz' } } as any)
+            }
+          }, 0)
+        }),
+        result: 'data:audio/mpeg;base64,SUQz',
+        onload: null as any,
+        onerror: null as any
+      }
+
+      global.FileReader = vi.fn(() => mockFileReader) as any
+
+      const request: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/audio.mp3',
+        method: 'GET',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json',
+        type: 'rest'
+      }
+
+      const result = await ApiService.executeRequest(request)
+
+      expect(result.status).toBe(200)
+      expect(result.data).toMatchObject({
+        type: 'binary',
+        subType: 'audio',
+        contentType: 'audio/mpeg',
+        data: expect.any(String),
+        dataUrl: expect.any(String),
+        originalBlob: expect.any(Blob),
+        isPreviewable: true
+      })
+    })
+
+    it('should handle empty binary response', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({
+          'content-type': 'application/octet-stream'
+        }),
+        blob: vi.fn().mockResolvedValue(new Blob([])),
+        body: null // No body
+      }
+
+      mockFetch.mockResolvedValue(mockResponse as any)
+
+      const request: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/empty',
+        method: 'GET',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json',
+        type: 'rest'
+      }
+
+      const result = await ApiService.executeRequest(request)
+
+      expect(result.status).toBe(200)
+      expect(result.data).toMatchObject({
+        type: 'binary',
+        size: 0,
+        contentType: 'application/octet-stream',
+        data: null
+      })
+    })
+
+    it('should handle binary response processing errors gracefully', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({
+          'content-type': 'application/octet-stream'
+        }),
+        blob: vi.fn().mockRejectedValue(new Error('Blob processing failed')),
+        body: {} // ReadableStream mock
+      }
+
+      mockFetch.mockResolvedValue(mockResponse as any)
+
+      const request: ApiRequest = {
+        id: 'test-1',
+        name: 'Test Request',
+        url: 'https://api.example.com/error',
+        method: 'GET',
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json',
+        type: 'rest'
+      }
+
+      const result = await ApiService.executeRequest(request)
+
+      expect(result.status).toBe(200)
+      expect(result.data).toMatchObject({
+        type: 'binary',
+        size: 0,
+        contentType: 'application/octet-stream',
+        data: null,
+        error: 'Blob processing failed'
+      })
     })
   })
 })

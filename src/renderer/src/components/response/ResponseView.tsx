@@ -9,6 +9,8 @@ interface ResponseViewProps {
 export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
   const { getTab } = useTabStore()
   const [activeTab, setActiveTab] = useState<'body' | 'headers' | 'cookies' | 'preview'>('body')
+  const [selectedPreviewProperty, setSelectedPreviewProperty] = useState<string>('data')
+  const [showPropertySelector, setShowPropertySelector] = useState(false)
 
   const tab = getTab(tabId)
   const response = tab?.response
@@ -81,6 +83,85 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
     return contentType.toLowerCase().startsWith('image/')
   }
 
+  const getAvailableProperties = (): Array<{ path: string; value: unknown; type: string }> => {
+    if (!response) return []
+
+    const properties: Array<{ path: string; value: unknown; type: string }> = []
+
+    const extractProperties = (obj: unknown, path: string = '', maxDepth: number = 3): void => {
+      if (maxDepth <= 0) return
+
+      if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+        Object.entries(obj).forEach(([key, value]) => {
+          const currentPath = path ? `${path}.${key}` : key
+          const valueType = Array.isArray(value) ? 'array' : typeof value
+
+          properties.push({
+            path: currentPath,
+            value,
+            type: valueType
+          })
+
+          if (typeof value === 'object' && value !== null) {
+            extractProperties(value, currentPath, maxDepth - 1)
+          }
+        })
+      }
+    }
+
+    // レスポンス全体
+    properties.push({ path: 'data', value: response.data, type: typeof response.data })
+
+    // レスポンスデータの中身を探索
+    if (response.data && typeof response.data === 'object') {
+      extractProperties(response.data, 'data')
+    }
+
+    return properties
+  }
+
+  const getPropertyValue = (path: string): unknown => {
+    if (!response) return null
+
+    if (path === 'data') {
+      return response.data
+    }
+
+    const pathParts = path.split('.')
+    let current: unknown = response
+
+    for (const part of pathParts) {
+      if (current && typeof current === 'object' && part in current) {
+        current = (current as Record<string, unknown>)[part]
+      } else {
+        return null
+      }
+    }
+
+    return current
+  }
+
+  const isPreviewableProperty = (value: unknown, _type: string): boolean => {
+    if (typeof value === 'string') {
+      // HTMLかXMLの内容かチェック
+      const str = value.trim()
+      return (
+        (str.startsWith('<') &&
+          (str.includes('<html') || str.includes('<?xml') || str.includes('<svg'))) ||
+        str.startsWith('data:image/') ||
+        str.length > 50 // 長いテキストもプレビュー対象とする
+      )
+    }
+
+    // バイナリデータオブジェクトのチェック
+    if (value && typeof value === 'object' && 'type' in value && value.type === 'binary') {
+      const binaryData = value as { type: string; isPreviewable?: boolean }
+      return binaryData.isPreviewable === true
+    }
+
+    return false
+  }
+
   const getCurrentContent = (): string => {
     if (activeTab === 'body') {
       return formatJson(response.data)
@@ -91,9 +172,86 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
     } else if (activeTab === 'cookies') {
       return 'No cookies found in response'
     } else if (activeTab === 'preview') {
-      return typeof response.data === 'string' ? response.data : formatJson(response.data)
+      const previewValue = getPropertyValue(selectedPreviewProperty)
+      return typeof previewValue === 'string' ? previewValue : formatJson(previewValue)
     }
     return ''
+  }
+
+  const hasPreviewableProperties = (): boolean => {
+    const properties = getAvailableProperties()
+    return (
+      properties.some((prop) => isPreviewableProperty(prop.value, prop.type)) ||
+      isHtmlResponse() ||
+      isXmlResponse() ||
+      isImageResponse()
+    )
+  }
+
+  const getPreviewContent = (): {
+    content: string
+    type: 'html' | 'xml' | 'image' | 'audio' | 'video' | 'document' | 'text'
+  } => {
+    const previewValue = getPropertyValue(selectedPreviewProperty)
+
+    // バイナリデータオブジェクトの処理
+    if (
+      previewValue &&
+      typeof previewValue === 'object' &&
+      'type' in previewValue &&
+      previewValue.type === 'binary'
+    ) {
+      const binaryData = previewValue as {
+        type: string
+        subType: string
+        dataUrl?: string
+        isPreviewable: boolean
+        contentType: string
+      }
+
+      if (binaryData.isPreviewable && binaryData.dataUrl) {
+        switch (binaryData.subType) {
+          case 'image':
+            return { content: binaryData.dataUrl, type: 'image' }
+          case 'audio':
+            return { content: binaryData.dataUrl, type: 'audio' }
+          case 'video':
+            return { content: binaryData.dataUrl, type: 'video' }
+          case 'document':
+            return { content: binaryData.dataUrl, type: 'document' }
+          default:
+            return { content: `Binary data (${binaryData.contentType})`, type: 'text' }
+        }
+      }
+    }
+
+    if (typeof previewValue === 'string') {
+      const str = previewValue.trim()
+
+      if (str.startsWith('data:image/')) {
+        return { content: str, type: 'image' }
+      } else if (str.startsWith('<') && (str.includes('<html') || str.includes('<HTML'))) {
+        return { content: str, type: 'html' }
+      } else if (str.startsWith('<') && (str.includes('<?xml') || str.includes('<svg'))) {
+        return { content: str, type: 'xml' }
+      }
+    }
+
+    // フォールバック: レスポンスヘッダーベースの判定
+    if (selectedPreviewProperty === 'data') {
+      if (isHtmlResponse()) {
+        return { content: String(previewValue), type: 'html' }
+      } else if (isXmlResponse()) {
+        return { content: String(previewValue), type: 'xml' }
+      } else if (isImageResponse()) {
+        return { content: String(previewValue), type: 'image' }
+      }
+    }
+
+    return {
+      content: typeof previewValue === 'string' ? previewValue : formatJson(previewValue),
+      type: 'text'
+    }
   }
 
   const handleCopyToClipboard = async (): Promise<void> => {
@@ -261,7 +419,7 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
           >
             Cookies
           </button>
-          {(isHtmlResponse() || isXmlResponse() || isImageResponse()) && (
+          {hasPreviewableProperties() && (
             <button
               className={`${styles.tab} ${activeTab === 'preview' ? styles.active : ''}`}
               onClick={() => setActiveTab('preview')}
@@ -301,31 +459,153 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
 
         {activeTab === 'preview' && (
           <div className={styles.previewContent}>
-            {isHtmlResponse() && (
-              <iframe
-                className={styles.htmlPreview}
-                srcDoc={typeof response.data === 'string' ? response.data : ''}
-                title="HTML Preview"
-                sandbox="allow-same-origin"
-                loading="lazy"
-              />
-            )}
-            {isXmlResponse() && !isHtmlResponse() && (
-              <pre className={styles.xmlPreview} style={{ userSelect: 'text', cursor: 'text' }}>
-                {typeof response.data === 'string' ? response.data : formatJson(response.data)}
-              </pre>
-            )}
-            {isImageResponse() && (
-              <div className={styles.imagePreview}>
-                <img
-                  src={`data:${response.headers['content-type'] || response.headers['Content-Type']};base64,${String(response.data)}`}
-                  alt="Response"
-                  className={styles.previewImage}
-                  width={800}
-                  height={600}
-                />
+            <div className={styles.previewHeader}>
+              <div className={styles.propertySelector}>
+                <label htmlFor="property-select" className={styles.selectorLabel}>
+                  プレビュー対象:
+                </label>
+                <select
+                  id="property-select"
+                  className={styles.propertySelect}
+                  value={selectedPreviewProperty}
+                  onChange={(e) => setSelectedPreviewProperty(e.target.value)}
+                >
+                  {getAvailableProperties()
+                    .filter(
+                      (prop) => isPreviewableProperty(prop.value, prop.type) || prop.path === 'data'
+                    )
+                    .map((prop) => (
+                      <option key={prop.path} value={prop.path}>
+                        {prop.path} ({prop.type})
+                      </option>
+                    ))}
+                </select>
+                <button
+                  className={styles.propertySelectorToggle}
+                  onClick={() => setShowPropertySelector(!showPropertySelector)}
+                  type="button"
+                  title="プロパティ一覧を表示"
+                >
+                  {showPropertySelector ? '📋 隠す' : '📋 一覧'}
+                </button>
               </div>
-            )}
+
+              {showPropertySelector && (
+                <div className={styles.propertyList}>
+                  <h3>利用可能なプロパティ:</h3>
+                  <div className={styles.propertyGrid}>
+                    {getAvailableProperties().map((prop) => (
+                      <button
+                        key={prop.path}
+                        className={`${styles.propertyItem} ${isPreviewableProperty(prop.value, prop.type) ? styles.previewable : ''}`}
+                        onClick={() => {
+                          setSelectedPreviewProperty(prop.path)
+                          setShowPropertySelector(false)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            setSelectedPreviewProperty(prop.path)
+                            setShowPropertySelector(false)
+                          }
+                        }}
+                        type="button"
+                      >
+                        <span className={styles.propertyPath}>{prop.path}</span>
+                        <span className={styles.propertyType}>{prop.type}</span>
+                        {isPreviewableProperty(prop.value, prop.type) && (
+                          <span className={styles.previewBadge}>📄</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.previewDisplay}>
+              {(() => {
+                const { content, type } = getPreviewContent()
+
+                switch (type) {
+                  case 'html':
+                    return (
+                      <iframe
+                        className={styles.htmlPreview}
+                        srcDoc={content}
+                        title="HTML Preview"
+                        sandbox="allow-same-origin"
+                        loading="lazy"
+                      />
+                    )
+                  case 'xml':
+                    return (
+                      <pre
+                        className={styles.xmlPreview}
+                        style={{ userSelect: 'text', cursor: 'text' }}
+                      >
+                        {content}
+                      </pre>
+                    )
+                  case 'image':
+                    return (
+                      <div className={styles.imagePreview}>
+                        <img
+                          src={content}
+                          alt="Preview"
+                          className={styles.previewImage}
+                          width={800}
+                          height={600}
+                        />
+                      </div>
+                    )
+                  case 'audio':
+                    return (
+                      <div className={styles.audioPreview}>
+                        <audio controls className={styles.previewAudio} src={content}>
+                          <track kind="captions" />
+                          お使いのブラウザは音声の再生をサポートしていません。
+                        </audio>
+                      </div>
+                    )
+                  case 'video':
+                    return (
+                      <div className={styles.videoPreview}>
+                        <video
+                          controls
+                          className={styles.previewVideo}
+                          src={content}
+                          width={800}
+                          height={600}
+                        >
+                          <track kind="captions" />
+                          お使いのブラウザは動画の再生をサポートしていません。
+                        </video>
+                      </div>
+                    )
+                  case 'document':
+                    return (
+                      <div className={styles.documentPreview}>
+                        <iframe
+                          className={styles.documentFrame}
+                          src={content}
+                          title="Document Preview"
+                          width="100%"
+                          height="600"
+                        />
+                      </div>
+                    )
+                  default:
+                    return (
+                      <pre
+                        className={styles.textPreview}
+                        style={{ userSelect: 'text', cursor: 'text' }}
+                      >
+                        {content}
+                      </pre>
+                    )
+                }
+              })()}
+            </div>
           </div>
         )}
       </div>

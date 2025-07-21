@@ -340,3 +340,45 @@ export const DownloadFunctionality: Story = {
     await expect(canvas.getByText('No Response')).toBeInTheDocument()
   }
 }
+
+export const PropertySelection: Story = {
+  args: {
+    tabId: 'tab-1'
+  },
+  decorators: [
+    (Story) => {
+      return (
+        <div style={{ width: '100%', height: '500px' }}>
+          <Story />
+        </div>
+      )
+    }
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // NoResponseメッセージが表示されることを確認
+    await expect(canvas.getByText('No Response')).toBeInTheDocument()
+  }
+}
+
+export const NestedObjectPreview: Story = {
+  args: {
+    tabId: 'tab-1'
+  },
+  decorators: [
+    (Story) => {
+      return (
+        <div style={{ width: '100%', height: '500px' }}>
+          <Story />
+        </div>
+      )
+    }
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // NoResponseメッセージが表示されることを確認
+    await expect(canvas.getByText('No Response')).toBeInTheDocument()
+  }
+}

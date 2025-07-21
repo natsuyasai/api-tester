@@ -190,12 +190,7 @@ export class ApiService {
         responseData = await response.text()
       } else {
         // バイナリデータの場合
-        const arrayBuffer = await response.arrayBuffer()
-        responseData = {
-          type: 'binary',
-          size: arrayBuffer.byteLength,
-          contentType
-        }
+        responseData = await this.processBinaryResponse(response, contentType)
       }
 
       return {
@@ -374,6 +369,209 @@ export class ApiService {
     command += ` "${url.toString()}"`
 
     return command
+  }
+
+  private static async processBinaryResponse(
+    response: Response,
+    contentType: string
+  ): Promise<unknown> {
+    try {
+      // レスポンスボディがReadableStreamの場合の処理
+      if (response.body) {
+        const blob = await response.blob()
+        return await this.convertBlobToData(blob, contentType)
+      } else {
+        // bodyがnullの場合
+        return {
+          type: 'binary',
+          size: 0,
+          contentType,
+          data: null
+        }
+      }
+    } catch (error) {
+      console.error('Failed to process binary response:', error)
+      return {
+        type: 'binary',
+        size: 0,
+        contentType,
+        data: null,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
+  }
+
+  private static async convertBlobToData(blob: Blob, contentType: string): Promise<unknown> {
+    const size = blob.size
+
+    // 画像データの場合はBase64に変換
+    if (contentType.startsWith('image/')) {
+      try {
+        const dataUrl = await this.blobToDataUrl(blob)
+        const base64Data = await this.blobToBase64(blob)
+        return {
+          type: 'binary',
+          subType: 'image',
+          size,
+          contentType,
+          data: base64Data,
+          dataUrl,
+          originalBlob: blob,
+          isPreviewable: true
+        }
+      } catch (error) {
+        console.error('Failed to convert image to base64:', error)
+        return {
+          type: 'binary',
+          subType: 'image',
+          size,
+          contentType,
+          data: null,
+          dataUrl: null,
+          originalBlob: blob,
+          isPreviewable: false,
+          error: error instanceof Error ? error.message : 'Base64 conversion failed'
+        }
+      }
+    }
+
+    // PDFやその他のドキュメントの場合
+    if (contentType.includes('pdf') || contentType.includes('document')) {
+      try {
+        const dataUrl = await this.blobToDataUrl(blob)
+        const base64Data = await this.blobToBase64(blob)
+        return {
+          type: 'binary',
+          subType: 'document',
+          size,
+          contentType,
+          data: base64Data,
+          dataUrl,
+          originalBlob: blob,
+          isPreviewable: true
+        }
+      } catch (error) {
+        console.error('Failed to convert document to base64:', error)
+        return {
+          type: 'binary',
+          subType: 'document',
+          size,
+          contentType,
+          data: null,
+          dataUrl: null,
+          originalBlob: blob,
+          isPreviewable: false,
+          error: error instanceof Error ? error.message : 'Base64 conversion failed'
+        }
+      }
+    }
+
+    // 音声・動画ファイルの場合
+    if (contentType.startsWith('audio/') || contentType.startsWith('video/')) {
+      try {
+        const dataUrl = await this.blobToDataUrl(blob)
+        const base64Data = await this.blobToBase64(blob)
+        return {
+          type: 'binary',
+          subType: contentType.startsWith('audio/') ? 'audio' : 'video',
+          size,
+          contentType,
+          data: base64Data,
+          dataUrl,
+          originalBlob: blob,
+          isPreviewable: true
+        }
+      } catch (error) {
+        console.error('Failed to convert media to base64:', error)
+        return {
+          type: 'binary',
+          subType: contentType.startsWith('audio/') ? 'audio' : 'video',
+          size,
+          contentType,
+          data: null,
+          dataUrl: null,
+          originalBlob: blob,
+          isPreviewable: false,
+          error: error instanceof Error ? error.message : 'Base64 conversion failed'
+        }
+      }
+    }
+
+    // その他のバイナリデータ
+    try {
+      // 小さなファイル（1MB以下）はBase64に変換
+      if (size <= 1024 * 1024) {
+        const base64Data = await this.blobToBase64(blob)
+        return {
+          type: 'binary',
+          subType: 'other',
+          size,
+          contentType,
+          data: base64Data,
+          dataUrl: null,
+          originalBlob: blob,
+          isPreviewable: false
+        }
+      } else {
+        // 大きなファイルはBlobのまま保持
+        return {
+          type: 'binary',
+          subType: 'other',
+          size,
+          contentType,
+          data: null,
+          dataUrl: null,
+          originalBlob: blob,
+          isPreviewable: false,
+          notice: 'Large file - blob data preserved, base64 conversion skipped'
+        }
+      }
+    } catch (error) {
+      return {
+        type: 'binary',
+        subType: 'other',
+        size,
+        contentType,
+        data: null,
+        dataUrl: null,
+        originalBlob: blob,
+        isPreviewable: false,
+        error: error instanceof Error ? error.message : 'Processing failed'
+      }
+    }
+  }
+
+  private static async blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          // "data:type/subtype;base64," の部分を除去してBase64データのみを返す
+          const base64Data = reader.result.split(',')[1]
+          resolve(base64Data)
+        } else {
+          reject(new Error('Failed to convert blob to base64'))
+        }
+      }
+      reader.onerror = () => reject(new Error('FileReader error'))
+      reader.readAsDataURL(blob)
+    })
+  }
+
+  private static async blobToDataUrl(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          // Data URL全体を返す（data:type/subtype;base64,xxxxx）
+          resolve(reader.result)
+        } else {
+          reject(new Error('Failed to convert blob to data URL'))
+        }
+      }
+      reader.onerror = () => reject(new Error('FileReader error'))
+      reader.readAsDataURL(blob)
+    })
   }
 
   private static extractOperationName(query: string): string | undefined {

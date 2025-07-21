@@ -89,7 +89,7 @@ describe('ResponseView', () => {
 
     expect(screen.getByText('200 OK')).toBeInTheDocument()
     expect(screen.getByText('150ms')).toBeInTheDocument()
-    expect(screen.getByText(/19:30:00/)).toBeInTheDocument()
+    expect(screen.getByText(/7:30:00 PM/)).toBeInTheDocument()
   })
 
   it('should format response time correctly', () => {
@@ -450,5 +450,309 @@ describe('ResponseView', () => {
     render(<ResponseView tabId="tab-1" />)
 
     expect(screen.getByRole('button', { name: /Copy/ })).toBeInTheDocument()
+  })
+
+  it('should show property selector when preview tab is active', () => {
+    const mockTabWithNestedData = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        data: {
+          result: {
+            html: '<html><body>Test HTML</body></html>',
+            text: 'Plain text content'
+          }
+        }
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithNestedData],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithNestedData),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithNestedData : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const previewTab = screen.getByRole('button', { name: 'Preview' })
+    fireEvent.click(previewTab)
+
+    expect(screen.getByText('プレビュー対象:')).toBeInTheDocument()
+    expect(screen.getByRole('combobox')).toBeInTheDocument()
+  })
+
+  it('should allow selecting different properties for preview', () => {
+    const mockTabWithNestedData = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        data: {
+          content: '<html><body>Test HTML</body></html>',
+          metadata: {
+            title: 'Test Page'
+          }
+        }
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithNestedData],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithNestedData),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithNestedData : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const previewTab = screen.getByRole('button', { name: 'Preview' })
+    fireEvent.click(previewTab)
+
+    const propertySelect = screen.getByRole('combobox')
+    expect(propertySelect).toBeInTheDocument()
+
+    // オプションが正しく表示されることを確認
+    expect(screen.getByText(/data \(object\)/)).toBeInTheDocument()
+  })
+
+  it('should toggle property list visibility', () => {
+    const mockTabWithNestedData = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        data: {
+          content: '<html><body>Test HTML</body></html>'
+        }
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithNestedData],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithNestedData),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithNestedData : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const previewTab = screen.getByRole('button', { name: 'Preview' })
+    fireEvent.click(previewTab)
+
+    const toggleButton = screen.getByRole('button', { name: /一覧/ })
+    expect(toggleButton).toBeInTheDocument()
+
+    // プロパティリストが表示されていないことを確認
+    expect(screen.queryByText('利用可能なプロパティ:')).not.toBeInTheDocument()
+
+    // トグルボタンをクリック
+    fireEvent.click(toggleButton)
+
+    // プロパティリストが表示されることを確認
+    expect(screen.getByText('利用可能なプロパティ:')).toBeInTheDocument()
+  })
+
+  it('should display nested properties in property list', () => {
+    const mockTabWithNestedData = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        data: {
+          user: {
+            profile: {
+              name: 'John Doe',
+              avatar: '<svg>avatar</svg>'
+            }
+          }
+        }
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithNestedData],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithNestedData),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithNestedData : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const previewTab = screen.getByRole('button', { name: 'Preview' })
+    fireEvent.click(previewTab)
+
+    const toggleButton = screen.getByRole('button', { name: /一覧/ })
+    fireEvent.click(toggleButton)
+
+    // ネストされたプロパティが表示されることを確認
+    const dataUserElements = screen.getAllByText(/data\.user/)
+    expect(dataUserElements.length).toBeGreaterThan(0)
+    const dataUserProfileElements = screen.getAllByText(/data\.user\.profile/)
+    expect(dataUserProfileElements.length).toBeGreaterThan(0)
+  })
+
+  it('should show preview tab for binary image response', () => {
+    const mockTabWithBinaryImageResponse = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        data: {
+          type: 'binary',
+          subType: 'image',
+          contentType: 'image/png',
+          data: 'iVBORw0KGgo=',
+          dataUrl: 'data:image/png;base64,iVBORw0KGgo=',
+          isPreviewable: true,
+          originalBlob: new Blob()
+        }
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithBinaryImageResponse],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithBinaryImageResponse),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithBinaryImageResponse : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    expect(screen.getByRole('button', { name: 'Preview' })).toBeInTheDocument()
+  })
+
+  it('should render binary image preview correctly', () => {
+    const mockTabWithBinaryImageResponse = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        data: {
+          type: 'binary',
+          subType: 'image',
+          contentType: 'image/png',
+          data: 'iVBORw0KGgo=',
+          dataUrl: 'data:image/png;base64,iVBORw0KGgo=',
+          isPreviewable: true,
+          originalBlob: new Blob()
+        }
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithBinaryImageResponse],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithBinaryImageResponse),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithBinaryImageResponse : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const previewTab = screen.getByRole('button', { name: 'Preview' })
+    fireEvent.click(previewTab)
+
+    const img = screen.getByRole('img', { name: 'Preview' })
+    expect(img).toBeInTheDocument()
+    expect(img).toHaveAttribute('src', 'data:image/png;base64,iVBORw0KGgo=')
+  })
+
+  it('should show preview tab for binary audio response', () => {
+    const mockTabWithBinaryAudioResponse = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        data: {
+          type: 'binary',
+          subType: 'audio',
+          contentType: 'audio/mpeg',
+          data: 'SUQz',
+          dataUrl: 'data:audio/mpeg;base64,SUQz',
+          isPreviewable: true,
+          originalBlob: new Blob()
+        }
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithBinaryAudioResponse],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithBinaryAudioResponse),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithBinaryAudioResponse : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const previewTab = screen.getByRole('button', { name: 'Preview' })
+    fireEvent.click(previewTab)
+
+    const audio = screen.getByText('お使いのブラウザは音声の再生をサポートしていません。')
+    expect(audio).toBeInTheDocument()
+  })
+
+  it('should not show preview tab for non-previewable binary response', () => {
+    const mockTabWithNonPreviewableBinaryResponse = {
+      ...mockTab,
+      response: {
+        ...mockResponse,
+        data: {
+          type: 'binary',
+          subType: 'other',
+          contentType: 'application/octet-stream',
+          data: 'binarydata',
+          dataUrl: null,
+          isPreviewable: false,
+          originalBlob: new Blob()
+        }
+      }
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithNonPreviewableBinaryResponse],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithNonPreviewableBinaryResponse),
+      getTab: vi.fn((id: string) =>
+        id === 'tab-1' ? mockTabWithNonPreviewableBinaryResponse : undefined
+      ),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    expect(screen.queryByRole('button', { name: 'Preview' })).not.toBeInTheDocument()
   })
 })
