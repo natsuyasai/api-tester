@@ -1,4 +1,4 @@
-import { JSX, useState } from 'react'
+import { JSX, useId, useState } from 'react'
 import { useEnvironmentStore } from '@renderer/stores/environmentStore'
 import { CookieEditor } from './CookieEditor'
 import styles from './EnvironmentEditor.module.scss'
@@ -18,6 +18,8 @@ export const EnvironmentEditor = (): JSX.Element => {
   const [newEnvironmentName, setNewEnvironmentName] = useState('')
   const [isAddingEnvironment, setIsAddingEnvironment] = useState(false)
   const [activeTab, setActiveTab] = useState<'environments' | 'global' | 'cookies'>('environments')
+  const environmentSelectId = useId()
+  const envNameId = useId()
 
   const activeEnvironment = environments.find((env) => env.id === activeEnvironmentId)
 
@@ -76,9 +78,9 @@ export const EnvironmentEditor = (): JSX.Element => {
         <>
           <div className={styles.environmentSelector}>
             <div className={styles.selectorGroup}>
-              <label htmlFor="environment-select">アクティブ環境:</label>
+              <label htmlFor={environmentSelectId}>アクティブ環境:</label>
               <select
-                id="environment-select"
+                id={environmentSelectId}
                 value={activeEnvironmentId || ''}
                 onChange={(e) => setActiveEnvironment(e.target.value || null)}
                 className={styles.select}
@@ -144,9 +146,9 @@ export const EnvironmentEditor = (): JSX.Element => {
             <div className={styles.environmentDetails}>
               <div className={styles.environmentHeader}>
                 <div className={styles.environmentName}>
-                  <label htmlFor="env-name">環境名:</label>
+                  <label htmlFor={envNameId}>環境名:</label>
                   <input
-                    id="env-name"
+                    id={envNameId}
                     type="text"
                     value={activeEnvironment.name}
                     onChange={(e) =>

@@ -1,4 +1,4 @@
-import { JSX } from 'react'
+import { JSX, useId } from 'react'
 import { PropertyInfo } from '@renderer/utils/propertyUtils'
 import { isPreviewableProperty } from '@renderer/utils/responseUtils'
 import styles from './ResponseView.module.scss'
@@ -25,15 +25,16 @@ export const PropertySelector = ({
   const previewableProperties = properties.filter(
     (prop) => isPreviewableProperty(prop.value) || prop.path === 'data'
   )
+  const propertySelectId = useId()
 
   return (
     <div className={styles.previewHeader}>
       <div className={styles.propertySelector}>
-        <label htmlFor="property-select" className={styles.selectorLabel}>
+        <label htmlFor={propertySelectId} className={styles.selectorLabel}>
           プレビュー対象:
         </label>
         <select
-          id="property-select"
+          id={propertySelectId}
           className={styles.propertySelect}
           value={selectedProperty}
           onChange={(e) => onPropertyChange(e.target.value)}

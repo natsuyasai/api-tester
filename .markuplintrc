@@ -22,9 +22,13 @@
     "invalid-attr": {
       "options": {
         "allowAttrs": [
-          "onDoubleClick"
+          "onDoubleClick",
+          "width"
         ]
       }
-    }
+    },
+    "heading-levels": false,
+    "use-list": false,
+    "permitted-contents": false
   }
 }

@@ -1,4 +1,4 @@
-import { JSX } from 'react'
+import { JSX, useId } from 'react'
 import { RequestSettings, DEFAULT_REQUEST_SETTINGS } from '@/types/types'
 import styles from './RequestSettingsEditor.module.scss'
 
@@ -12,6 +12,9 @@ export const RequestSettingsEditor = ({
   onChange
 }: RequestSettingsEditorProps): JSX.Element => {
   const currentSettings = settings || DEFAULT_REQUEST_SETTINGS
+  const timeoutId = useId()
+  const maxRedirectsId = useId()
+  const userAgentId = useId()
 
   const handleTimeoutChange = (timeout: number) => {
     onChange({ ...currentSettings, timeout })
@@ -44,9 +47,9 @@ export const RequestSettingsEditor = ({
 
       <div className={styles.settingsGrid}>
         <div className={styles.fieldGroup}>
-          <label htmlFor="timeout">タイムアウト (ミリ秒):</label>
+          <label htmlFor={timeoutId}>タイムアウト (ミリ秒):</label>
           <input
-            id="timeout"
+            id={timeoutId}
             type="number"
             min="1000"
             max="300000"
@@ -73,9 +76,9 @@ export const RequestSettingsEditor = ({
         </div>
 
         <div className={styles.fieldGroup}>
-          <label htmlFor="max-redirects">最大リダイレクト回数:</label>
+          <label htmlFor={maxRedirectsId}>最大リダイレクト回数:</label>
           <input
-            id="max-redirects"
+            id={maxRedirectsId}
             type="number"
             min="0"
             max="20"
@@ -102,9 +105,9 @@ export const RequestSettingsEditor = ({
         </div>
 
         <div className={styles.fieldGroup}>
-          <label htmlFor="user-agent">User-Agent:</label>
+          <label htmlFor={userAgentId}>User-Agent:</label>
           <input
-            id="user-agent"
+            id={userAgentId}
             type="text"
             value={currentSettings.userAgent || ''}
             onChange={(e) => handleUserAgentChange(e.target.value)}

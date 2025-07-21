@@ -1,4 +1,4 @@
-import { JSX } from 'react'
+import { JSX, useId } from 'react'
 import { AuthConfig, AuthType, ApiKeyLocation } from '@/types/types'
 import styles from './AuthEditor.module.scss'
 
@@ -9,6 +9,13 @@ interface AuthEditorProps {
 
 export const AuthEditor = ({ auth, onChange }: AuthEditorProps): JSX.Element => {
   const currentAuth = auth || { type: 'none' }
+  const authTypeId = useId()
+  const basicUserNameId = useId()
+  const basicPasswordId = useId()
+  const bearerTokenId = useId()
+  const apiKeyKeyId = useId()
+  const apiKeyValueId = useId()
+  const apiKeyLocationId = useId()
 
   const handleTypeChange = (type: AuthType) => {
     const newAuth: AuthConfig = { type }
@@ -65,9 +72,9 @@ export const AuthEditor = ({ auth, onChange }: AuthEditorProps): JSX.Element => 
       </div>
 
       <div className={styles.typeSelector}>
-        <label htmlFor="auth-type">認証タイプ:</label>
+        <label htmlFor={authTypeId}>認証タイプ:</label>
         <select
-          id="auth-type"
+          id={authTypeId}
           value={currentAuth.type}
           onChange={(e) => handleTypeChange(e.target.value as AuthType)}
           className={styles.select}
@@ -82,9 +89,9 @@ export const AuthEditor = ({ auth, onChange }: AuthEditorProps): JSX.Element => 
       {currentAuth.type === 'basic' && (
         <div className={styles.basicAuth}>
           <div className={styles.fieldGroup}>
-            <label htmlFor="basic-username">ユーザー名:</label>
+            <label htmlFor={basicUserNameId}>ユーザー名:</label>
             <input
-              id="basic-username"
+              id={basicUserNameId}
               type="text"
               value={currentAuth.basic?.username || ''}
               onChange={(e) => handleBasicChange('username', e.target.value)}
@@ -93,9 +100,9 @@ export const AuthEditor = ({ auth, onChange }: AuthEditorProps): JSX.Element => 
             />
           </div>
           <div className={styles.fieldGroup}>
-            <label htmlFor="basic-password">パスワード:</label>
+            <label htmlFor={basicPasswordId}>パスワード:</label>
             <input
-              id="basic-password"
+              id={basicPasswordId}
               type="password"
               value={currentAuth.basic?.password || ''}
               onChange={(e) => handleBasicChange('password', e.target.value)}
@@ -109,9 +116,9 @@ export const AuthEditor = ({ auth, onChange }: AuthEditorProps): JSX.Element => 
       {currentAuth.type === 'bearer' && (
         <div className={styles.bearerAuth}>
           <div className={styles.fieldGroup}>
-            <label htmlFor="bearer-token">Token:</label>
+            <label htmlFor={bearerTokenId}>Token:</label>
             <input
-              id="bearer-token"
+              id={bearerTokenId}
               type="text"
               value={currentAuth.bearer?.token || ''}
               onChange={(e) => handleBearerChange(e.target.value)}
@@ -125,9 +132,9 @@ export const AuthEditor = ({ auth, onChange }: AuthEditorProps): JSX.Element => 
       {currentAuth.type === 'api-key' && (
         <div className={styles.apiKeyAuth}>
           <div className={styles.fieldGroup}>
-            <label htmlFor="apikey-key">キー名:</label>
+            <label htmlFor={apiKeyKeyId}>キー名:</label>
             <input
-              id="apikey-key"
+              id={apiKeyKeyId}
               type="text"
               value={currentAuth.apiKey?.key || ''}
               onChange={(e) => handleApiKeyChange('key', e.target.value)}
@@ -136,9 +143,9 @@ export const AuthEditor = ({ auth, onChange }: AuthEditorProps): JSX.Element => 
             />
           </div>
           <div className={styles.fieldGroup}>
-            <label htmlFor="apikey-value">値:</label>
+            <label htmlFor={apiKeyValueId}>値:</label>
             <input
-              id="apikey-value"
+              id={apiKeyValueId}
               type="text"
               value={currentAuth.apiKey?.value || ''}
               onChange={(e) => handleApiKeyChange('value', e.target.value)}
@@ -147,9 +154,9 @@ export const AuthEditor = ({ auth, onChange }: AuthEditorProps): JSX.Element => 
             />
           </div>
           <div className={styles.fieldGroup}>
-            <label htmlFor="apikey-location">配置場所:</label>
+            <label htmlFor={apiKeyLocationId}>配置場所:</label>
             <select
-              id="apikey-location"
+              id={apiKeyLocationId}
               value={currentAuth.apiKey?.location || 'header'}
               onChange={(e) => handleApiKeyChange('location', e.target.value as ApiKeyLocation)}
               className={styles.select}

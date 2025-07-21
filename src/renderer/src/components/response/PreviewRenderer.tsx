@@ -42,7 +42,7 @@ export const PreviewRenderer = ({ previewContent }: PreviewRendererProps): JSX.E
       return (
         <div className={styles.audioPreview}>
           <audio controls className={styles.previewAudio} src={content}>
-            <track kind="captions" />
+            <track kind="captions" src={content} />
             お使いのブラウザは音声の再生をサポートしていません。
           </audio>
         </div>
@@ -51,7 +51,7 @@ export const PreviewRenderer = ({ previewContent }: PreviewRendererProps): JSX.E
       return (
         <div className={styles.videoPreview}>
           <video controls className={styles.previewVideo} src={content} width={800} height={600}>
-            <track kind="captions" />
+            <track kind="captions" src={content} />
             お使いのブラウザは動画の再生をサポートしていません。
           </video>
         </div>
@@ -65,6 +65,7 @@ export const PreviewRenderer = ({ previewContent }: PreviewRendererProps): JSX.E
             title="Document Preview"
             width="100%"
             height="600"
+            loading="lazy"
           />
         </div>
       )
