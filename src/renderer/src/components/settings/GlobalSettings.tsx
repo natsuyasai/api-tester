@@ -1,11 +1,16 @@
 import { JSX, useState, useId } from 'react'
 import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
+import { validateProxyUrl } from '@renderer/utils/proxyUtils'
 import styles from './GlobalSettings.module.scss'
 
 export const GlobalSettings = (): JSX.Element => {
   const { settings, updateSettings, resetSettings, exportSettings, importSettings } = useGlobalSettingsStore()
   const [importData, setImportData] = useState('')
   const [showImportPreview, setShowImportPreview] = useState(false)
+  const [proxyTestResult, setProxyTestResult] = useState<{
+    testing: boolean
+    result?: { success: boolean; message: string; responseTime?: number; ipAddress?: string }
+  }>({ testing: false })
   
   // IDの生成
   const timeoutId = useId()
@@ -86,6 +91,58 @@ export const GlobalSettings = (): JSX.Element => {
     if (confirm('すべての設定をデフォルトに戻しますか？この操作は元に戻せません。')) {
       resetSettings()
       alert('設定をリセットしました')
+    }
+  }
+
+  const handleProxyTest = async () => {
+    setProxyTestResult({ testing: true })
+    
+    try {
+      if (!settings.proxyEnabled || !settings.proxyUrl) {
+        // プロキシが無効の場合、現在のIPアドレスを取得
+        if (window.proxyAPI) {
+          const result = await window.proxyAPI.getCurrentIpAddress()
+          setProxyTestResult({
+            testing: false,
+            result: {
+              success: true,
+              message: 'プロキシは無効です。直接接続でテストしました。',
+              ipAddress: result.ipAddress
+            }
+          })
+        }
+        return
+      }
+
+      // プロキシURLの妥当性をチェック
+      const validation = validateProxyUrl(settings.proxyUrl)
+      if (!validation.valid) {
+        setProxyTestResult({
+          testing: false,
+          result: {
+            success: false,
+            message: `プロキシURL検証エラー: ${validation.error}`
+          }
+        })
+        return
+      }
+
+      // プロキシテストを実行
+      if (window.proxyAPI) {
+        const result = await window.proxyAPI.testProxyConnection()
+        setProxyTestResult({
+          testing: false,
+          result
+        })
+      }
+    } catch (error) {
+      setProxyTestResult({
+        testing: false,
+        result: {
+          success: false,
+          message: `テストエラー: ${error instanceof Error ? error.message : 'Unknown error'}`
+        }
+      })
     }
   }
 
@@ -463,6 +520,35 @@ export const GlobalSettings = (): JSX.Element => {
                 disabled={!settings.proxyEnabled}
                 className={styles.input}
               />
+            </div>
+
+            <div className={styles.proxyTestSection}>
+              <button
+                type="button"
+                onClick={() => void handleProxyTest()}
+                disabled={proxyTestResult.testing}
+                className={styles.testButton}
+              >
+                {proxyTestResult.testing ? '接続テスト中...' : 'プロキシ接続テスト'}
+              </button>
+              
+              {proxyTestResult.result && (
+                <div className={`${styles.testResult} ${proxyTestResult.result.success ? styles.success : styles.error}`}>
+                  <div className={styles.testMessage}>
+                    {proxyTestResult.result.message}
+                  </div>
+                  {proxyTestResult.result.success && (
+                    <div className={styles.testDetails}>
+                      {proxyTestResult.result.ipAddress && (
+                        <div>IP Address: {proxyTestResult.result.ipAddress}</div>
+                      )}
+                      {proxyTestResult.result.responseTime && (
+                        <div>Response Time: {proxyTestResult.result.responseTime}ms</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -27,6 +27,12 @@ if (process.contextIsolated) {
       readFile: (filePath: string) => ipcRenderer.invoke('readFile', filePath),
       writeFile: (filePath: string, data: string) => ipcRenderer.invoke('writeFile', filePath, data)
     })
+    contextBridge.exposeInMainWorld('proxyAPI', {
+      setProxyConfig: (settings: unknown) => ipcRenderer.invoke('setProxyConfig', settings),
+      getProxyConfig: () => ipcRenderer.invoke('getProxyConfig'),
+      testProxyConnection: (testUrl?: string) => ipcRenderer.invoke('testProxyConnection', testUrl),
+      getCurrentIpAddress: () => ipcRenderer.invoke('getCurrentIpAddress')
+    })
   } catch (error) {
     console.error(error)
   }

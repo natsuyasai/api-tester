@@ -160,10 +160,33 @@ export const getGlobalSettings = (): GlobalSettings => {
   return useGlobalSettingsStore.getState().settings
 }
 
+// プロキシ設定をElectronに適用する関数
+const applyProxySettings = async (settings: GlobalSettings): Promise<void> => {
+  try {
+    if (window.proxyAPI) {
+      const proxySettings = {
+        enabled: settings.proxyEnabled,
+        url: settings.proxyUrl,
+        auth: settings.proxyAuth,
+        bypassList: ['localhost', '127.0.0.1', '::1']
+      }
+      
+      const result = await window.proxyAPI.setProxyConfig(proxySettings)
+      if (!result.success) {
+        console.error('Failed to apply proxy settings:', result.error)
+      } else {
+        console.log('Proxy settings applied:', result.message)
+      }
+    }
+  } catch (error) {
+    console.error('Error applying proxy settings:', error)
+  }
+}
+
 // 設定変更の監視
 useGlobalSettingsStore.subscribe(
   (state) => state.settings,
-  (settings) => {
+  (settings, prevSettings) => {
     // テーマの変更をドキュメントに反映
     if (settings.theme === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark')
@@ -177,5 +200,15 @@ useGlobalSettingsStore.subscribe(
     
     // フォントサイズの変更をドキュメントに反映
     document.documentElement.setAttribute('data-font-size', settings.fontSize)
+
+    // プロキシ設定の変更をElectronに適用
+    const proxyChanged = 
+      settings.proxyEnabled !== prevSettings?.proxyEnabled ||
+      settings.proxyUrl !== prevSettings?.proxyUrl ||
+      JSON.stringify(settings.proxyAuth) !== JSON.stringify(prevSettings?.proxyAuth)
+    
+    if (proxyChanged) {
+      applyProxySettings(settings).catch(console.error)
+    }
   }
 )
