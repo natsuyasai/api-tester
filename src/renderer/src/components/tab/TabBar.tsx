@@ -6,9 +6,16 @@ import styles from './TabBar.module.scss'
 interface TabBarProps {
   className?: string
   onShowSettings?: () => void
+  onToggleCollections?: () => void
+  onToggleHistory?: () => void
 }
 
-export const TabBar = ({ className, onShowSettings }: TabBarProps): JSX.Element => {
+export const TabBar = ({
+  className,
+  onShowSettings,
+  onToggleCollections,
+  onToggleHistory
+}: TabBarProps): JSX.Element => {
   const { tabs, addTab, closeTab, setActiveTab, updateTabTitle, startEditingActiveTab } =
     useTabStore()
   const { saveToFile, loadFromFile } = useYamlOperations()
@@ -142,6 +149,17 @@ export const TabBar = ({ className, onShowSettings }: TabBarProps): JSX.Element 
 
   return (
     <div className={`${styles.tabBar} ${className || ''}`}>
+      {onToggleCollections && (
+        <button
+          className={styles.collectionsButton}
+          onClick={onToggleCollections}
+          aria-label="Toggle collections panel"
+          type="button"
+          title="コレクション"
+        >
+          📁
+        </button>
+      )}
       {showLeftScroll && (
         <button
           className={styles.scrollButton}
@@ -223,6 +241,17 @@ export const TabBar = ({ className, onShowSettings }: TabBarProps): JSX.Element 
         >
           💾
         </button>
+        {onToggleHistory && (
+          <button
+            className={styles.historyButton}
+            onClick={onToggleHistory}
+            aria-label="Toggle execution history"
+            type="button"
+            title="実行履歴"
+          >
+            📈
+          </button>
+        )}
         {onShowSettings && (
           <button
             className={styles.settingsButton}

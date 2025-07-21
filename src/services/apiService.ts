@@ -1,4 +1,5 @@
 import { ApiRequest, ApiResponse } from '@/types/types'
+import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { getGlobalSettings } from '@renderer/stores/globalSettingsStore'
 
 // クッキーストアの型を後で追加
@@ -12,9 +13,12 @@ export const setCookieResolver = (resolver: (domain: string) => string) => {
 export class ApiService {
   static async executeRequest(
     request: ApiRequest,
-    variableResolver?: (text: string) => string
+    variableResolver?: (text: string) => string,
+    saveToHistory: boolean = true
   ): Promise<ApiResponse> {
     const startTime = Date.now()
+    let executionStatus: 'success' | 'error' = 'success'
+    let errorMessage: string | undefined
 
     try {
       // 変数の解決
@@ -201,7 +205,7 @@ export class ApiService {
         responseData = await this.processBinaryResponse(response, contentType)
       }
 
-      return {
+      const apiResponse = {
         status: response.status,
         statusText: response.statusText,
         headers: responseHeaders,
@@ -209,6 +213,18 @@ export class ApiService {
         duration,
         timestamp: new Date().toISOString()
       }
+
+      // 実行履歴に保存
+      if (saveToHistory) {
+        try {
+          const { addExecutionHistory } = useCollectionStore.getState()
+          addExecutionHistory(request, apiResponse, duration, executionStatus, errorMessage)
+        } catch (historyError) {
+          console.warn('Failed to save execution history:', historyError)
+        }
+      }
+
+      return apiResponse
     } catch (error) {
       const endTime = Date.now()
       const duration = endTime - startTime
@@ -223,17 +239,32 @@ export class ApiService {
         }
       }
 
-      return {
+      executionStatus = 'error'
+      errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+      const apiResponse = {
         status: 0,
         statusText,
         headers: {},
         data: {
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorMessage,
           type: 'error'
         },
         duration,
         timestamp: new Date().toISOString()
       }
+
+      // エラーの場合も実行履歴に保存
+      if (saveToHistory) {
+        try {
+          const { addExecutionHistory } = useCollectionStore.getState()
+          addExecutionHistory(request, apiResponse, duration, executionStatus, errorMessage)
+        } catch (historyError) {
+          console.warn('Failed to save execution history:', historyError)
+        }
+      }
+
+      return apiResponse
     }
   }
 

@@ -168,3 +168,42 @@ export interface Cookie {
 export interface CookieStore {
   cookies: Cookie[]
 }
+
+// 実行履歴の型定義
+export interface RequestExecutionHistory {
+  id: string
+  request: ApiRequest
+  response: ApiResponse
+  timestamp: string
+  duration: number
+  status: 'success' | 'error'
+  errorMessage?: string
+}
+
+// コレクション管理の型定義
+export interface Collection {
+  id: string
+  name: string
+  description?: string
+  parentId?: string // フォルダ機能用
+  children?: Collection[] // サブフォルダ
+  requests?: string[] // リクエストIDの配列
+  created: string
+  updated: string
+}
+
+// コレクション管理ストアの型定義
+export interface CollectionStore {
+  collections: Collection[]
+  executionHistory: RequestExecutionHistory[]
+  maxHistorySize: number
+  searchQuery: string
+  filterOptions: {
+    status?: 'success' | 'error'
+    dateRange?: {
+      start: string
+      end: string
+    }
+    method?: HttpMethod[]
+  }
+}

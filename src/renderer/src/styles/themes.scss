@@ -21,9 +21,35 @@
   --color-border-focus: #80bdff;
 
   --color-success: #28a745;
+  --color-success-hover: #218838;
   --color-warning: #ffc107;
   --color-error: #dc3545;
+  --color-danger: #dc3545;
   --color-info: #17a2b8;
+  --color-primary: #007bff;
+  --color-primary-hover: #0056b3;
+
+  /* Surface colors */
+  --color-surface: #ffffff;
+  --color-surface-elevated: #f8f9fa;
+  --color-surface-hover: #f1f3f4;
+
+  /* Input colors */
+  --color-input-bg: #ffffff;
+  --color-button-hover: #e9ecef;
+
+  /* Border colors */
+  --color-border: #dee2e6;
+
+  /* Text colors */
+  --color-text-tertiary: #868e96;
+
+  /* HTTP Method colors */
+  --color-method-get: #28a745;
+  --color-method-post: #007bff;
+  --color-method-put: #fd7e14;
+  --color-method-delete: #dc3545;
+  --color-method-patch: #6f42c1;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -55,9 +81,35 @@
   --color-border-focus: #4dabf7;
 
   --color-success: #51cf66;
+  --color-success-hover: #40c057;
   --color-warning: #ffd43b;
   --color-error: #ff6b6b;
+  --color-danger: #ff6b6b;
   --color-info: #22b8cf;
+  --color-primary: #0d6efd;
+  --color-primary-hover: #0b5ed7;
+
+  /* Surface colors */
+  --color-surface: #2d2d2d;
+  --color-surface-elevated: #404040;
+  --color-surface-hover: #4a4a4a;
+
+  /* Input colors */
+  --color-input-bg: #404040;
+  --color-button-hover: #4a4a4a;
+
+  /* Border colors */
+  --color-border: #525252;
+
+  /* Text colors */
+  --color-text-tertiary: #6c757d;
+
+  /* HTTP Method colors */
+  --color-method-get: #51cf66;
+  --color-method-post: #4dabf7;
+  --color-method-put: #ff922b;
+  --color-method-delete: #ff6b6b;
+  --color-method-patch: #9775fa;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);

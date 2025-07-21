@@ -1,0 +1,375 @@
+import { v4 as uuidv4 } from 'uuid'
+import { create } from 'zustand'
+import { devtools } from 'zustand/middleware'
+import {
+  Collection,
+  CollectionStore,
+  RequestExecutionHistory,
+  ApiRequest,
+  ApiResponse
+} from '@/types/types'
+
+type CollectionState = CollectionStore
+
+interface CollectionActions {
+  // コレクション管理
+  createCollection: (name: string, description?: string, parentId?: string) => string
+  updateCollection: (id: string, updates: Partial<Omit<Collection, 'id'>>) => void
+  deleteCollection: (id: string) => void
+  moveCollection: (id: string, newParentId?: string) => void
+  getCollection: (id: string) => Collection | undefined
+  getCollectionsByParent: (parentId?: string) => Collection[]
+
+  // リクエスト管理
+  addRequestToCollection: (collectionId: string, requestId: string) => void
+  removeRequestFromCollection: (collectionId: string, requestId: string) => void
+  moveRequestBetweenCollections: (
+    requestId: string,
+    fromCollectionId: string,
+    toCollectionId: string
+  ) => void
+
+  // 実行履歴管理
+  addExecutionHistory: (
+    request: ApiRequest,
+    response: ApiResponse,
+    duration: number,
+    status: 'success' | 'error',
+    errorMessage?: string
+  ) => void
+  clearExecutionHistory: () => void
+  removeOldHistory: () => void
+  getExecutionHistory: (limit?: number) => RequestExecutionHistory[]
+  getExecutionHistoryByRequest: (requestId: string) => RequestExecutionHistory[]
+
+  // 検索・フィルタ
+  setSearchQuery: (query: string) => void
+  setFilterOptions: (options: Partial<CollectionStore['filterOptions']>) => void
+  clearFilters: () => void
+  getFilteredHistory: () => RequestExecutionHistory[]
+
+  // データ永続化
+  saveToStorage: () => void
+  loadFromStorage: () => void
+}
+
+const initialState: CollectionState = {
+  collections: [],
+  executionHistory: [],
+  maxHistorySize: 100,
+  searchQuery: '',
+  filterOptions: {}
+}
+
+export const useCollectionStore = create<CollectionState & CollectionActions>()(
+  devtools(
+    (set, get) => ({
+      ...initialState,
+
+      // コレクション管理
+      createCollection: (name: string, description?: string, parentId?: string): string => {
+        const id = uuidv4()
+        const newCollection: Collection = {
+          id,
+          name,
+          description,
+          parentId,
+          children: [],
+          requests: [],
+          created: new Date().toISOString(),
+          updated: new Date().toISOString()
+        }
+
+        set(
+          (state) => ({
+            collections: [...state.collections, newCollection]
+          }),
+          false,
+          'createCollection'
+        )
+
+        return id
+      },
+
+      updateCollection: (id: string, updates: Partial<Omit<Collection, 'id'>>) => {
+        set(
+          (state) => ({
+            collections: state.collections.map((collection) =>
+              collection.id === id
+                ? {
+                    ...collection,
+                    ...updates,
+                    updated: new Date().toISOString()
+                  }
+                : collection
+            )
+          }),
+          false,
+          'updateCollection'
+        )
+      },
+
+      deleteCollection: (id: string) => {
+        set(
+          (state) => ({
+            collections: state.collections.filter((collection) => collection.id !== id)
+          }),
+          false,
+          'deleteCollection'
+        )
+      },
+
+      moveCollection: (id: string, newParentId?: string) => {
+        set(
+          (state) => ({
+            collections: state.collections.map((collection) =>
+              collection.id === id
+                ? {
+                    ...collection,
+                    parentId: newParentId,
+                    updated: new Date().toISOString()
+                  }
+                : collection
+            )
+          }),
+          false,
+          'moveCollection'
+        )
+      },
+
+      getCollection: (id: string) => {
+        const state = get()
+        return state.collections.find((collection) => collection.id === id)
+      },
+
+      getCollectionsByParent: (parentId?: string) => {
+        const state = get()
+        return state.collections.filter((collection) => collection.parentId === parentId)
+      },
+
+      // リクエスト管理
+      addRequestToCollection: (collectionId: string, requestId: string) => {
+        set(
+          (state) => ({
+            collections: state.collections.map((collection) =>
+              collection.id === collectionId
+                ? {
+                    ...collection,
+                    requests: [...(collection.requests || []), requestId],
+                    updated: new Date().toISOString()
+                  }
+                : collection
+            )
+          }),
+          false,
+          'addRequestToCollection'
+        )
+      },
+
+      removeRequestFromCollection: (collectionId: string, requestId: string) => {
+        set(
+          (state) => ({
+            collections: state.collections.map((collection) =>
+              collection.id === collectionId
+                ? {
+                    ...collection,
+                    requests: (collection.requests || []).filter((id) => id !== requestId),
+                    updated: new Date().toISOString()
+                  }
+                : collection
+            )
+          }),
+          false,
+          'removeRequestFromCollection'
+        )
+      },
+
+      moveRequestBetweenCollections: (
+        requestId: string,
+        fromCollectionId: string,
+        toCollectionId: string
+      ) => {
+        const actions = get()
+        actions.removeRequestFromCollection(fromCollectionId, requestId)
+        actions.addRequestToCollection(toCollectionId, requestId)
+      },
+
+      // 実行履歴管理
+      addExecutionHistory: (
+        request: ApiRequest,
+        response: ApiResponse,
+        duration: number,
+        status: 'success' | 'error',
+        errorMessage?: string
+      ) => {
+        const historyItem: RequestExecutionHistory = {
+          id: uuidv4(),
+          request,
+          response,
+          timestamp: new Date().toISOString(),
+          duration,
+          status,
+          errorMessage
+        }
+
+        set(
+          (state) => {
+            const newHistory = [historyItem, ...state.executionHistory]
+
+            // 最大履歴数を超えた場合は古いものを削除
+            const trimmedHistory = newHistory.slice(0, state.maxHistorySize)
+
+            return {
+              executionHistory: trimmedHistory
+            }
+          },
+          false,
+          'addExecutionHistory'
+        )
+
+        // 自動保存
+        get().saveToStorage()
+      },
+
+      clearExecutionHistory: () => {
+        set({ executionHistory: [] }, false, 'clearExecutionHistory')
+        get().saveToStorage()
+      },
+
+      removeOldHistory: () => {
+        set(
+          (state) => ({
+            executionHistory: state.executionHistory.slice(0, state.maxHistorySize)
+          }),
+          false,
+          'removeOldHistory'
+        )
+      },
+
+      getExecutionHistory: (limit?: number) => {
+        const state = get()
+        return limit ? state.executionHistory.slice(0, limit) : state.executionHistory
+      },
+
+      getExecutionHistoryByRequest: (requestId: string) => {
+        const state = get()
+        return state.executionHistory.filter((history) => history.request.id === requestId)
+      },
+
+      // 検索・フィルタ
+      setSearchQuery: (query: string) => {
+        set({ searchQuery: query }, false, 'setSearchQuery')
+      },
+
+      setFilterOptions: (options: Partial<CollectionStore['filterOptions']>) => {
+        set(
+          (state) => ({
+            filterOptions: {
+              ...state.filterOptions,
+              ...options
+            }
+          }),
+          false,
+          'setFilterOptions'
+        )
+      },
+
+      clearFilters: () => {
+        set(
+          {
+            searchQuery: '',
+            filterOptions: {}
+          },
+          false,
+          'clearFilters'
+        )
+      },
+
+      getFilteredHistory: () => {
+        const state = get()
+        let filtered = [...state.executionHistory]
+
+        // 検索クエリでフィルタ
+        if (state.searchQuery) {
+          const query = state.searchQuery.toLowerCase()
+          filtered = filtered.filter(
+            (history) =>
+              history.request.name.toLowerCase().includes(query) ||
+              history.request.url.toLowerCase().includes(query) ||
+              (history.errorMessage && history.errorMessage.toLowerCase().includes(query))
+          )
+        }
+
+        // ステータスでフィルタ
+        if (state.filterOptions.status) {
+          filtered = filtered.filter((history) => history.status === state.filterOptions.status)
+        }
+
+        // HTTPメソッドでフィルタ
+        if (state.filterOptions.method && state.filterOptions.method.length > 0) {
+          filtered = filtered.filter((history) =>
+            state.filterOptions.method!.includes(history.request.method)
+          )
+        }
+
+        // 日付範囲でフィルタ
+        if (state.filterOptions.dateRange) {
+          const { start, end } = state.filterOptions.dateRange
+          filtered = filtered.filter((history) => {
+            const historyDate = new Date(history.timestamp)
+            return historyDate >= new Date(start) && historyDate <= new Date(end)
+          })
+        }
+
+        return filtered
+      },
+
+      // データ永続化
+      saveToStorage: () => {
+        const state = get()
+        try {
+          const data = {
+            collections: state.collections,
+            executionHistory: state.executionHistory,
+            maxHistorySize: state.maxHistorySize,
+            timestamp: Date.now()
+          }
+          localStorage.setItem('api-tester-collections', JSON.stringify(data))
+        } catch (error) {
+          console.error('Failed to save collection data to localStorage:', error)
+        }
+      },
+
+      loadFromStorage: () => {
+        try {
+          const stored = localStorage.getItem('api-tester-collections')
+          if (stored) {
+            const data = JSON.parse(stored) as {
+              collections: Collection[]
+              executionHistory: RequestExecutionHistory[]
+              maxHistorySize: number
+              timestamp: number
+            }
+
+            if (Array.isArray(data.collections) && Array.isArray(data.executionHistory)) {
+              set(
+                {
+                  collections: data.collections,
+                  executionHistory: data.executionHistory,
+                  maxHistorySize: data.maxHistorySize || 100
+                },
+                false,
+                'loadFromStorage'
+              )
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load collection data from localStorage:', error)
+        }
+      }
+    }),
+    {
+      name: 'collection-store'
+    }
+  )
+)
