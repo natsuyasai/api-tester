@@ -16,8 +16,10 @@ import icon from '../../resources/icon.png?asset'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    minWidth: 640,
-    minHeight: 480,
+    minWidth: 800,
+    minHeight: 800,
+    width: 800,
+    height: 800,
     resizable: true,
     show: false,
     autoHideMenuBar: true,
