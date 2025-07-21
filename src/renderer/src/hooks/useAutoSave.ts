@@ -13,26 +13,26 @@ export const useAutoSave = () => {
 
   // タブの状態を文字列化してハッシュ化する関数
   const getTabsHash = useCallback(() => {
-    return JSON.stringify(tabs.map(tab => ({
-      id: tab.id,
-      title: tab.title,
-      request: tab.request,
-      response: tab.response ? {
-        status: tab.response.status,
-        headers: tab.response.headers,
-        data: typeof tab.response.data === 'string' 
-          ? tab.response.data.substring(0, 100) // データが文字列の場合は先頭100文字のみ
-          : String(tab.response.data).substring(0, 100) // それ以外は文字列化してから
-      } : null
-    })))
+    return JSON.stringify(
+      tabs.map((tab) => ({
+        id: tab.id,
+        title: tab.title,
+        request: tab.request,
+        response: tab.response
+          ? {
+              status: tab.response.status,
+              headers: tab.response.headers,
+              data:
+                typeof tab.response.data === 'string'
+                  ? tab.response.data.substring(0, 100) // データが文字列の場合は先頭100文字のみ
+                  : String(tab.response.data).substring(0, 100) // それ以外は文字列化してから
+            }
+          : null
+      }))
+    )
   }, [tabs])
 
   const previousTabsHashRef = useRef<string>('')
-
-  // 初期化時に現在のハッシュを設定
-  useEffect(() => {
-    previousTabsHashRef.current = getTabsHash()
-  }, [getTabsHash])
 
   // 自動保存を実行する関数
   const performAutoSave = useCallback(() => {
@@ -41,17 +41,18 @@ export const useAutoSave = () => {
     }
 
     const currentHash = getTabsHash()
-    
+
     // 前回の保存時と内容が変わっていない場合はスキップ
     if (currentHash === previousTabsHashRef.current) {
       return
     }
+    previousTabsHashRef.current = currentHash
 
     try {
       saveAllTabs()
       previousTabsHashRef.current = currentHash
       lastSaveRef.current = Date.now()
-      
+
       if (settings.debugLogs) {
         console.log('[AutoSave] Tabs auto-saved at', new Date().toLocaleTimeString())
       }
@@ -108,7 +109,7 @@ export const useAutoSave = () => {
     if (!settings.autoSave || !timeoutRef.current) {
       return null
     }
-    
+
     const elapsed = Math.floor((Date.now() - lastSaveRef.current) / 1000)
     const remaining = Math.max(0, settings.autoSaveInterval - elapsed)
     return remaining
