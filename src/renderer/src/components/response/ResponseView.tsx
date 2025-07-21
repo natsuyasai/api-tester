@@ -200,8 +200,7 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
     }
 
     // リクエストライン
-    let raw = `${request.method} ${url.pathname}${url.search} HTTP/1.1\n`
-    raw += `Host: ${url.host}\n`
+    let raw = `${JSON.stringify(request, undefined, 2)}\n`
 
     // ヘッダー
     const enabledHeaders = request.headers.filter((h) => h.enabled && h.key)
