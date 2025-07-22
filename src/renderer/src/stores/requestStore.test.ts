@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { ApiResponseData } from '@/types/types'
 import { useRequestStore } from './requestStore'
 import { useTabStore } from './tabStore'
 
@@ -274,7 +275,10 @@ describe('RequestStore', () => {
         status: 200,
         statusText: 'OK',
         headers: { 'content-type': 'application/json' },
-        data: { success: true },
+        data: {
+          type: 'json',
+          data: { success: true }
+        } as ApiResponseData,
         duration: 150,
         timestamp: '2024-01-01T10:30:00.000Z'
       }
@@ -331,7 +335,10 @@ describe('RequestStore', () => {
           status: 200,
           statusText: 'OK',
           headers: {},
-          data: {},
+          data: {
+            type: 'json',
+            data: {}
+          } as ApiResponseData,
           duration: 100,
           timestamp: '2024-01-01T10:30:00.000Z'
         })

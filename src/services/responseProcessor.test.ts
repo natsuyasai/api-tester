@@ -4,7 +4,7 @@ import { ResponseProcessor } from './responseProcessor'
 // グローバルなFileReaderのモック
 const mockFileReader = {
   readAsDataURL: vi.fn(),
-  result: null,
+  result: null as string | null,
   onload: null as ((event: any) => void) | null,
   onerror: null as ((event: any) => void) | null
 }
@@ -14,20 +14,34 @@ global.FileReader = vi.fn(() => mockFileReader) as any
 
 describe('ResponseProcessor', () => {
   let mockResponse: Response
+  let mockText: ReturnType<typeof vi.fn>
+  let mockBlob: ReturnType<typeof vi.fn>
+  let mockJson: ReturnType<typeof vi.fn>
   const startTime = Date.now() - 1000 // 1秒前
 
   beforeEach(() => {
     vi.clearAllMocks()
 
-    // デフォルトのResponseモック
+    // モック関数を作成
+    mockText = vi.fn()
+    mockBlob = vi.fn()
+    mockJson = vi.fn()
+
+    // デフォルトのResponseモック（書き込み可能なheadersプロパティ）
     mockResponse = {
       status: 200,
       statusText: 'OK',
-      headers: new Headers({ 'content-type': 'application/json' }),
-      text: vi.fn(),
-      blob: vi.fn(),
-      json: vi.fn()
+      text: mockText,
+      blob: mockBlob,
+      json: mockJson
     } as any
+
+    // headersプロパティを書き込み可能として定義
+    Object.defineProperty(mockResponse, 'headers', {
+      value: new Headers({ 'content-type': 'application/json' }),
+      writable: true,
+      configurable: true
+    })
 
     // FileReaderのモックをリセット
     mockFileReader.readAsDataURL.mockClear()
@@ -39,7 +53,7 @@ describe('ResponseProcessor', () => {
   describe('processResponse', () => {
     it('should process successful JSON response', async () => {
       const jsonData = { users: [{ id: 1, name: 'John' }] }
-      mockResponse.text.mockResolvedValue(JSON.stringify(jsonData))
+      mockText.mockResolvedValue(JSON.stringify(jsonData))
 
       const processor = new ResponseProcessor(mockResponse, startTime)
       const result = await processor.processResponse()
@@ -56,8 +70,12 @@ describe('ResponseProcessor', () => {
     })
 
     it('should process text response', async () => {
-      mockResponse.headers = new Headers({ 'content-type': 'text/plain' })
-      mockResponse.text.mockResolvedValue('Hello World')
+      Object.defineProperty(mockResponse, 'headers', {
+        value: new Headers({ 'content-type': 'text/plain' }),
+        writable: true,
+        configurable: true
+      })
+      mockText.mockResolvedValue('Hello World')
 
       const processor = new ResponseProcessor(mockResponse, startTime)
       const result = await processor.processResponse()
@@ -70,9 +88,13 @@ describe('ResponseProcessor', () => {
     })
 
     it('should process XML response', async () => {
-      mockResponse.headers = new Headers({ 'content-type': 'application/xml' })
+      Object.defineProperty(mockResponse, 'headers', {
+        value: new Headers({ 'content-type': 'application/xml' }),
+        writable: true,
+        configurable: true
+      })
       const xmlData = '<?xml version="1.0"?><root><item>value</item></root>'
-      mockResponse.text.mockResolvedValue(xmlData)
+      mockText.mockResolvedValue(xmlData)
 
       const processor = new ResponseProcessor(mockResponse, startTime)
       const result = await processor.processResponse()
@@ -85,7 +107,7 @@ describe('ResponseProcessor', () => {
     })
 
     it('should handle invalid JSON gracefully', async () => {
-      mockResponse.text.mockResolvedValue('invalid json {')
+      mockText.mockResolvedValue('invalid json {')
 
       const processor = new ResponseProcessor(mockResponse, startTime)
       const result = await processor.processResponse()
@@ -100,9 +122,13 @@ describe('ResponseProcessor', () => {
 
   describe('binary response processing', () => {
     it('should process image response', async () => {
-      mockResponse.headers = new Headers({ 'content-type': 'image/jpeg' })
-      const mockBlob = new Blob(['fake image data'], { type: 'image/jpeg' })
-      mockResponse.blob.mockResolvedValue(mockBlob)
+      Object.defineProperty(mockResponse, 'headers', {
+        value: new Headers({ 'content-type': 'image/jpeg' }),
+        writable: true,
+        configurable: true
+      })
+      const imageBlobData = new Blob(['fake image data'], { type: 'image/jpeg' })
+      mockBlob.mockResolvedValue(imageBlobData)
 
       // FileReaderの成功をシミュレート
       mockFileReader.readAsDataURL.mockImplementation(() => {
@@ -122,9 +148,13 @@ describe('ResponseProcessor', () => {
     })
 
     it('should process document response', async () => {
-      mockResponse.headers = new Headers({ 'content-type': 'application/pdf' })
-      const mockBlob = new Blob(['fake pdf data'], { type: 'application/pdf' })
-      mockResponse.blob.mockResolvedValue(mockBlob)
+      Object.defineProperty(mockResponse, 'headers', {
+        value: new Headers({ 'content-type': 'application/pdf' }),
+        writable: true,
+        configurable: true
+      })
+      const pdfBlobData = new Blob(['fake pdf data'], { type: 'application/pdf' })
+      mockBlob.mockResolvedValue(pdfBlobData)
 
       mockFileReader.readAsDataURL.mockImplementation(() => {
         mockFileReader.result = 'data:application/pdf;base64,ZmFrZSBwZGYgZGF0YQ=='
@@ -143,9 +173,13 @@ describe('ResponseProcessor', () => {
     })
 
     it('should process audio/video response', async () => {
-      mockResponse.headers = new Headers({ 'content-type': 'audio/mpeg' })
-      const mockBlob = new Blob(['fake audio data'], { type: 'audio/mpeg' })
-      mockResponse.blob.mockResolvedValue(mockBlob)
+      Object.defineProperty(mockResponse, 'headers', {
+        value: new Headers({ 'content-type': 'audio/mpeg' }),
+        writable: true,
+        configurable: true
+      })
+      const audioBlobData = new Blob(['fake audio data'], { type: 'audio/mpeg' })
+      mockBlob.mockResolvedValue(audioBlobData)
 
       mockFileReader.readAsDataURL.mockImplementation(() => {
         mockFileReader.result = 'data:audio/mpeg;base64,ZmFrZSBhdWRpbyBkYXRh'
@@ -164,9 +198,13 @@ describe('ResponseProcessor', () => {
     })
 
     it('should handle empty blob', async () => {
-      mockResponse.headers = new Headers({ 'content-type': 'application/octet-stream' })
+      Object.defineProperty(mockResponse, 'headers', {
+        value: new Headers({ 'content-type': 'application/octet-stream' }),
+        writable: true,
+        configurable: true
+      })
       const emptyBlob = new Blob([], { type: 'application/octet-stream' })
-      mockResponse.blob.mockResolvedValue(emptyBlob)
+      mockBlob.mockResolvedValue(emptyBlob)
 
       const processor = new ResponseProcessor(mockResponse, startTime)
       const result = await processor.processResponse()
@@ -182,13 +220,17 @@ describe('ResponseProcessor', () => {
     })
 
     it('should handle large binary files', async () => {
-      mockResponse.headers = new Headers({ 'content-type': 'application/zip' })
+      Object.defineProperty(mockResponse, 'headers', {
+        value: new Headers({ 'content-type': 'application/zip' }),
+        writable: true,
+        configurable: true
+      })
       // 大きなファイル（12MB）をシミュレート
       const largeBlob = {
         size: 12 * 1024 * 1024,
         type: 'application/zip'
       } as Blob
-      mockResponse.blob.mockResolvedValue(largeBlob)
+      mockBlob.mockResolvedValue(largeBlob)
 
       const processor = new ResponseProcessor(mockResponse, startTime)
       const result = await processor.processResponse()
@@ -207,8 +249,12 @@ describe('ResponseProcessor', () => {
 
   describe('error handling', () => {
     it('should handle blob processing errors', async () => {
-      mockResponse.headers = new Headers({ 'content-type': 'application/octet-stream' })
-      mockResponse.blob.mockRejectedValue(new Error('Blob processing failed'))
+      Object.defineProperty(mockResponse, 'headers', {
+        value: new Headers({ 'content-type': 'application/octet-stream' }),
+        writable: true,
+        configurable: true
+      })
+      mockBlob.mockRejectedValue(new Error('Blob processing failed'))
 
       const processor = new ResponseProcessor(mockResponse, startTime)
       const result = await processor.processResponse()
@@ -222,9 +268,13 @@ describe('ResponseProcessor', () => {
     })
 
     it('should handle FileReader errors', async () => {
-      mockResponse.headers = new Headers({ 'content-type': 'image/png' })
-      const mockBlob = new Blob(['image data'], { type: 'image/png' })
-      mockResponse.blob.mockResolvedValue(mockBlob)
+      Object.defineProperty(mockResponse, 'headers', {
+        value: new Headers({ 'content-type': 'image/png' }),
+        writable: true,
+        configurable: true
+      })
+      const imageBlobData = new Blob(['image data'], { type: 'image/png' })
+      mockBlob.mockResolvedValue(imageBlobData)
 
       mockFileReader.readAsDataURL.mockImplementation(() => {
         setTimeout(() => mockFileReader.onerror?.({ target: mockFileReader }), 0)
@@ -243,8 +293,12 @@ describe('ResponseProcessor', () => {
     })
 
     it('should handle text processing errors', async () => {
-      mockResponse.headers = new Headers({ 'content-type': 'text/plain' })
-      mockResponse.text.mockRejectedValue(new Error('Text processing failed'))
+      Object.defineProperty(mockResponse, 'headers', {
+        value: new Headers({ 'content-type': 'text/plain' }),
+        writable: true,
+        configurable: true
+      })
+      mockText.mockRejectedValue(new Error('Text processing failed'))
 
       const processor = new ResponseProcessor(mockResponse, startTime)
       const result = await processor.processResponse()
@@ -316,8 +370,12 @@ describe('ResponseProcessor', () => {
         'x-custom-header': 'custom-value'
       })
 
-      mockResponse.headers = headers
-      mockResponse.text.mockResolvedValue('{}')
+      Object.defineProperty(mockResponse, 'headers', {
+        value: headers,
+        writable: true,
+        configurable: true
+      })
+      mockText.mockResolvedValue('{}')
 
       const processor = new ResponseProcessor(mockResponse, startTime)
       const result = await processor.processResponse()
@@ -333,7 +391,7 @@ describe('ResponseProcessor', () => {
   describe('duration calculation', () => {
     it('should calculate correct duration', async () => {
       const mockStartTime = Date.now() - 2000 // 2秒前
-      mockResponse.text.mockResolvedValue('test')
+      mockText.mockResolvedValue('test')
 
       const processor = new ResponseProcessor(mockResponse, mockStartTime)
       const result = await processor.processResponse()

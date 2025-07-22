@@ -1,17 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ApiRequest } from '@/types/types'
-import { getGlobalSettings } from '@renderer/stores/globalSettingsStore'
+import { getGlobalSettings, GlobalSettings } from '@renderer/stores/globalSettingsStore'
 import { RequestBuilder } from './requestBuilder'
 
 // モック設定
 vi.mock('@renderer/stores/globalSettingsStore')
 
-const mockGlobalSettings = {
+const mockGlobalSettings: GlobalSettings = {
   defaultTimeout: 30000,
   defaultFollowRedirects: true,
   defaultMaxRedirects: 5,
   defaultValidateSSL: true,
-  defaultUserAgent: 'API-Tester/1.0'
+  defaultUserAgent: 'API-Tester/1.0',
+  theme: 'light',
+  fontSize: 'medium',
+  tabSize: 2,
+  wordWrap: true,
+  lineNumbers: true,
+  debugLogs: false,
+  saveHistory: true,
+  maxHistorySize: 1000,
+  proxyEnabled: false,
+  proxyUrl: '',
+  proxyAuth: undefined,
+  allowInsecureConnections: false,
+  certificateValidation: true,
+  autoSave: false,
+  autoSaveInterval: 300,
+  checkForUpdates: true
 }
 
 describe('RequestBuilder', () => {

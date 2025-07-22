@@ -1,10 +1,8 @@
-import { URL } from 'node:url'
 import { request, ProxyAgent } from 'undici'
 import { ApiRequest, ApiResponse, ApiResponseData } from '@/types/types'
 import { getGlobalSettings } from '@renderer/stores/globalSettingsStore'
 import { ErrorHandler } from '@renderer/utils/errorUtils'
 import { RequestBuilder } from './requestBuilder'
-import { ResponseProcessor } from './responseProcessor'
 
 /**
  * Node.js環境用HTTP通信クライアント
@@ -24,7 +22,7 @@ export class NodeHttpClient {
    * HTTPリクエストを実行
    */
   async executeRequest(
-    request: ApiRequest,
+    apiRequest: ApiRequest,
     variableResolver?: (text: string) => string
   ): Promise<ApiResponse> {
     const startTime = Date.now()
@@ -32,7 +30,7 @@ export class NodeHttpClient {
 
     try {
       // リクエストビルダーを作成
-      const builder = new RequestBuilder(request, resolveVariables, this.getCookieHeader)
+      const builder = new RequestBuilder(apiRequest, resolveVariables, this.getCookieHeader)
 
       // リクエスト検証
       const validationErrors = builder.validate()
@@ -49,7 +47,7 @@ export class NodeHttpClient {
       const fetchOptions = builder.buildFetchOptions()
 
       // undici用のオプションに変換
-      const undiciOptions = this.convertToUndiciOptions(fetchOptions, url.toString())
+      const undiciOptions = this.convertToUndiciOptions(fetchOptions)
 
       // リクエスト実行
       const response = await request(url.toString(), undiciOptions)
@@ -58,7 +56,7 @@ export class NodeHttpClient {
       return await this.processUndiciResponse(response, startTime)
     } catch (error) {
       // エラーレスポンスを作成
-      return this.createNodeErrorResponse(error, startTime, request.url, request.method)
+      return this.createNodeErrorResponse(error, startTime, apiRequest.url, apiRequest.method)
     }
   }
 
@@ -66,7 +64,7 @@ export class NodeHttpClient {
    * リクエストをキャンセル可能な形で実行
    */
   async executeRequestWithCancel(
-    request: ApiRequest,
+    apiRequest: ApiRequest,
     variableResolver?: (text: string) => string,
     cancelToken?: AbortSignal
   ): Promise<ApiResponse> {
@@ -74,7 +72,7 @@ export class NodeHttpClient {
     const resolveVariables = variableResolver || ((text: string) => text)
 
     try {
-      const builder = new RequestBuilder(request, resolveVariables, this.getCookieHeader)
+      const builder = new RequestBuilder(apiRequest, resolveVariables, this.getCookieHeader)
 
       // リクエスト検証
       const validationErrors = builder.validate()
@@ -96,7 +94,7 @@ export class NodeHttpClient {
       }
 
       // undici用のオプションに変換
-      const undiciOptions = this.convertToUndiciOptions(fetchOptions, url.toString())
+      const undiciOptions = this.convertToUndiciOptions(fetchOptions)
 
       // リクエスト実行
       const response = await request(url.toString(), undiciOptions)
@@ -104,14 +102,14 @@ export class NodeHttpClient {
       // レスポンス処理
       return await this.processUndiciResponse(response, startTime)
     } catch (error) {
-      return this.createNodeErrorResponse(error, startTime, request.url, request.method)
+      return this.createNodeErrorResponse(error, startTime, apiRequest.url, apiRequest.method)
     }
   }
 
   /**
    * Fetch APIのオプションをundici用に変換
    */
-  private convertToUndiciOptions(fetchOptions: RequestInit, url: string) {
+  private convertToUndiciOptions(fetchOptions: RequestInit) {
     const globalSettings = getGlobalSettings()
 
     const undiciOptions: any = {
@@ -141,7 +139,9 @@ export class NodeHttpClient {
       try {
         undiciOptions.dispatcher = new ProxyAgent({
           uri: globalSettings.proxyUrl,
-          auth: globalSettings.proxyAuth || undefined
+          auth: globalSettings.proxyAuth
+            ? `${globalSettings.proxyAuth.username}:${globalSettings.proxyAuth.password}`
+            : undefined
         })
       } catch (error) {
         const appError = ErrorHandler.handleSystemError(error, {

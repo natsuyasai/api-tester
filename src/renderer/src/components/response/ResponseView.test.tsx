@@ -18,10 +18,13 @@ describe('ResponseView', () => {
       'x-ratelimit-remaining': '99'
     },
     data: {
-      users: [
-        { id: 1, name: 'John Doe' },
-        { id: 2, name: 'Jane Smith' }
-      ]
+      type: 'json',
+      data: {
+        users: [
+          { id: 1, name: 'John Doe' },
+          { id: 2, name: 'Jane Smith' }
+        ]
+      }
     },
     duration: 150,
     timestamp: '2024-01-01T10:30:00.000Z'

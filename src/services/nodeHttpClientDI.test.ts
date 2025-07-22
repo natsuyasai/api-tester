@@ -1,18 +1,36 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ApiRequest } from '@/types/types'
-import { UndiciRequestInterface, ProxyAgentInterface } from './httpClientInterface'
+import { GlobalSettings } from '@renderer/stores/globalSettingsStore'
 import { NodeHttpClientDI, createMockNodeHttpClient } from './nodeHttpClientDI'
+
+// 完全なデフォルトGlobalSettings
+const DEFAULT_SETTINGS: GlobalSettings = {
+  defaultTimeout: 30,
+  defaultFollowRedirects: true,
+  defaultMaxRedirects: 5,
+  defaultValidateSSL: true,
+  defaultUserAgent: 'API Tester',
+  theme: 'light',
+  fontSize: 'medium',
+  tabSize: 2,
+  wordWrap: true,
+  lineNumbers: true,
+  debugLogs: false,
+  saveHistory: true,
+  maxHistorySize: 1000,
+  proxyEnabled: false,
+  proxyUrl: '',
+  proxyAuth: undefined,
+  allowInsecureConnections: false,
+  certificateValidation: true,
+  autoSave: false,
+  autoSaveInterval: 300,
+  checkForUpdates: true
+}
 
 // globalSettingsStoreのモック
 vi.mock('@renderer/stores/globalSettingsStore', () => ({
-  getGlobalSettings: vi.fn(() => ({
-    defaultTimeout: 30,
-    allowInsecureConnections: false,
-    defaultMaxRedirects: 5,
-    proxyEnabled: false,
-    proxyUrl: '',
-    proxyAuth: undefined
-  }))
+  getGlobalSettings: vi.fn(() => DEFAULT_SETTINGS)
 }))
 
 // errorUtilsのモック
@@ -40,8 +58,8 @@ vi.mock('@renderer/utils/errorUtils', () => ({
 
 describe('NodeHttpClientDI', () => {
   let httpClient: NodeHttpClientDI
-  let mockUndiciRequest: vi.MockedFunction<UndiciRequestInterface>
-  let MockProxyAgent: vi.MockedFunction<ProxyAgentInterface>
+  let mockUndiciRequest: ReturnType<typeof vi.fn>
+  let MockProxyAgent: ReturnType<typeof vi.fn>
 
   const mockApiRequest: ApiRequest = {
     id: 'test-id',
@@ -91,7 +109,9 @@ describe('NodeHttpClientDI', () => {
       expect(result.status).toBe(200)
       expect(result.statusText).toBe('OK')
       expect(result.data.type).toBe('json')
-      expect(result.data.data).toEqual({ users: [] })
+      if (result.data.type === 'json') {
+        expect(result.data.data).toEqual({ users: [] })
+      }
       expect(mockUndiciRequest).toHaveBeenCalledWith(
         'https://api.example.com/users?limit=10',
         expect.objectContaining({
@@ -128,7 +148,9 @@ describe('NodeHttpClientDI', () => {
       expect(result.status).toBe(201)
       expect(result.statusText).toBe('Created')
       expect(result.data.type).toBe('json')
-      expect(result.data.data).toEqual({ id: 1, name: 'John Doe' })
+      if (result.data.type === 'json') {
+        expect(result.data.data).toEqual({ id: 1, name: 'John Doe' })
+      }
       expect(mockUndiciRequest).toHaveBeenCalledWith(
         'https://api.example.com/users?limit=10',
         expect.objectContaining({
@@ -155,7 +177,9 @@ describe('NodeHttpClientDI', () => {
 
       expect(result.status).toBe(200)
       expect(result.data.type).toBe('text')
-      expect(result.data.data).toBe('Hello World')
+      if (result.data.type === 'text') {
+        expect(result.data.data).toBe('Hello World')
+      }
     })
 
     it('should handle binary response', async () => {
@@ -176,9 +200,11 @@ describe('NodeHttpClientDI', () => {
 
       expect(result.status).toBe(200)
       expect(result.data.type).toBe('binary')
-      expect(result.data.mimeType).toBe('image/png')
-      expect(result.data.size).toBe(8)
-      expect((result.data as any).data).toMatch(/^data:image\/png;base64,/)
+      if (result.data.type === 'binary') {
+        expect(result.data.mimeType).toBe('image/png')
+        expect(result.data.size).toBe(8)
+        expect(result.data.data).toMatch(/^data:image\/png;base64,/)
+      }
     })
 
     it('should handle network errors', async () => {
@@ -236,7 +262,9 @@ describe('NodeHttpClientDI', () => {
 
       expect(result.status).toBe(200)
       expect(result.data.type).toBe('text')
-      expect(result.data.data).toBe('invalid json {')
+      if (result.data.type === 'text') {
+        expect(result.data.data).toBe('invalid json {')
+      }
     })
   })
 
@@ -362,9 +390,7 @@ describe('NodeHttpClientDI', () => {
       const globalSettingsModule = await import('@renderer/stores/globalSettingsStore')
       const mockGetGlobalSettings = vi.mocked(globalSettingsModule.getGlobalSettings)
       mockGetGlobalSettings.mockReturnValue({
-        defaultTimeout: 30,
-        allowInsecureConnections: false,
-        defaultMaxRedirects: 5,
+        ...DEFAULT_SETTINGS,
         proxyEnabled: true,
         proxyUrl: 'http://proxy.example.com:8080',
         proxyAuth: { username: 'user', password: 'pass' }
@@ -396,14 +422,7 @@ describe('NodeHttpClientDI', () => {
       })
 
       // モックを元に戻す
-      mockGetGlobalSettings.mockReturnValue({
-        defaultTimeout: 30,
-        allowInsecureConnections: false,
-        defaultMaxRedirects: 5,
-        proxyEnabled: false,
-        proxyUrl: '',
-        proxyAuth: undefined
-      })
+      mockGetGlobalSettings.mockReturnValue(DEFAULT_SETTINGS)
     })
 
     it('should handle proxy configuration errors gracefully', async () => {
@@ -411,9 +430,7 @@ describe('NodeHttpClientDI', () => {
       const globalSettingsModule = await import('@renderer/stores/globalSettingsStore')
       const mockGetGlobalSettings = vi.mocked(globalSettingsModule.getGlobalSettings)
       mockGetGlobalSettings.mockReturnValue({
-        defaultTimeout: 30,
-        allowInsecureConnections: false,
-        defaultMaxRedirects: 5,
+        ...DEFAULT_SETTINGS,
         proxyEnabled: true,
         proxyUrl: 'invalid-proxy-url',
         proxyAuth: undefined
@@ -441,14 +458,7 @@ describe('NodeHttpClientDI', () => {
       expect(mockUndiciRequest).toHaveBeenCalled()
 
       // モックを元に戻す
-      mockGetGlobalSettings.mockReturnValue({
-        defaultTimeout: 30,
-        allowInsecureConnections: false,
-        defaultMaxRedirects: 5,
-        proxyEnabled: false,
-        proxyUrl: '',
-        proxyAuth: undefined
-      })
+      mockGetGlobalSettings.mockReturnValue(DEFAULT_SETTINGS)
       MockProxyAgent.mockImplementation(() => ({
         dispatch: vi.fn(),
         close: vi.fn()
@@ -461,12 +471,8 @@ describe('NodeHttpClientDI', () => {
       const globalSettingsModule = await import('@renderer/stores/globalSettingsStore')
       const mockGetGlobalSettings = vi.mocked(globalSettingsModule.getGlobalSettings)
       mockGetGlobalSettings.mockReturnValue({
-        defaultTimeout: 30,
-        allowInsecureConnections: true,
-        defaultMaxRedirects: 5,
-        proxyEnabled: false,
-        proxyUrl: '',
-        proxyAuth: undefined
+        ...DEFAULT_SETTINGS,
+        allowInsecureConnections: true
       })
 
       const mockResponse = {
@@ -490,14 +496,7 @@ describe('NodeHttpClientDI', () => {
       )
 
       // モックを元に戻す
-      mockGetGlobalSettings.mockReturnValue({
-        defaultTimeout: 30,
-        allowInsecureConnections: false,
-        defaultMaxRedirects: 5,
-        proxyEnabled: false,
-        proxyUrl: '',
-        proxyAuth: undefined
-      })
+      mockGetGlobalSettings.mockReturnValue(DEFAULT_SETTINGS)
     })
 
     it('should reject unauthorized certificates by default', async () => {
@@ -528,12 +527,8 @@ describe('NodeHttpClientDI', () => {
       const globalSettingsModule = await import('@renderer/stores/globalSettingsStore')
       const mockGetGlobalSettings = vi.mocked(globalSettingsModule.getGlobalSettings)
       mockGetGlobalSettings.mockReturnValue({
-        defaultTimeout: 60,
-        allowInsecureConnections: false,
-        defaultMaxRedirects: 5,
-        proxyEnabled: false,
-        proxyUrl: '',
-        proxyAuth: undefined
+        ...DEFAULT_SETTINGS,
+        defaultTimeout: 60
       })
 
       const mockResponse = {
@@ -558,26 +553,15 @@ describe('NodeHttpClientDI', () => {
       )
 
       // モックを元に戻す
-      mockGetGlobalSettings.mockReturnValue({
-        defaultTimeout: 30,
-        allowInsecureConnections: false,
-        defaultMaxRedirects: 5,
-        proxyEnabled: false,
-        proxyUrl: '',
-        proxyAuth: undefined
-      })
+      mockGetGlobalSettings.mockReturnValue(DEFAULT_SETTINGS)
     })
 
     it('should not set timeout when defaultTimeout is 0', async () => {
       const globalSettingsModule = await import('@renderer/stores/globalSettingsStore')
       const mockGetGlobalSettings = vi.mocked(globalSettingsModule.getGlobalSettings)
       mockGetGlobalSettings.mockReturnValue({
-        defaultTimeout: 0,
-        allowInsecureConnections: false,
-        defaultMaxRedirects: 5,
-        proxyEnabled: false,
-        proxyUrl: '',
-        proxyAuth: undefined
+        ...DEFAULT_SETTINGS,
+        defaultTimeout: 0
       })
 
       const mockResponse = {
@@ -599,14 +583,7 @@ describe('NodeHttpClientDI', () => {
       expect(options).not.toHaveProperty('bodyTimeout')
 
       // モックを元に戻す
-      mockGetGlobalSettings.mockReturnValue({
-        defaultTimeout: 30,
-        allowInsecureConnections: false,
-        defaultMaxRedirects: 5,
-        proxyEnabled: false,
-        proxyUrl: '',
-        proxyAuth: undefined
-      })
+      mockGetGlobalSettings.mockReturnValue(DEFAULT_SETTINGS)
     })
   })
 
@@ -666,12 +643,8 @@ describe('NodeHttpClientDI', () => {
       const globalSettingsModule = await import('@renderer/stores/globalSettingsStore')
       const mockGetGlobalSettings = vi.mocked(globalSettingsModule.getGlobalSettings)
       mockGetGlobalSettings.mockReturnValue({
-        defaultTimeout: 30,
-        allowInsecureConnections: false,
-        defaultMaxRedirects: 10,
-        proxyEnabled: false,
-        proxyUrl: '',
-        proxyAuth: undefined
+        ...DEFAULT_SETTINGS,
+        defaultMaxRedirects: 10
       })
 
       const mockResponse = {
@@ -695,14 +668,7 @@ describe('NodeHttpClientDI', () => {
       )
 
       // モックを元に戻す
-      mockGetGlobalSettings.mockReturnValue({
-        defaultTimeout: 30,
-        allowInsecureConnections: false,
-        defaultMaxRedirects: 5,
-        proxyEnabled: false,
-        proxyUrl: '',
-        proxyAuth: undefined
-      })
+      mockGetGlobalSettings.mockReturnValue(DEFAULT_SETTINGS)
     })
   })
 

@@ -1,4 +1,4 @@
-import { ApiRequest, ApiResponse } from '@/types/types'
+import { ApiRequest, ApiResponse, ApiResponseData } from '@/types/types'
 import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { getGlobalSettings } from '@renderer/stores/globalSettingsStore'
 import { ErrorHandler } from '@renderer/utils/errorUtils'
@@ -189,24 +189,11 @@ export class ApiService {
         responseHeaders[key] = value
       })
 
-      // レスポンスボディの取得
-      let responseData: unknown
+      // レスポンスボディの取得と適切な型への変換
       const contentType = response.headers.get('content-type') || ''
+      const responseData = await this.processResponse(response, contentType)
 
-      if (contentType.includes('application/json')) {
-        try {
-          responseData = await response.json()
-        } catch {
-          responseData = await response.text()
-        }
-      } else if (contentType.includes('text/')) {
-        responseData = await response.text()
-      } else {
-        // バイナリデータの場合
-        responseData = await this.processBinaryResponse(response, contentType)
-      }
-
-      const apiResponse = {
+      const apiResponse: ApiResponse = {
         status: response.status,
         statusText: response.statusText,
         headers: responseHeaders,
@@ -255,14 +242,14 @@ export class ApiService {
       executionStatus = 'error'
       errorMessage = appError.message
 
-      const apiResponse = {
+      const apiResponse: ApiResponse = {
         status: 0,
         statusText,
         headers: {},
         data: {
-          error: errorMessage,
-          type: 'error'
-        },
+          type: 'error',
+          error: errorMessage
+        } as ApiResponseData,
         duration,
         timestamp: new Date().toISOString()
       }
@@ -656,5 +643,46 @@ export class ApiService {
     }
 
     return undefined
+  }
+
+  private static async processResponse(
+    response: Response,
+    contentType: string
+  ): Promise<ApiResponseData> {
+    try {
+      if (contentType.includes('application/json')) {
+        try {
+          const jsonData = await response.json()
+          return {
+            type: 'json',
+            data: jsonData,
+            contentType
+          }
+        } catch {
+          const textData = await response.text()
+          return {
+            type: 'text',
+            data: textData,
+            contentType
+          }
+        }
+      } else if (contentType.includes('text/')) {
+        const textData = await response.text()
+        return {
+          type: 'text',
+          data: textData,
+          contentType
+        }
+      } else {
+        // バイナリデータの場合
+        const binaryData = await this.processBinaryResponse(response, contentType)
+        return binaryData as ApiResponseData
+      }
+    } catch (error) {
+      return {
+        type: 'error',
+        error: ErrorHandler.extractErrorMessage(error) || 'Failed to process response'
+      }
+    }
   }
 }

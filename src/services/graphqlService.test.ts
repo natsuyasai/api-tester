@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { ApiResponseData } from '@/types/types'
 import { ApiServiceV2 } from './apiServiceV2'
 import { GraphQLService } from './graphqlService'
 
@@ -16,7 +17,10 @@ describe('GraphQLService', () => {
         status: 200,
         statusText: 'OK',
         headers: { 'content-type': 'application/json' },
-        data: { data: { users: [] } },
+        data: {
+          type: 'json',
+          data: { data: { users: [] } }
+        } as ApiResponseData,
         duration: 100,
         timestamp: '2024-01-01T10:00:00.000Z'
       }
@@ -58,7 +62,10 @@ describe('GraphQLService', () => {
         status: 200,
         statusText: 'OK',
         headers: {},
-        data: {},
+        data: {
+          type: 'json',
+          data: {}
+        } as ApiResponseData,
         duration: 100,
         timestamp: '2024-01-01T10:00:00.000Z'
       }
