@@ -2,6 +2,7 @@ import { ApiRequest, ApiResponse } from '@/types/types'
 import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { ErrorHandler } from '@renderer/utils/errorUtils'
 import { HttpClient } from './httpClient'
+import { HttpClientInterface } from './httpClientInterface'
 import { createNodeHttpClient } from './nodeHttpClientDI'
 
 /**
@@ -9,12 +10,12 @@ import { createNodeHttpClient } from './nodeHttpClientDI'
  * 責任を分離し、型安全性を向上
  */
 export class ApiServiceV2 {
-  private static httpClientPromise: Promise<any> | null = null
+  private static httpClientPromise: Promise<HttpClient | HttpClientInterface> | null = null
 
   /**
    * HTTPクライアントのインスタンスを取得（非同期初期化対応）
    */
-  private static async getHttpClient() {
+  private static async getHttpClient(): Promise<HttpClient | HttpClientInterface> {
     if (!this.httpClientPromise) {
       this.httpClientPromise = this.createHttpClient()
     }
@@ -24,7 +25,7 @@ export class ApiServiceV2 {
   /**
    * 実行環境に応じて適切なHTTPクライアントを作成
    */
-  private static async createHttpClient() {
+  private static async createHttpClient(): Promise<HttpClient | HttpClientInterface> {
     // Electron環境（Node.js）かブラウザ環境かを判定
     if (typeof window !== 'undefined' && window.process && window.process.type) {
       // Electronのレンダラープロセス環境でも、Node.js APIが利用可能な場合はNodeHttpClientを使用

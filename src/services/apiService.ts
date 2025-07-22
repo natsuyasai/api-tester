@@ -652,7 +652,7 @@ export class ApiService {
     try {
       if (contentType.includes('application/json')) {
         try {
-          const jsonData = await response.json()
+          const jsonData = (await response.json()) as Record<string, unknown> | unknown[]
           return {
             type: 'json',
             data: jsonData,

@@ -18,7 +18,13 @@ export interface HttpClientInterface {
 
   validateRequest(request: ApiRequest, variableResolver?: (text: string) => string): string[]
 
-  getRequestDetails(request: ApiRequest, variableResolver?: (text: string) => string): any
+  getRequestDetails(request: ApiRequest, variableResolver?: (text: string) => string): {
+    url: string
+    method: string
+    headers: Record<string, string>
+    body: string | FormData | null
+    settings: unknown
+  } | { error: string; context: string }
 
   setCookieResolver(resolver: (domain: string) => string): void
 }
@@ -29,7 +35,7 @@ export interface HttpClientInterface {
 export interface UndiciRequestInterface {
   (
     url: string,
-    options?: any
+    options?: Record<string, unknown>
   ): Promise<{
     statusCode: number
     headers: Record<string, string>
@@ -43,5 +49,8 @@ export interface UndiciRequestInterface {
  * ProxyAgentクラスのインターフェース
  */
 export interface ProxyAgentInterface {
-  new (options: { uri: string; auth?: string }): any
+  new (options: { uri: string; auth?: string }): {
+    dispatch: (opts: unknown, handler: unknown) => boolean
+    close: () => Promise<void>
+  }
 }

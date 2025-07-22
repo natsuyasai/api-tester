@@ -23,9 +23,9 @@ export class NodeFileService {
         // テキストとして読み取り（UTF-8）
         return await fs.readFile(filePath, 'utf8')
       }
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`ファイルの読み取りに失敗しました: ${error.message}`)
+    } catch (_error) {
+      if (_error instanceof Error) {
+        throw new Error(`ファイルの読み取りに失敗しました: ${_error.message}`)
       }
       throw new Error('ファイルの読み取りに失敗しました')
     }
@@ -54,7 +54,7 @@ export class NodeFileService {
     try {
       const stats = await fs.stat(filePath)
       return stats.size
-    } catch (error) {
+    } catch (_error) {
       throw new Error('ファイルサイズの取得に失敗しました')
     }
   }
@@ -170,7 +170,7 @@ export class NodeFileService {
   static async copyFile(sourcePath: string, targetPath: string): Promise<void> {
     try {
       await fs.copyFile(sourcePath, targetPath)
-    } catch (error) {
+    } catch (_error) {
       throw new Error('ファイルのコピーに失敗しました')
     }
   }
@@ -182,7 +182,7 @@ export class NodeFileService {
   static async deleteFile(filePath: string): Promise<void> {
     try {
       await fs.unlink(filePath)
-    } catch (error) {
+    } catch (_error) {
       throw new Error('ファイルの削除に失敗しました')
     }
   }
@@ -194,7 +194,7 @@ export class NodeFileService {
   static async createDirectory(dirPath: string): Promise<void> {
     try {
       await fs.mkdir(dirPath, { recursive: true })
-    } catch (error) {
+    } catch (_error) {
       throw new Error('ディレクトリの作成に失敗しました')
     }
   }
@@ -218,7 +218,7 @@ export class NodeFileService {
       }
 
       return files
-    } catch (error) {
+    } catch (_error) {
       throw new Error('ディレクトリの読み取りに失敗しました')
     }
   }
@@ -247,7 +247,7 @@ export class NodeFileService {
         isFile: stats.isFile(),
         isDirectory: stats.isDirectory()
       }
-    } catch (error) {
+    } catch (_error) {
       throw new Error('ファイル情報の取得に失敗しました')
     }
   }
@@ -269,7 +269,7 @@ export class NodeFileService {
       await this.createDirectory(dirPath)
 
       await fs.writeFile(filePath, content, encoding)
-    } catch (error) {
+    } catch (_error) {
       throw new Error('ファイルの書き込みに失敗しました')
     }
   }
@@ -286,7 +286,7 @@ export class NodeFileService {
       await this.createDirectory(dirPath)
 
       await fs.writeFile(filePath, buffer)
-    } catch (error) {
+    } catch (_error) {
       throw new Error('バイナリファイルの書き込みに失敗しました')
     }
   }

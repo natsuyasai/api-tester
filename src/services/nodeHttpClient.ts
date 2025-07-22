@@ -4,18 +4,7 @@ import { getGlobalSettings } from '@renderer/stores/globalSettingsStore'
 import { ErrorHandler } from '@renderer/utils/errorUtils'
 import { RequestBuilder } from './requestBuilder'
 
-// undici用の型定義
-interface UndiciOptions {
-  method?: string
-  headers?: HeadersInit
-  body?: string | null
-  headersTimeout?: number
-  bodyTimeout?: number
-  rejectUnauthorized?: boolean
-  maxRedirections?: number
-  dispatcher?: ProxyAgent
-  signal?: AbortSignal
-}
+// undici用の型定義は不要（Record<string, unknown>を使用）
 
 interface NodeError extends Error {
   code?: string
@@ -205,7 +194,7 @@ export class NodeHttpClient {
 
       if (contentType.includes('application/json')) {
         try {
-          const jsonData = JSON.parse(bodyText)
+          const jsonData = JSON.parse(bodyText) as Record<string, unknown> | unknown[]
           responseData = {
             type: 'json' as const,
             data: jsonData,

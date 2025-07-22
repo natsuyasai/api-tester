@@ -78,13 +78,13 @@ class BrowserStorageAdapter implements StorageInterface {
  * Node.js用ストレージアダプター
  */
 class NodeStorageAdapter implements StorageInterface {
-  private nodeStorage: any = null
-  private localStorageAdapter: any = null
+  private nodeStorage: typeof import('../services/nodeStorageService').NodeStorageService | null = null
+  private localStorageAdapter: StorageInterface | null = null
 
   constructor() {
-    if (isNodeEnvironment) {
+    if (isNodeEnvironment()) {
       // 動的インポートでNodeStorageServiceを読み込み
-      this.initNodeStorage()
+      void this.initNodeStorage()
     }
   }
 
@@ -93,15 +93,18 @@ class NodeStorageAdapter implements StorageInterface {
       const { NodeStorageService } = await import('../services/nodeStorageService')
       this.nodeStorage = NodeStorageService
       this.localStorageAdapter = NodeStorageService.createLocalStorageAdapter()
-      await this.localStorageAdapter.init()
+      if (this.localStorageAdapter && 'init' in this.localStorageAdapter) {
+        await this.localStorageAdapter.init()
+      }
     } catch (error) {
-      console.error('NodeStorageService の初期化に失敗:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      console.error('NodeStorageService の初期化に失敗:', errorMessage)
     }
   }
 
   async setItem(key: string, value: string): Promise<void> {
     if (this.localStorageAdapter) {
-      this.localStorageAdapter.setItem(key, value)
+      await this.localStorageAdapter.setItem(key, value)
     } else if (this.nodeStorage) {
       await this.nodeStorage.setItem(key, value)
     }
@@ -118,7 +121,7 @@ class NodeStorageAdapter implements StorageInterface {
 
   async removeItem(key: string): Promise<void> {
     if (this.localStorageAdapter) {
-      this.localStorageAdapter.removeItem(key)
+      await this.localStorageAdapter.removeItem(key)
     } else if (this.nodeStorage) {
       await this.nodeStorage.removeItem(key)
     }
@@ -126,17 +129,15 @@ class NodeStorageAdapter implements StorageInterface {
 
   async clear(): Promise<void> {
     if (this.localStorageAdapter) {
-      this.localStorageAdapter.clear()
+      await this.localStorageAdapter.clear()
     } else if (this.nodeStorage) {
       await this.nodeStorage.clear()
     }
   }
 
   async keys(): Promise<string[]> {
-    if (this.localStorageAdapter) {
-      return Array.from({ length: this.localStorageAdapter.length }, (_, i) =>
-        this.localStorageAdapter.key(i)
-      ).filter((key) => key !== null)
+    if (this.localStorageAdapter && 'keys' in this.localStorageAdapter) {
+      return await this.localStorageAdapter.keys()
     } else if (this.nodeStorage) {
       return await this.nodeStorage.keys()
     }
@@ -144,9 +145,7 @@ class NodeStorageAdapter implements StorageInterface {
   }
 
   async length(): Promise<number> {
-    if (this.localStorageAdapter) {
-      return this.localStorageAdapter.length
-    } else if (this.nodeStorage) {
+    if (this.nodeStorage) {
       const keys = await this.nodeStorage.keys()
       return keys.length
     }
@@ -184,7 +183,7 @@ export class StorageAdapter {
     // 非同期の場合はPromiseを処理（ただし結果を待機しない）
     if (result instanceof Promise) {
       result.catch((error) => {
-        console.error(`Storage setItem error for key "${key}":`, error)
+        console.error(`Storage setItem error for key "${key}":`, String(error))
       })
     }
   }
@@ -242,7 +241,7 @@ export class StorageAdapter {
 
     if (result instanceof Promise) {
       result.catch((error) => {
-        console.error(`Storage removeItem error for key "${key}":`, error)
+        console.error(`Storage removeItem error for key "${key}":`, String(error))
       })
     }
   }
@@ -268,7 +267,7 @@ export class StorageAdapter {
 
     if (result instanceof Promise) {
       result.catch((error) => {
-        console.error('Storage clear error:', error)
+        console.error('Storage clear error:', String(error))
       })
     }
   }
@@ -297,17 +296,12 @@ export class StorageAdapter {
    */
   static async getDebugInfo() {
     const storage = this.getInstance()
-    const keys = await (storage.keys() instanceof Promise
-      ? storage.keys()
-      : Promise.resolve(storage.keys()))
-    const length = await (storage.length instanceof Promise
-      ? storage.length
-      : Promise.resolve(storage.length))
+    const keysResult = await storage.keys()
 
     return {
       environment: isNodeEnvironment() ? 'Node.js' : 'Browser',
-      keysCount: Array.isArray(keys) ? keys.length : length,
-      keys: Array.isArray(keys) ? keys : []
+      keysCount: keysResult.length,
+      keys: keysResult
     }
   }
 }

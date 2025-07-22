@@ -261,6 +261,7 @@ export function useCachedValue<T>(
       cache.set(key, { value: result, timestamp: Date.now() })
       setValue(result)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, fetchFn, ttl, ...dependencies])
 
   return value
