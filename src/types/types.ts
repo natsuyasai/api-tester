@@ -81,6 +81,7 @@ export interface ResponseData {
 export interface JsonResponseData extends ResponseData {
   type: 'json'
   data: Record<string, unknown> | unknown[]
+  raw?: string
 }
 
 export interface TextResponseData extends ResponseData {
@@ -97,6 +98,7 @@ export interface BinaryResponseData extends ResponseData {
   isPreviewable?: boolean
   notice?: string
   error?: string
+  mimeType?: string
 }
 
 export interface ErrorResponseData extends ResponseData {

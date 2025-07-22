@@ -46,7 +46,7 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
     if (!request.url) return
 
     // リクエストのバリデーション
-    const validationErrors = ApiServiceV2.validateRequest(request, resolveVariables)
+    const validationErrors = await ApiServiceV2.validateRequest(request, resolveVariables)
     if (validationErrors.length > 0) {
       alert(`Validation errors:\n${validationErrors.join('\n')}`)
       return
@@ -63,7 +63,7 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
         status: 0,
         statusText: 'Request Failed',
         headers: {},
-        data: { error: error instanceof Error ? error.message : 'Unknown error' },
+        data: { type: 'error' as const, error: error instanceof Error ? error.message : 'Unknown error' },
         duration: 0,
         timestamp: new Date().toISOString()
       })

@@ -134,37 +134,37 @@ describe('ApiServiceV2 Integration Tests', () => {
   })
 
   describe('validateRequest', () => {
-    it('should return no errors for valid request', () => {
-      const errors = ApiServiceV2.validateRequest(mockRequest)
+    it('should return no errors for valid request', async () => {
+      const errors = await ApiServiceV2.validateRequest(mockRequest)
       
       expect(Array.isArray(errors)).toBe(true)
       expect(errors.length).toBe(0)
     })
 
-    it('should return error for empty URL', () => {
+    it('should return error for empty URL', async () => {
       const invalidRequest: ApiRequest = {
         ...mockRequest,
         url: ''
       }
 
-      const errors = ApiServiceV2.validateRequest(invalidRequest)
+      const errors = await ApiServiceV2.validateRequest(invalidRequest)
       
       expect(errors.length).toBeGreaterThan(0)
       expect(errors.some(error => error.includes('URL'))).toBe(true)
     })
 
-    it('should return error for invalid URL format', () => {
+    it('should return error for invalid URL format', async () => {
       const invalidRequest: ApiRequest = {
         ...mockRequest,
         url: 'not-a-valid-url'
       }
 
-      const errors = ApiServiceV2.validateRequest(invalidRequest)
+      const errors = await ApiServiceV2.validateRequest(invalidRequest)
       
       expect(errors.length).toBeGreaterThan(0)
     })
 
-    it('should validate authentication settings', () => {
+    it('should validate authentication settings', async () => {
       const requestWithInvalidAuth: ApiRequest = {
         ...mockRequest,
         auth: {
@@ -176,7 +176,7 @@ describe('ApiServiceV2 Integration Tests', () => {
         }
       }
 
-      const errors = ApiServiceV2.validateRequest(requestWithInvalidAuth)
+      const errors = await ApiServiceV2.validateRequest(requestWithInvalidAuth)
       
       expect(errors.length).toBeGreaterThan(0)
       expect(errors.some(error => error.includes('ユーザー名'))).toBe(true)
