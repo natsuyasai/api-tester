@@ -1,0 +1,503 @@
+import { ApiRequest, ApiResponse } from '@/types/types'
+import { useCollectionStore } from '@renderer/stores/collectionStore'
+import { ErrorHandler } from '@renderer/utils/errorUtils'
+import { HttpClient } from './httpClient'
+
+/**
+ * リファクタリング版APIサービス
+ * 責任を分離し、型安全性を向上
+ */
+export class ApiServiceV2 {
+  private static httpClient = new HttpClient()
+
+  /**
+   * Cookie取得関数を設定
+   */
+  static setCookieResolver(resolver: (domain: string) => string): void {
+    this.httpClient.setCookieResolver(resolver)
+  }
+
+  /**
+   * APIリクエストを実行
+   */
+  static async executeRequest(
+    request: ApiRequest,
+    variableResolver?: (text: string) => string,
+    saveToHistory: boolean = true
+  ): Promise<ApiResponse> {
+    const startTime = Date.now()
+    let executionStatus: 'success' | 'error' = 'success'
+    let errorMessage: string | undefined
+
+    try {
+      // HTTPリクエストを実行
+      const apiResponse = await this.httpClient.executeRequest(request, variableResolver)
+      
+      // ステータスによってエラー判定
+      if (apiResponse.status >= 400) {
+        executionStatus = 'error'
+        errorMessage = `HTTP ${apiResponse.status}: ${apiResponse.statusText}`
+      }
+
+      // 実行履歴に保存
+      if (saveToHistory) {
+        const duration = apiResponse.duration
+        this.saveToHistory(request, apiResponse, duration, executionStatus, errorMessage)
+      }
+
+      return apiResponse
+
+    } catch (error) {
+      const endTime = Date.now()
+      const duration = endTime - startTime
+      executionStatus = 'error'
+      
+      const appError = ErrorHandler.handleNetworkError(error, {
+        requestUrl: request.url,
+        requestMethod: request.method,
+        context: 'executeRequest'
+      })
+      ErrorHandler.logError(appError)
+      errorMessage = appError.message
+
+      // エラーレスポンスを作成
+      const errorResponse = {
+        status: 0,
+        statusText: 'Network Error',
+        headers: {},
+        data: {
+          type: 'error' as const,
+          error: errorMessage,
+          contentType: 'text/plain'
+        },
+        duration,
+        timestamp: new Date().toISOString()
+      }
+
+      // エラーの場合も実行履歴に保存
+      if (saveToHistory) {
+        this.saveToHistory(request, errorResponse, duration, executionStatus, errorMessage)
+      }
+
+      return errorResponse
+    }
+  }
+
+  /**
+   * キャンセル可能なリクエスト実行
+   */
+  static async executeRequestWithCancel(
+    request: ApiRequest,
+    cancelToken: AbortSignal,
+    variableResolver?: (text: string) => string,
+    saveToHistory: boolean = true
+  ): Promise<ApiResponse> {
+    const startTime = Date.now()
+    let executionStatus: 'success' | 'error' = 'success'
+    let errorMessage: string | undefined
+
+    try {
+      const apiResponse = await this.httpClient.executeRequestWithCancel(
+        request, 
+        variableResolver, 
+        cancelToken
+      )
+      
+      if (apiResponse.status >= 400) {
+        executionStatus = 'error'
+        errorMessage = `HTTP ${apiResponse.status}: ${apiResponse.statusText}`
+      }
+
+      if (saveToHistory) {
+        this.saveToHistory(request, apiResponse, apiResponse.duration, executionStatus, errorMessage)
+      }
+
+      return apiResponse
+
+    } catch (error) {
+      const endTime = Date.now()
+      const duration = endTime - startTime
+      executionStatus = 'error'
+      
+      const appError = ErrorHandler.handleNetworkError(error, {
+        requestUrl: request.url,
+        requestMethod: request.method,
+        context: 'executeRequestWithCancel'
+      })
+      ErrorHandler.logError(appError)
+      errorMessage = appError.message
+
+      const errorResponse = {
+        status: 0,
+        statusText: error instanceof Error && error.name === 'AbortError' ? 'Cancelled' : 'Network Error',
+        headers: {},
+        data: {
+          type: 'error' as const,
+          error: errorMessage,
+          contentType: 'text/plain'
+        },
+        duration,
+        timestamp: new Date().toISOString()
+      }
+
+      if (saveToHistory) {
+        this.saveToHistory(request, errorResponse, duration, executionStatus, errorMessage)
+      }
+
+      return errorResponse
+    }
+  }
+
+  /**
+   * リクエストの検証（拡張版）
+   */
+  static validateRequest(request: ApiRequest, variableResolver?: (text: string) => string): string[] {
+    const basicValidation = this.httpClient.validateRequest(request, variableResolver)
+    const advancedValidation = this.validateRequestAdvanced(request)
+    
+    return [...basicValidation, ...advancedValidation]
+  }
+
+  /**
+   * 高度なリクエスト検証
+   */
+  private static validateRequestAdvanced(request: ApiRequest): string[] {
+    const errors: string[] = []
+
+    // JSON形式の検証
+    if (request.bodyType === 'json' && request.body) {
+      try {
+        JSON.parse(request.body)
+      } catch {
+        errors.push('Invalid JSON in request body')
+      }
+    }
+
+    // FormDataの検証
+    if (request.bodyType === 'form-data') {
+      const enabledPairs = request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
+
+      if (enabledPairs.length === 0) {
+        errors.push('At least one form field is required for form-data')
+      }
+
+      // ファイルフィールドの妥当性チェック
+      const filePairs = enabledPairs.filter((pair) => pair.isFile)
+      filePairs.forEach((pair) => {
+        if (!pair.fileContent) {
+          errors.push(`File content is missing for field: ${pair.key}`)
+        }
+      })
+    }
+
+    // GraphQLの検証
+    if (request.bodyType === 'graphql') {
+      if (!request.body.trim()) {
+        errors.push('GraphQL query is required')
+      } else {
+        const trimmedQuery = request.body.trim()
+        const validStarters = ['query', 'mutation', 'subscription', '{']
+        const hasValidStart = validStarters.some(
+          (starter) =>
+            trimmedQuery.toLowerCase().startsWith(starter) || trimmedQuery.startsWith('{')
+        )
+
+        if (!hasValidStart) {
+          errors.push('GraphQL query must start with query, mutation, subscription, or {')
+        }
+      }
+
+      // GraphQL変数の妥当性チェック
+      if (request.variables) {
+        try {
+          JSON.stringify(request.variables)
+        } catch {
+          errors.push('GraphQL variables must be valid JSON')
+        }
+      }
+    }
+
+    return errors
+  }
+
+  /**
+   * リクエストの詳細情報を取得（デバッグ用）
+   */
+  static getRequestDetails(request: ApiRequest, variableResolver?: (text: string) => string) {
+    return this.httpClient.getRequestDetails(request, variableResolver)
+  }
+
+  /**
+   * 実行履歴への保存
+   */
+  private static saveToHistory(
+    request: ApiRequest,
+    response: ApiResponse,
+    duration: number,
+    executionStatus: 'success' | 'error',
+    errorMessage?: string
+  ): void {
+    try {
+      const { addExecutionHistory } = useCollectionStore.getState()
+      addExecutionHistory(request, response, duration, executionStatus, errorMessage)
+    } catch (historyError) {
+      const error = ErrorHandler.handleStorageError(historyError, { 
+        context: 'saveExecutionHistory',
+        requestId: request.id 
+      })
+      ErrorHandler.logError(error)
+    }
+  }
+
+  /**
+   * 複数リクエストのバッチ実行
+   */
+  static async executeBatchRequests(
+    requests: ApiRequest[],
+    variableResolver?: (text: string) => string,
+    maxConcurrency: number = 3
+  ): Promise<ApiResponse[]> {
+    const results: ApiResponse[] = []
+    
+    // 並行実行数を制限
+    const chunks = this.chunkArray(requests, maxConcurrency)
+    
+    for (const chunk of chunks) {
+      const promises = chunk.map(request => 
+        this.executeRequest(request, variableResolver, true)
+      )
+      
+      const chunkResults = await Promise.all(promises)
+      results.push(...chunkResults)
+    }
+    
+    return results
+  }
+
+  /**
+   * 配列を指定サイズのチャンクに分割
+   */
+  private static chunkArray<T>(array: T[], size: number): T[][] {
+    const chunks: T[][] = []
+    for (let i = 0; i < array.length; i += size) {
+      chunks.push(array.slice(i, i + size))
+    }
+    return chunks
+  }
+
+  /**
+   * パフォーマンステスト実行
+   */
+  static async runPerformanceTest(
+    request: ApiRequest,
+    iterations: number,
+    variableResolver?: (text: string) => string
+  ): Promise<{
+    results: ApiResponse[]
+    statistics: {
+      averageDuration: number
+      minDuration: number
+      maxDuration: number
+      successRate: number
+      errorCount: number
+    }
+  }> {
+    const results: ApiResponse[] = []
+    
+    for (let i = 0; i < iterations; i++) {
+      const result = await this.executeRequest(request, variableResolver, false)
+      results.push(result)
+    }
+
+    // 統計情報を計算
+    const durations = results.map(r => r.duration)
+    const successCount = results.filter(r => r.status >= 200 && r.status < 400).length
+    const errorCount = iterations - successCount
+
+    const statistics = {
+      averageDuration: durations.reduce((a, b) => a + b, 0) / iterations,
+      minDuration: Math.min(...durations),
+      maxDuration: Math.max(...durations),
+      successRate: (successCount / iterations) * 100,
+      errorCount
+    }
+
+    return { results, statistics }
+  }
+
+  /**
+   * ヘルスチェック実行
+   */
+  static async healthCheck(url: string): Promise<{
+    isHealthy: boolean
+    responseTime: number
+    statusCode?: number
+    error?: string
+  }> {
+    const request: ApiRequest = {
+      id: 'health-check',
+      name: 'Health Check',
+      url,
+      method: 'GET',
+      headers: [],
+      params: [],
+      body: '',
+      bodyType: 'json',
+      type: 'rest'
+    }
+
+    try {
+      const response = await this.executeRequest(request, undefined, false)
+      
+      // ステータス0はネットワークエラー
+      if (response.status === 0) {
+        return {
+          isHealthy: false,
+          responseTime: response.duration,
+          error: response.data && typeof response.data === 'object' && 'error' in response.data ? String(response.data.error) : 'Network error'
+        }
+      }
+      
+      return {
+        isHealthy: response.status >= 200 && response.status < 400,
+        responseTime: response.duration,
+        statusCode: response.status
+      }
+    } catch (error) {
+      return {
+        isHealthy: false,
+        responseTime: 0,
+        error: ErrorHandler.extractErrorMessage(error)
+      }
+    }
+  }
+
+  /**
+   * cURLコマンドの生成
+   */
+  static buildCurlCommand(request: ApiRequest, variableResolver?: (text: string) => string): string {
+    const resolveVariables = variableResolver || ((text: string) => text)
+    
+    try {
+      const url = new URL(resolveVariables(request.url))
+      
+      // URL パラメータを追加
+      const enabledParams = request.params.filter((param) => param.enabled && param.key)
+      enabledParams.forEach((param) => {
+        url.searchParams.set(resolveVariables(param.key), resolveVariables(param.value))
+      })
+
+      let command = `curl -X ${request.method}`
+
+      // ヘッダーの追加
+      const enabledHeaders = request.headers.filter((header) => header.enabled && header.key)
+      enabledHeaders.forEach((header) => {
+        const key = resolveVariables(header.key)
+        const value = resolveVariables(header.value)
+        command += ` -H "${key}: ${value}"`
+      })
+
+      // 認証の追加
+      if (request.auth) {
+        switch (request.auth.type) {
+          case 'basic':
+            if (request.auth.basic) {
+              command += ` -u "${request.auth.basic.username}:${request.auth.basic.password}"`
+            }
+            break
+          case 'bearer':
+            if (request.auth.bearer) {
+              const token = resolveVariables(request.auth.bearer.token)
+              command += ` -H "Authorization: Bearer ${token}"`
+            }
+            break
+          case 'api-key':
+            if (request.auth.apiKey) {
+              const key = resolveVariables(request.auth.apiKey.key)
+              const value = resolveVariables(request.auth.apiKey.value)
+              
+              if (request.auth.apiKey.location === 'header') {
+                command += ` -H "${key}: ${value}"`
+              } else if (request.auth.apiKey.location === 'query') {
+                url.searchParams.set(key, value)
+              }
+            }
+            break
+        }
+      }
+
+      // ボディの追加
+      if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
+        if (request.bodyType === 'form-data') {
+          // FormDataの場合、-Fオプションを使用
+          const enabledPairs = request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
+
+          enabledPairs.forEach((pair) => {
+            const key = resolveVariables(pair.key)
+            
+            if (pair.isFile && pair.fileName) {
+              // ファイルの場合
+              command += ` -F "${key}=@${pair.fileName}"`
+            } else {
+              // 通常のフィールドの場合
+              const value = resolveVariables(pair.value)
+              command += ` -F "${key}=${value}"`
+            }
+          })
+        } else if (request.bodyType === 'x-www-form-urlencoded') {
+          // URL-encoded formの場合
+          const enabledPairs = request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
+          
+          if (enabledPairs.length > 0) {
+            const formData = enabledPairs.map((pair) => {
+              const key = encodeURIComponent(resolveVariables(pair.key))
+              const value = encodeURIComponent(resolveVariables(pair.value))
+              return `${key}=${value}`
+            }).join('&')
+            
+            command += ` -d "${formData}"`
+            command += ` -H "Content-Type: application/x-www-form-urlencoded"`
+          }
+        } else if (request.body) {
+          const body = resolveVariables(request.body)
+          
+          if (request.bodyType === 'graphql') {
+            const graphqlPayload = {
+              query: body,
+              variables: request.variables || {},
+              operationName: this.extractOperationName(body)
+            }
+            command += ` -d '${JSON.stringify(graphqlPayload)}'`
+          } else {
+            command += ` -d '${body}'`
+          }
+        }
+      }
+
+      command += ` "${url.toString()}"`
+
+      return command
+    } catch (error) {
+      const appError = ErrorHandler.handleValidationError('Invalid request for cURL generation', {
+        context: 'buildCurlCommand',
+        error: ErrorHandler.extractErrorMessage(error)
+      })
+      throw new Error(appError.message)
+    }
+  }
+
+  /**
+   * GraphQLクエリからオペレーション名を抽出
+   */
+  private static extractOperationName(query: string): string | undefined {
+    const trimmedQuery = query.trim()
+
+    // query OperationName や mutation OperationName の形式をチェック
+    const operationMatch = trimmedQuery.match(/^(query|mutation|subscription)\s+(\w+)/i)
+    if (operationMatch) {
+      return operationMatch[2]
+    }
+
+    return undefined
+  }
+}

@@ -1,5 +1,5 @@
 import { ApiRequest, ApiResponse } from '@/types/types'
-import { ApiService } from './apiService'
+import { ApiServiceV2 } from './apiServiceV2'
 
 export interface GraphQLRequest {
   query: string
@@ -36,7 +36,7 @@ export class GraphQLService {
       type: 'graphql'
     }
 
-    return ApiService.executeRequest(apiRequest)
+    return ApiServiceV2.executeRequest(apiRequest)
   }
 
   /**

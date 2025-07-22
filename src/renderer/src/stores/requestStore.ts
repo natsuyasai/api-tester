@@ -10,6 +10,7 @@ import {
   AuthConfig,
   RequestSettings
 } from '@/types/types'
+import { KeyValuePairOperations } from '@renderer/utils/keyValueUtils'
 import { useTabStore } from './tabStore'
 
 interface RequestState {
@@ -94,7 +95,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           ...tab,
           request: {
             ...tab.request,
-            headers: [...tab.request.headers, { key: '', value: '', enabled: false }]
+            headers: KeyValuePairOperations.add(tab.request.headers)
           }
         }))
       },
@@ -104,9 +105,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           ...tab,
           request: {
             ...tab.request,
-            headers: tab.request.headers.map((header, i) =>
-              i === index ? { ...header, ...headerUpdate } : header
-            )
+            headers: KeyValuePairOperations.update(tab.request.headers, index, headerUpdate)
           }
         }))
       },
@@ -116,7 +115,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           ...tab,
           request: {
             ...tab.request,
-            headers: tab.request.headers.filter((_, i) => i !== index)
+            headers: KeyValuePairOperations.remove(tab.request.headers, index)
           }
         }))
       },
@@ -126,7 +125,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           ...tab,
           request: {
             ...tab.request,
-            params: [...tab.request.params, { key: '', value: '', enabled: false }]
+            params: KeyValuePairOperations.add(tab.request.params)
           }
         }))
       },
@@ -136,9 +135,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           ...tab,
           request: {
             ...tab.request,
-            params: tab.request.params.map((param, i) =>
-              i === index ? { ...param, ...paramUpdate } : param
-            )
+            params: KeyValuePairOperations.update(tab.request.params, index, paramUpdate)
           }
         }))
       },
@@ -148,7 +145,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           ...tab,
           request: {
             ...tab.request,
-            params: tab.request.params.filter((_, i) => i !== index)
+            params: KeyValuePairOperations.remove(tab.request.params, index)
           }
         }))
       },
@@ -185,10 +182,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           ...tab,
           request: {
             ...tab.request,
-            bodyKeyValuePairs: [
-              ...(tab.request.bodyKeyValuePairs || []),
-              { key: '', value: '', enabled: false }
-            ]
+            bodyKeyValuePairs: KeyValuePairOperations.add(tab.request.bodyKeyValuePairs || [])
           }
         }))
       },
@@ -198,9 +192,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           ...tab,
           request: {
             ...tab.request,
-            bodyKeyValuePairs: (tab.request.bodyKeyValuePairs || []).map((keyValue, i) =>
-              i === index ? { ...keyValue, ...keyValueUpdate } : keyValue
-            )
+            bodyKeyValuePairs: KeyValuePairOperations.update(tab.request.bodyKeyValuePairs || [], index, keyValueUpdate)
           }
         }))
       },
@@ -210,7 +202,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           ...tab,
           request: {
             ...tab.request,
-            bodyKeyValuePairs: (tab.request.bodyKeyValuePairs || []).filter((_, i) => i !== index)
+            bodyKeyValuePairs: KeyValuePairOperations.remove(tab.request.bodyKeyValuePairs || [], index)
           }
         }))
       },

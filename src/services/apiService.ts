@@ -1,6 +1,7 @@
 import { ApiRequest, ApiResponse } from '@/types/types'
 import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { getGlobalSettings } from '@renderer/stores/globalSettingsStore'
+import { ErrorHandler } from '@renderer/utils/errorUtils'
 
 // クッキーストアの型を後で追加
 let getCookieHeader: ((domain: string) => string) | null = null
@@ -220,7 +221,11 @@ export class ApiService {
           const { addExecutionHistory } = useCollectionStore.getState()
           addExecutionHistory(request, apiResponse, duration, executionStatus, errorMessage)
         } catch (historyError) {
-          console.warn('Failed to save execution history:', historyError)
+          const error = ErrorHandler.handleStorageError(historyError, { 
+            context: 'saveExecutionHistory',
+            requestId: request.id 
+          })
+          ErrorHandler.logError(error)
         }
       }
 
@@ -228,6 +233,14 @@ export class ApiService {
     } catch (error) {
       const endTime = Date.now()
       const duration = endTime - startTime
+
+      // 統一エラーハンドリング
+      const appError = ErrorHandler.handleNetworkError(error, {
+        requestUrl: request.url,
+        requestMethod: request.method,
+        context: 'executeRequest'
+      })
+      ErrorHandler.logError(appError)
 
       // エラータイプの判定
       let statusText = 'Network Error'
@@ -240,7 +253,7 @@ export class ApiService {
       }
 
       executionStatus = 'error'
-      errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      errorMessage = appError.message
 
       const apiResponse = {
         status: 0,
@@ -260,7 +273,11 @@ export class ApiService {
           const { addExecutionHistory } = useCollectionStore.getState()
           addExecutionHistory(request, apiResponse, duration, executionStatus, errorMessage)
         } catch (historyError) {
-          console.warn('Failed to save execution history:', historyError)
+          const error = ErrorHandler.handleStorageError(historyError, { 
+            context: 'saveExecutionHistory_error',
+            requestId: request.id 
+          })
+          ErrorHandler.logError(error)
         }
       }
 
@@ -429,13 +446,17 @@ export class ApiService {
         }
       }
     } catch (error) {
-      console.error('Failed to process binary response:', error)
+      const appError = ErrorHandler.handleParsingError(error, { 
+        context: 'processBinaryResponse',
+        contentType 
+      })
+      ErrorHandler.logError(appError)
       return {
         type: 'binary',
         size: 0,
         contentType,
         data: null,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: appError.message
       }
     }
   }
@@ -459,7 +480,11 @@ export class ApiService {
           isPreviewable: true
         }
       } catch (error) {
-        console.error('Failed to convert image to base64:', error)
+        const appError = ErrorHandler.handleParsingError(error, { 
+          context: 'convertImageToBase64',
+          contentType 
+        })
+        ErrorHandler.logError(appError)
         return {
           type: 'binary',
           subType: 'image',
@@ -469,7 +494,7 @@ export class ApiService {
           dataUrl: null,
           originalBlob: blob,
           isPreviewable: false,
-          error: error instanceof Error ? error.message : 'Base64 conversion failed'
+          error: appError.message
         }
       }
     }
@@ -490,7 +515,11 @@ export class ApiService {
           isPreviewable: true
         }
       } catch (error) {
-        console.error('Failed to convert document to base64:', error)
+        const appError = ErrorHandler.handleParsingError(error, { 
+          context: 'convertDocumentToBase64',
+          contentType 
+        })
+        ErrorHandler.logError(appError)
         return {
           type: 'binary',
           subType: 'document',
@@ -521,7 +550,11 @@ export class ApiService {
           isPreviewable: true
         }
       } catch (error) {
-        console.error('Failed to convert media to base64:', error)
+        const appError = ErrorHandler.handleParsingError(error, { 
+          context: 'convertMediaToBase64',
+          contentType 
+        })
+        ErrorHandler.logError(appError)
         return {
           type: 'binary',
           subType: contentType.startsWith('audio/') ? 'audio' : 'video',
@@ -575,7 +608,7 @@ export class ApiService {
         dataUrl: null,
         originalBlob: blob,
         isPreviewable: false,
-        error: error instanceof Error ? error.message : 'Processing failed'
+        error: ErrorHandler.extractErrorMessage(error) || 'Processing failed'
       }
     }
   }

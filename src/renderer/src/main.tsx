@@ -3,12 +3,12 @@ import './styles/themes.scss'
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { setCookieResolver } from '@/services/apiService'
+import { ApiServiceV2 } from '@/services/apiServiceV2'
 import App from './App'
 import { useCookieStore } from './stores/cookieStore'
 
 // クッキーリゾルバーの設定
-setCookieResolver((domain: string) => {
+ApiServiceV2.setCookieResolver((domain: string) => {
   return useCookieStore.getState().formatCookieHeader(domain)
 })
 

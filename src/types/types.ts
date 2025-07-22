@@ -4,6 +4,14 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 
 // API種別の型定義
 export type ApiType = 'rest' | 'graphql'
 
+// GraphQL変数の型定義
+export type GraphQLVariableType = 'string' | 'number' | 'boolean' | 'object' | 'array'
+
+export interface GraphQLVariable {
+  value: string | number | boolean | object | unknown[]
+  type: GraphQLVariableType
+}
+
 // ボディタイプの型定義
 export type BodyType = 'json' | 'form-data' | 'x-www-form-urlencoded' | 'raw' | 'graphql'
 
@@ -61,12 +69,49 @@ export interface ApiRequest {
   variables?: Record<string, unknown> // GraphQL用の変数
 }
 
+// レスポンスデータの型定義
+export type ResponseDataType = 'json' | 'text' | 'binary' | 'error'
+
+export interface ResponseData {
+  type: ResponseDataType
+  size?: number
+  contentType?: string
+}
+
+export interface JsonResponseData extends ResponseData {
+  type: 'json'
+  data: Record<string, unknown> | unknown[]
+}
+
+export interface TextResponseData extends ResponseData {
+  type: 'text'
+  data: string
+}
+
+export interface BinaryResponseData extends ResponseData {
+  type: 'binary'
+  subType?: 'image' | 'document' | 'audio' | 'video' | 'other'
+  data: string | null // base64 encoded data
+  dataUrl?: string | null
+  originalBlob?: Blob
+  isPreviewable?: boolean
+  notice?: string
+  error?: string
+}
+
+export interface ErrorResponseData extends ResponseData {
+  type: 'error'
+  error: string
+}
+
+export type ApiResponseData = JsonResponseData | TextResponseData | BinaryResponseData | ErrorResponseData
+
 // APIレスポンスの型定義
 export interface ApiResponse {
   status: number
   statusText: string
   headers: Record<string, string>
-  data: unknown
+  data: ApiResponseData
   duration: number // レスポンス時間（ミリ秒）
   timestamp: string // ISO文字列
 }

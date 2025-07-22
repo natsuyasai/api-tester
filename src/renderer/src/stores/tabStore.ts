@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { ApiTab } from '@/types/types'
+import { KeyValuePairOperations } from '@renderer/utils/keyValueUtils'
 
 interface TabState {
   tabs: ApiTab[]
@@ -37,11 +38,11 @@ const createInitialTab = (collectionId?: string): ApiTab => ({
     name: 'New Request',
     url: '',
     method: 'GET',
-    headers: [{ key: '', value: '', enabled: false }],
-    params: [{ key: '', value: '', enabled: false }],
+    headers: KeyValuePairOperations.add([]),
+    params: KeyValuePairOperations.add([]),
     body: '',
     bodyType: 'json',
-    bodyKeyValuePairs: [{ key: '', value: '', enabled: false }],
+    bodyKeyValuePairs: KeyValuePairOperations.add([]),
     type: 'rest'
   }
 })

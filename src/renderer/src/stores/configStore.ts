@@ -2,6 +2,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { ApiTab, KeyValuePair, HttpMethod, BodyType } from '@/types/types'
+import { ErrorHandler } from '@renderer/utils/errorUtils'
+import { KeyValuePairOperations } from '@renderer/utils/keyValueUtils'
 import { useTabStore } from './tabStore'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -54,12 +56,8 @@ export const useConfigStore = create<ConfigState & ConfigActions>()(
                 name: (request.name as string) || `Imported ${index + 1}`,
                 url: (request.url as string) || '',
                 method: (request.method as HttpMethod) || 'GET',
-                headers: (request.headers as KeyValuePair[]) || [
-                  { key: '', value: '', enabled: false }
-                ],
-                params: (request.params as KeyValuePair[]) || [
-                  { key: '', value: '', enabled: false }
-                ],
+                headers: (request.headers as KeyValuePair[]) || KeyValuePairOperations.add([]),
+                params: (request.params as KeyValuePair[]) || KeyValuePairOperations.add([]),
                 body: (request.body as string) || '',
                 bodyType: (request.bodyType as BodyType) || 'json',
                 type: (request.type as 'rest' | 'graphql') || 'rest',
@@ -78,8 +76,12 @@ export const useConfigStore = create<ConfigState & ConfigActions>()(
             })
           }
         } catch (error) {
-          console.error('Failed to import config:', error)
-          throw error
+          const appError = ErrorHandler.handleParsingError(error, { 
+            context: 'importConfig',
+            configLength: configJson.length
+          })
+          ErrorHandler.logError(appError)
+          throw appError
         }
       },
 

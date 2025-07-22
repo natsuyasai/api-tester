@@ -22,10 +22,7 @@ export const useAutoSave = () => {
           ? {
               status: tab.response.status,
               headers: tab.response.headers,
-              data:
-                typeof tab.response.data === 'string'
-                  ? tab.response.data.substring(0, 100) // データが文字列の場合は先頭100文字のみ
-                  : String(tab.response.data).substring(0, 100) // それ以外は文字列化してから
+              data: '[Response Data]' // レスポンスデータは文字列化せずに固定メッセージ
             }
           : null
       }))

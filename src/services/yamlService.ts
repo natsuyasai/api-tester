@@ -1,6 +1,7 @@
 import yaml from 'js-yaml'
 import { v4 as uuidv4 } from 'uuid'
 import { ApiTab, ApiRequest } from '@/types/types'
+import { KeyValuePairOperations } from '@renderer/utils/keyValueUtils'
 export interface YamlExportData {
   version: string
   collections: YamlCollection[]
@@ -287,7 +288,7 @@ export class YamlService {
       : []
 
     // 空の行を追加
-    headers.push({ key: '', value: '', enabled: false })
+    headers.push(...KeyValuePairOperations.add([]))
 
     // パラメータを配列形式に変換
     const params = yamlRequest.params
@@ -299,7 +300,7 @@ export class YamlService {
       : []
 
     // 空の行を追加
-    params.push({ key: '', value: '', enabled: false })
+    params.push(...KeyValuePairOperations.add([]))
 
     // ボディを文字列に変換
     let body = ''

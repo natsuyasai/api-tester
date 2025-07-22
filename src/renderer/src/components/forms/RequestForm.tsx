@@ -1,5 +1,5 @@
 import { JSX, useState } from 'react'
-import { ApiService } from '@/services/apiService'
+import { ApiServiceV2 } from '@/services/apiServiceV2'
 import { HttpMethod } from '@/types/types'
 import { useEnvironmentStore } from '@renderer/stores/environmentStore'
 import { useRequestStore } from '@renderer/stores/requestStore'
@@ -46,7 +46,7 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
     if (!request.url) return
 
     // リクエストのバリデーション
-    const validationErrors = ApiService.validateRequest(request)
+    const validationErrors = ApiServiceV2.validateRequest(request, resolveVariables)
     if (validationErrors.length > 0) {
       alert(`Validation errors:\n${validationErrors.join('\n')}`)
       return
@@ -54,7 +54,7 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
 
     setLoading(true)
     try {
-      const response = await ApiService.executeRequest(request, resolveVariables)
+      const response = await ApiServiceV2.executeRequest(request, resolveVariables)
       setResponse(tabId, response)
     } catch (error) {
       console.error('Request failed:', error)

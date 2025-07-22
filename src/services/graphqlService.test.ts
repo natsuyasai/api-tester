@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ApiService } from './apiService'
+import { ApiServiceV2 } from './apiServiceV2'
 import { GraphQLService } from './graphqlService'
 
-// ApiServiceをモック
-vi.mock('./apiService')
+// ApiServiceV2をモック
+vi.mock('./apiServiceV2')
 
 describe('GraphQLService', () => {
   beforeEach(() => {
@@ -21,7 +21,7 @@ describe('GraphQLService', () => {
         timestamp: '2024-01-01T10:00:00.000Z'
       }
 
-      const mockExecuteRequest = vi.mocked(ApiService).executeRequest
+      const mockExecuteRequest = vi.mocked(ApiServiceV2).executeRequest
       mockExecuteRequest.mockResolvedValue(mockResponse)
 
       const result = await GraphQLService.executeGraphQLQuery(
@@ -63,7 +63,7 @@ describe('GraphQLService', () => {
         timestamp: '2024-01-01T10:00:00.000Z'
       }
 
-      const mockExecuteRequest = vi.mocked(ApiService).executeRequest
+      const mockExecuteRequest = vi.mocked(ApiServiceV2).executeRequest
       mockExecuteRequest.mockResolvedValue(mockResponse)
 
       await GraphQLService.executeGraphQLQuery(
