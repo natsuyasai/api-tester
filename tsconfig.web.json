@@ -9,6 +9,7 @@
     "src/types/types.ts",
     "src/renderer/src/stores/**/*",
     "src/services/**/*",
+    "src/utils/**/*",
     "src/test/**/*",
     "src/mocks/**/*",
     "src/vite-env.d.ts",

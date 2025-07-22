@@ -97,6 +97,7 @@ export function useOptimizedFilter<T>(
 ): T[] {
   return useMemo(() => {
     return items.filter(filterFn)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, filterFn, ...dependencies])
 }
 
@@ -153,6 +154,7 @@ export function useCleanup(cleanup: () => void): void {
  * 重い計算のメモ化
  */
 export function useComputedValue<T>(computeFn: () => T, dependencies: unknown[]): T {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   return useMemo(computeFn, dependencies)
 }
 
@@ -186,10 +188,10 @@ export function useAsyncOperation<T extends unknown[], R>(
 ): {
   execute: (...args: T) => Promise<R>
   isLoading: boolean
-  error: unknown | null
+  error: Error | null
 } {
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<unknown | null>(null)
+  const [error, setError] = useState<Error | null>(null)
   const runningRef = useRef<Promise<R> | null>(null)
 
   const execute = useCallback(
@@ -208,7 +210,7 @@ export function useAsyncOperation<T extends unknown[], R>(
         const result = await promise
         return result
       } catch (err) {
-        setError(err)
+        setError(err instanceof Error ? err : new Error(String(err)))
         throw err
       } finally {
         setIsLoading(false)
@@ -247,10 +249,14 @@ export function useCachedValue<T>(
     const result = fetchFn()
 
     if (result instanceof Promise) {
-      result.then((resolvedValue) => {
-        cache.set(key, { value: resolvedValue, timestamp: Date.now() })
-        setValue(resolvedValue)
-      })
+      void result
+        .then((resolvedValue) => {
+          cache.set(key, { value: resolvedValue, timestamp: Date.now() })
+          setValue(resolvedValue)
+        })
+        .catch((error) => {
+          console.error('Failed to fetch cached value:', error)
+        })
     } else {
       cache.set(key, { value: result, timestamp: Date.now() })
       setValue(result)

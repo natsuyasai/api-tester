@@ -123,21 +123,15 @@ export const formatHttpResponse = (response: ApiResponse): string => {
 
   // レスポンスボディ
   if (response.data) {
-    if (typeof response.data === 'string') {
-      raw += response.data
-    } else if (
-      response.data &&
-      typeof response.data === 'object' &&
-      'type' in response.data &&
-      response.data.type === 'binary'
-    ) {
-      const binaryData = response.data as {
-        type: string
-        subType: string
-        contentType: string
-        size: number
-      }
-      raw += `[Binary Data: ${binaryData.contentType}, Size: ${binaryData.size} bytes]`
+    if (response.data.type === 'text') {
+      raw += response.data.data
+    } else if (response.data.type === 'json') {
+      raw += response.data.raw || JSON.stringify(response.data.data, null, 2)
+    } else if (response.data.type === 'binary') {
+      const binaryData = response.data
+      raw += `[Binary Data: ${binaryData.contentType}, Size: ${binaryData.size || 0} bytes]`
+    } else if (response.data.type === 'error') {
+      raw += `[Error: ${response.data.error}]`
     } else {
       raw += JSON.stringify(response.data, null, 2)
     }

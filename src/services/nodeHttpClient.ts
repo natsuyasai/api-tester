@@ -4,6 +4,23 @@ import { getGlobalSettings } from '@renderer/stores/globalSettingsStore'
 import { ErrorHandler } from '@renderer/utils/errorUtils'
 import { RequestBuilder } from './requestBuilder'
 
+// undici用の型定義
+interface UndiciOptions {
+  method?: string
+  headers?: HeadersInit
+  body?: string | null
+  headersTimeout?: number
+  bodyTimeout?: number
+  rejectUnauthorized?: boolean
+  maxRedirections?: number
+  dispatcher?: ProxyAgent
+  signal?: AbortSignal
+}
+
+interface NodeError extends Error {
+  code?: string
+}
+
 /**
  * Node.js環境用HTTP通信クライアント
  * ElectronのNode.js環境でundiciを使用したHTTP通信
@@ -109,13 +126,13 @@ export class NodeHttpClient {
   /**
    * Fetch APIのオプションをundici用に変換
    */
-  private convertToUndiciOptions(fetchOptions: RequestInit) {
+  private convertToUndiciOptions(fetchOptions: RequestInit): Record<string, unknown> {
     const globalSettings = getGlobalSettings()
 
-    const undiciOptions: any = {
+    const undiciOptions: Record<string, unknown> = {
       method: fetchOptions.method,
       headers: fetchOptions.headers,
-      body: fetchOptions.body
+      body: typeof fetchOptions.body === 'string' ? fetchOptions.body : null
     }
 
     // タイムアウト設定
@@ -163,7 +180,10 @@ export class NodeHttpClient {
   /**
    * undiciレスポンスを処理
    */
-  private async processUndiciResponse(response: any, startTime: number): Promise<ApiResponse> {
+  private async processUndiciResponse(
+    response: { statusCode: number; headers: Record<string, unknown>; body: { arrayBuffer(): Promise<ArrayBuffer> } },
+    startTime: number
+  ): Promise<ApiResponse> {
     try {
       const duration = Date.now() - startTime
 
@@ -300,7 +320,8 @@ export class NodeHttpClient {
 
     // undiciエラーの特定の処理
     if (error && typeof error === 'object' && 'code' in error) {
-      const errorCode = (error as any).code
+      const nodeError = error as NodeError
+      const errorCode = nodeError.code
 
       switch (errorCode) {
         case 'ECONNREFUSED':

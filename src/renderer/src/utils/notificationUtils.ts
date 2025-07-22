@@ -146,8 +146,8 @@ export class NotificationManager {
  * 便利な短縮関数
  */
 export const notify = {
-  success: NotificationManager.notifySuccess,
-  error: NotificationManager.notifyError,
-  warning: NotificationManager.notifyWarning,
-  info: NotificationManager.notifyInfo
+  success: NotificationManager.notifySuccess.bind(NotificationManager),
+  error: NotificationManager.notifyError.bind(NotificationManager),
+  warning: NotificationManager.notifyWarning.bind(NotificationManager),
+  info: NotificationManager.notifyInfo.bind(NotificationManager)
 }

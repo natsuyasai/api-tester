@@ -198,5 +198,5 @@ export class ErrorHandler {
 /**
  * Try-Catch構文のヘルパー関数
  */
-export const safeAsync = ErrorHandler.withErrorHandling
-export const safeSync = ErrorHandler.withSyncErrorHandling
+export const safeAsync = ErrorHandler.withErrorHandling.bind(ErrorHandler)
+export const safeSync = ErrorHandler.withSyncErrorHandling.bind(ErrorHandler)

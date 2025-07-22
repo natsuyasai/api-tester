@@ -82,9 +82,9 @@ export class NodeStorageService {
       }
 
       const content = await NodeFileService.processFile(filePath, 'binary')
-      const data = JSON.parse(content)
+      const data = JSON.parse(content) as { value?: unknown }
 
-      return data.value || null
+      return data.value ?? null
     } catch (error) {
       console.error(`ストレージからの取得に失敗 (key: ${key}):`, error)
       return null
@@ -136,11 +136,11 @@ export class NodeStorageService {
       for (const file of files) {
         try {
           const content = await NodeFileService.processFile(file, 'binary')
-          const data = JSON.parse(content)
+          const data = JSON.parse(content) as { key?: string }
           if (data.key) {
             keys.push(data.key)
           }
-        } catch (error) {
+        } catch (_error) {
           // 破損したファイルはスキップ
           console.warn(`破損したストレージファイル: ${file}`)
         }

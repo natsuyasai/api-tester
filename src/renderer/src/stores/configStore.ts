@@ -81,7 +81,7 @@ export const useConfigStore = create<ConfigState & ConfigActions>()(
             configLength: configJson.length
           })
           ErrorHandler.logError(appError)
-          throw appError
+          throw new Error(appError.message)
         }
       },
 

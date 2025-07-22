@@ -124,7 +124,7 @@ export class KeyValueValidator {
     }
 
     // HTTP仕様に基づく検証
-    const invalidChars = /[\s\(\)<>@,;:\\"\/\[\]?={}]/
+    const invalidChars = /[\s()<>@,;:\\"/[\]?={}]/
     if (invalidChars.test(key)) {
       return {
         valid: false,

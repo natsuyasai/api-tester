@@ -203,7 +203,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
 
       if (contentType.includes('application/json')) {
         try {
-          const jsonData = JSON.parse(bodyText)
+          const jsonData = JSON.parse(bodyText) as Record<string, unknown> | unknown[]
           responseData = {
             type: 'json' as const,
             data: jsonData,

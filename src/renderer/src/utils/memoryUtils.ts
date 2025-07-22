@@ -2,6 +2,11 @@
  * メモリ管理とデータ効率化ユーティリティ
  */
 
+// Performance API拡張の型定義
+interface ExtendedPerformance extends Performance {
+  memory?: MemoryInfo
+}
+
 /**
  * WeakMapベースのキャッシュ
  */
@@ -207,8 +212,10 @@ export class MemoryMonitor {
 
     this.intervalId = setInterval(() => {
       if ('memory' in performance) {
-        const memInfo = (performance as any).memory as MemoryInfo
-        this.observers.forEach((observer) => observer(memInfo))
+        const extendedPerf = performance as ExtendedPerformance
+        if (extendedPerf.memory) {
+          this.observers.forEach((observer) => observer(extendedPerf.memory!))
+        }
       }
     }, interval)
   }
@@ -232,7 +239,8 @@ export class MemoryMonitor {
 
   getCurrentMemoryInfo(): MemoryInfo | null {
     if ('memory' in performance) {
-      return (performance as any).memory as MemoryInfo
+      const extendedPerf = performance as ExtendedPerformance
+      return extendedPerf.memory || null
     }
     return null
   }

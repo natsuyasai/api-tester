@@ -8,7 +8,7 @@ import App from './App'
 import { useCookieStore } from './stores/cookieStore'
 
 // クッキーリゾルバーの設定
-ApiServiceV2.setCookieResolver((domain: string) => {
+void ApiServiceV2.setCookieResolver((domain: string) => {
   return useCookieStore.getState().formatCookieHeader(domain)
 })
 
