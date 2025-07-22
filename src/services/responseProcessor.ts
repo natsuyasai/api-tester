@@ -1,4 +1,11 @@
-import { ApiResponse, ApiResponseData, JsonResponseData, TextResponseData, BinaryResponseData, ErrorResponseData } from '@/types/types'
+import {
+  ApiResponse,
+  ApiResponseData,
+  JsonResponseData,
+  TextResponseData,
+  BinaryResponseData,
+  ErrorResponseData
+} from '@/types/types'
 import { ErrorHandler } from '@renderer/utils/errorUtils'
 
 /**
@@ -44,23 +51,24 @@ export class ResponseProcessor {
    */
   private async processResponseData(): Promise<ApiResponseData> {
     const contentType = this.response.headers.get('content-type') || ''
-    
+
     try {
       // JSON形式の場合
       if (contentType.includes('application/json') || contentType.includes('application/ld+json')) {
         return await this.processJsonResponse(contentType)
       }
-      
+
       // テキスト形式の場合
-      if (contentType.includes('text/') || 
-          contentType.includes('application/xml') || 
-          contentType.includes('application/xhtml+xml')) {
+      if (
+        contentType.includes('text/') ||
+        contentType.includes('application/xml') ||
+        contentType.includes('application/xhtml+xml')
+      ) {
         return await this.processTextResponse(contentType)
       }
-      
+
       // バイナリデータの場合
       return await this.processBinaryResponse(contentType)
-
     } catch (error) {
       const appError = ErrorHandler.handleParsingError(error, {
         context: 'processResponseData',
@@ -68,7 +76,7 @@ export class ResponseProcessor {
         status: this.response.status
       })
       ErrorHandler.logError(appError)
-      
+
       return {
         type: 'error',
         error: appError.message,
@@ -80,9 +88,11 @@ export class ResponseProcessor {
   /**
    * JSONレスポンスを処理
    */
-  private async processJsonResponse(contentType: string): Promise<JsonResponseData | TextResponseData> {
+  private async processJsonResponse(
+    contentType: string
+  ): Promise<JsonResponseData | TextResponseData> {
     const text = await this.response.text()
-    
+
     try {
       const data = JSON.parse(text) as Record<string, unknown> | unknown[]
       return {
@@ -107,7 +117,7 @@ export class ResponseProcessor {
    */
   private async processTextResponse(contentType: string): Promise<TextResponseData> {
     const data = await this.response.text()
-    
+
     return {
       type: 'text',
       data,
@@ -136,14 +146,13 @@ export class ResponseProcessor {
       }
 
       return await this.convertBlobToTypedData(blob, contentType, size)
-
     } catch (error) {
-      const appError = ErrorHandler.handleParsingError(error, { 
+      const appError = ErrorHandler.handleParsingError(error, {
         context: 'processBinaryResponse',
-        contentType 
+        contentType
       })
       ErrorHandler.logError(appError)
-      
+
       return {
         type: 'binary',
         size: 0,
@@ -159,7 +168,11 @@ export class ResponseProcessor {
   /**
    * BlobをサブタイプごとのデータIn形式に変換
    */
-  private async convertBlobToTypedData(blob: Blob, contentType: string, size: number): Promise<BinaryResponseData> {
+  private async convertBlobToTypedData(
+    blob: Blob,
+    contentType: string,
+    size: number
+  ): Promise<BinaryResponseData> {
     const MAX_PREVIEW_SIZE = 10 * 1024 * 1024 // 10MB
 
     // 画像の場合
@@ -168,9 +181,11 @@ export class ResponseProcessor {
     }
 
     // ドキュメント/PDF の場合
-    if (contentType.includes('pdf') || 
-        contentType.includes('document') || 
-        contentType.includes('presentation')) {
+    if (
+      contentType.includes('pdf') ||
+      contentType.includes('document') ||
+      contentType.includes('presentation')
+    ) {
       return await this.processDocumentBlob(blob, contentType, size)
     }
 
@@ -225,7 +240,11 @@ export class ResponseProcessor {
   /**
    * 画像Blobを処理
    */
-  private async processImageBlob(blob: Blob, contentType: string, size: number): Promise<BinaryResponseData> {
+  private async processImageBlob(
+    blob: Blob,
+    contentType: string,
+    size: number
+  ): Promise<BinaryResponseData> {
     try {
       const base64Data = await this.blobToBase64(blob)
       const dataUrl = `data:${contentType};base64,${base64Data}`
@@ -241,12 +260,12 @@ export class ResponseProcessor {
         isPreviewable: true
       }
     } catch (error) {
-      const appError = ErrorHandler.handleParsingError(error, { 
+      const appError = ErrorHandler.handleParsingError(error, {
         context: 'processImageBlob',
-        contentType 
+        contentType
       })
       ErrorHandler.logError(appError)
-      
+
       return {
         type: 'binary',
         subType: 'image',
@@ -264,7 +283,11 @@ export class ResponseProcessor {
   /**
    * ドキュメントBlobを処理
    */
-  private async processDocumentBlob(blob: Blob, contentType: string, size: number): Promise<BinaryResponseData> {
+  private async processDocumentBlob(
+    blob: Blob,
+    contentType: string,
+    size: number
+  ): Promise<BinaryResponseData> {
     try {
       const base64Data = await this.blobToBase64(blob)
       const dataUrl = `data:${contentType};base64,${base64Data}`
@@ -280,12 +303,12 @@ export class ResponseProcessor {
         isPreviewable: true
       }
     } catch (error) {
-      const appError = ErrorHandler.handleParsingError(error, { 
+      const appError = ErrorHandler.handleParsingError(error, {
         context: 'processDocumentBlob',
-        contentType 
+        contentType
       })
       ErrorHandler.logError(appError)
-      
+
       return {
         type: 'binary',
         subType: 'document',
@@ -303,7 +326,11 @@ export class ResponseProcessor {
   /**
    * メディア（音声/動画）Blobを処理
    */
-  private async processMediaBlob(blob: Blob, contentType: string, size: number): Promise<BinaryResponseData> {
+  private async processMediaBlob(
+    blob: Blob,
+    contentType: string,
+    size: number
+  ): Promise<BinaryResponseData> {
     try {
       const base64Data = await this.blobToBase64(blob)
       const dataUrl = `data:${contentType};base64,${base64Data}`
@@ -319,12 +346,12 @@ export class ResponseProcessor {
         isPreviewable: true
       }
     } catch (error) {
-      const appError = ErrorHandler.handleParsingError(error, { 
+      const appError = ErrorHandler.handleParsingError(error, {
         context: 'processMediaBlob',
-        contentType 
+        contentType
       })
       ErrorHandler.logError(appError)
-      
+
       return {
         type: 'binary',
         subType: contentType.startsWith('audio/') ? 'audio' : 'video',
@@ -359,7 +386,7 @@ export class ResponseProcessor {
    * エラーレスポンスを作成
    */
   static createErrorResponse(
-    error: unknown, 
+    error: unknown,
     startTime: number,
     requestUrl: string,
     requestMethod: string

@@ -3,7 +3,7 @@
  */
 export enum ErrorType {
   VALIDATION = 'validation',
-  NETWORK = 'network', 
+  NETWORK = 'network',
   PARSING = 'parsing',
   STORAGE = 'storage',
   SYSTEM = 'system',
@@ -51,10 +51,7 @@ export class ErrorHandler {
   /**
    * 検証エラーの処理
    */
-  static handleValidationError(
-    message: string,
-    context?: Record<string, unknown>
-  ): AppError {
+  static handleValidationError(message: string, context?: Record<string, unknown>): AppError {
     return this.createError(ErrorType.VALIDATION, message, undefined, context)
   }
 
@@ -117,7 +114,7 @@ export class ErrorHandler {
         context: appError.context,
         timestamp: appError.timestamp
       })
-      
+
       if (appError.originalError) {
         console.error('[ORIGINAL ERROR]', appError.originalError)
       }
@@ -143,7 +140,7 @@ export class ErrorHandler {
   }
 
   /**
-   * 同期処理のエラーハンドリングラッパー  
+   * 同期処理のエラーハンドリングラッパー
    */
   static withSyncErrorHandling<T>(
     syncFn: () => T,

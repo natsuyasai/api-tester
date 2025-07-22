@@ -19,11 +19,12 @@ export class NodeStorageService {
     }
 
     const homeDir = homedir()
-    const configDir = process.platform === 'win32' 
-      ? join(homeDir, 'AppData', 'Local', this.APP_NAME)
-      : process.platform === 'darwin'
-      ? join(homeDir, 'Library', 'Application Support', this.APP_NAME)
-      : join(homeDir, '.config', this.APP_NAME)
+    const configDir =
+      process.platform === 'win32'
+        ? join(homeDir, 'AppData', 'Local', this.APP_NAME)
+        : process.platform === 'darwin'
+          ? join(homeDir, 'Library', 'Application Support', this.APP_NAME)
+          : join(homeDir, '.config', this.APP_NAME)
 
     this.storageDir = configDir
 
@@ -75,14 +76,14 @@ export class NodeStorageService {
   static async getItem(key: string): Promise<string | null> {
     try {
       const filePath = await this.getFilePath(key)
-      
+
       if (!(await NodeFileService.fileExists(filePath))) {
         return null
       }
 
       const content = await NodeFileService.processFile(filePath, 'binary')
       const data = JSON.parse(content)
-      
+
       return data.value || null
     } catch (error) {
       console.error(`ストレージからの取得に失敗 (key: ${key}):`, error)
@@ -97,7 +98,7 @@ export class NodeStorageService {
   static async removeItem(key: string): Promise<void> {
     try {
       const filePath = await this.getFilePath(key)
-      
+
       if (await NodeFileService.fileExists(filePath)) {
         await NodeFileService.deleteFile(filePath)
       }
@@ -114,8 +115,8 @@ export class NodeStorageService {
     try {
       const storageDir = await this.getStorageDir()
       const files = await NodeFileService.listFiles(storageDir, '.json')
-      
-      await Promise.all(files.map(file => NodeFileService.deleteFile(file)))
+
+      await Promise.all(files.map((file) => NodeFileService.deleteFile(file)))
     } catch (error) {
       console.error('ストレージのクリアに失敗:', error)
       throw new Error('ストレージのクリアに失敗しました')
@@ -234,7 +235,7 @@ export class NodeStorageService {
   static async restoreFromBackup(backupPath: string): Promise<void> {
     try {
       const storageDir = await this.getStorageDir()
-      
+
       if (!(await NodeFileService.fileExists(backupPath))) {
         throw new Error('バックアップディレクトリが存在しません')
       }
@@ -284,7 +285,7 @@ export class NodeStorageService {
       setItem(key: string, value: string) {
         cache.set(key, value)
         // 非同期でファイルに書き込み
-        NodeStorageService.setItem(key, value).catch(error => {
+        NodeStorageService.setItem(key, value).catch((error) => {
           console.error('LocalStorage adapter setItem error:', error)
         })
       },
@@ -296,7 +297,7 @@ export class NodeStorageService {
       removeItem(key: string) {
         cache.delete(key)
         // 非同期でファイルから削除
-        NodeStorageService.removeItem(key).catch(error => {
+        NodeStorageService.removeItem(key).catch((error) => {
           console.error('LocalStorage adapter removeItem error:', error)
         })
       },
@@ -304,7 +305,7 @@ export class NodeStorageService {
       clear() {
         cache.clear()
         // 非同期でファイルをクリア
-        NodeStorageService.clear().catch(error => {
+        NodeStorageService.clear().catch((error) => {
           console.error('LocalStorage adapter clear error:', error)
         })
       },

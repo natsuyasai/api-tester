@@ -80,8 +80,8 @@ describe('型定義のテスト', () => {
         status: 200,
         statusText: 'OK',
         headers: { 'content-type': 'application/json' },
-        data: { 
-          type: 'json' as const, 
+        data: {
+          type: 'json' as const,
           data: { message: 'success' },
           size: 100,
           contentType: 'application/json'

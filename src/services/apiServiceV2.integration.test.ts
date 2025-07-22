@@ -23,7 +23,7 @@ describe('ApiServiceV2 Integration Tests', () => {
   describe('buildCurlCommand', () => {
     it('should generate valid curl command for GET request', () => {
       const curl = ApiServiceV2.buildCurlCommand(mockRequest)
-      
+
       expect(curl).toContain('curl')
       expect(curl).toContain('-X GET')
       expect(curl).toContain(mockRequest.url)
@@ -40,7 +40,7 @@ describe('ApiServiceV2 Integration Tests', () => {
       }
 
       const curl = ApiServiceV2.buildCurlCommand(requestWithHeaders)
-      
+
       expect(curl).toContain('-H "Authorization: Bearer token123"')
       expect(curl).toContain('-H "Content-Type: application/json"')
       expect(curl).not.toContain('Disabled-Header')
@@ -57,7 +57,7 @@ describe('ApiServiceV2 Integration Tests', () => {
       }
 
       const curl = ApiServiceV2.buildCurlCommand(requestWithParams)
-      
+
       expect(curl).toContain('page=1')
       expect(curl).toContain('limit=10')
       expect(curl).not.toContain('disabled=ignore')
@@ -71,7 +71,7 @@ describe('ApiServiceV2 Integration Tests', () => {
       }
 
       const curl = ApiServiceV2.buildCurlCommand(postRequest)
-      
+
       expect(curl).toContain('-X POST')
       expect(curl).toContain('-d \'{"title": "test", "body": "content"}\'')
     })
@@ -89,7 +89,7 @@ describe('ApiServiceV2 Integration Tests', () => {
       }
 
       const curl = ApiServiceV2.buildCurlCommand(formRequest)
-      
+
       expect(curl).toContain('-F "name=John Doe"')
       expect(curl).toContain('-F "email=john@example.com"')
       expect(curl).not.toContain('disabled=ignore')
@@ -107,7 +107,7 @@ describe('ApiServiceV2 Integration Tests', () => {
       }
 
       const curl = ApiServiceV2.buildCurlCommand(urlEncodedRequest)
-      
+
       expect(curl).toContain('-d "username=testuser&password=secret123"')
       expect(curl).toContain('-H "Content-Type: application/x-www-form-urlencoded"')
     })
@@ -116,18 +116,17 @@ describe('ApiServiceV2 Integration Tests', () => {
       const requestWithVariables: ApiRequest = {
         ...mockRequest,
         url: 'https://{{host}}/api/{{endpoint}}',
-        headers: [
-          { key: 'Authorization', value: 'Bearer {{token}}', enabled: true }
-        ]
+        headers: [{ key: 'Authorization', value: 'Bearer {{token}}', enabled: true }]
       }
 
-      const variableResolver = (text: string) => 
-        text.replace('{{host}}', 'api.example.com')
-            .replace('{{endpoint}}', 'users')
-            .replace('{{token}}', 'abc123')
+      const variableResolver = (text: string) =>
+        text
+          .replace('{{host}}', 'api.example.com')
+          .replace('{{endpoint}}', 'users')
+          .replace('{{token}}', 'abc123')
 
       const curl = ApiServiceV2.buildCurlCommand(requestWithVariables, variableResolver)
-      
+
       expect(curl).toContain('https://api.example.com/api/users')
       expect(curl).toContain('Bearer abc123')
     })
@@ -136,7 +135,7 @@ describe('ApiServiceV2 Integration Tests', () => {
   describe('validateRequest', () => {
     it('should return no errors for valid request', async () => {
       const errors = await ApiServiceV2.validateRequest(mockRequest)
-      
+
       expect(Array.isArray(errors)).toBe(true)
       expect(errors.length).toBe(0)
     })
@@ -148,9 +147,9 @@ describe('ApiServiceV2 Integration Tests', () => {
       }
 
       const errors = await ApiServiceV2.validateRequest(invalidRequest)
-      
+
       expect(errors.length).toBeGreaterThan(0)
-      expect(errors.some(error => error.includes('URL'))).toBe(true)
+      expect(errors.some((error) => error.includes('URL'))).toBe(true)
     })
 
     it('should return error for invalid URL format', async () => {
@@ -160,7 +159,7 @@ describe('ApiServiceV2 Integration Tests', () => {
       }
 
       const errors = await ApiServiceV2.validateRequest(invalidRequest)
-      
+
       expect(errors.length).toBeGreaterThan(0)
     })
 
@@ -177,9 +176,9 @@ describe('ApiServiceV2 Integration Tests', () => {
       }
 
       const errors = await ApiServiceV2.validateRequest(requestWithInvalidAuth)
-      
+
       expect(errors.length).toBeGreaterThan(0)
-      expect(errors.some(error => error.includes('ユーザー名'))).toBe(true)
+      expect(errors.some((error) => error.includes('ユーザー名'))).toBe(true)
     })
   })
 
@@ -187,19 +186,21 @@ describe('ApiServiceV2 Integration Tests', () => {
     it('should check if URL is reachable', async () => {
       // JSONPlaceholderを使用した実際のヘルスチェック
       const result = await ApiServiceV2.healthCheck('https://jsonplaceholder.typicode.com/posts/1')
-      
+
       expect(result).toBeDefined()
       expect(typeof result.isHealthy).toBe('boolean')
       expect(typeof result.responseTime).toBe('number')
-      
+
       if (result.isHealthy) {
         expect(result.statusCode).toBe(200)
       }
     })
 
     it('should handle unreachable URLs', async () => {
-      const result = await ApiServiceV2.healthCheck('https://invalid-domain-that-does-not-exist.com')
-      
+      const result = await ApiServiceV2.healthCheck(
+        'https://invalid-domain-that-does-not-exist.com'
+      )
+
       expect(result.isHealthy).toBe(false)
       expect(result.error).toBeDefined()
       expect(typeof result.error).toBe('string')

@@ -103,12 +103,10 @@ describe('RequestBuilder', () => {
       const requestWithVariables: ApiRequest = {
         ...mockRequest,
         url: 'https://{{host}}/users',
-        params: [
-          { key: 'limit', value: '{{limit}}', enabled: true }
-        ]
+        params: [{ key: 'limit', value: '{{limit}}', enabled: true }]
       }
 
-      const variableResolver = (text: string) => 
+      const variableResolver = (text: string) =>
         text.replace('{{host}}', 'api.test.com').replace('{{limit}}', '20')
 
       const builder = new RequestBuilder(requestWithVariables, variableResolver)
@@ -159,9 +157,7 @@ describe('RequestBuilder', () => {
     it('should not override existing Content-Type', () => {
       const requestWithContentType: ApiRequest = {
         ...mockRequest,
-        headers: [
-          { key: 'Content-Type', value: 'application/custom', enabled: true }
-        ]
+        headers: [{ key: 'Content-Type', value: 'application/custom', enabled: true }]
       }
 
       const builder = new RequestBuilder(requestWithContentType)

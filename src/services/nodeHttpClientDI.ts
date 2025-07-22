@@ -1,7 +1,11 @@
 import { ApiRequest, ApiResponse, ApiResponseData } from '@/types/types'
 import { getGlobalSettings } from '@renderer/stores/globalSettingsStore'
 import { ErrorHandler } from '@renderer/utils/errorUtils'
-import { HttpClientInterface, UndiciRequestInterface, ProxyAgentInterface } from './httpClientInterface'
+import {
+  HttpClientInterface,
+  UndiciRequestInterface,
+  ProxyAgentInterface
+} from './httpClientInterface'
 import { RequestBuilder } from './requestBuilder'
 
 /**
@@ -9,7 +13,7 @@ import { RequestBuilder } from './requestBuilder'
  */
 export class NodeHttpClientDI implements HttpClientInterface {
   private getCookieHeader: ((domain: string) => string) | null = null
-  
+
   constructor(
     private undiciRequest: UndiciRequestInterface,
     private ProxyAgentClass?: ProxyAgentInterface
@@ -39,10 +43,9 @@ export class NodeHttpClientDI implements HttpClientInterface {
       // リクエスト検証
       const validationErrors = builder.validate()
       if (validationErrors.length > 0) {
-        const appError = ErrorHandler.handleValidationError(
-          validationErrors.join(', '),
-          { context: 'requestValidation' }
-        )
+        const appError = ErrorHandler.handleValidationError(validationErrors.join(', '), {
+          context: 'requestValidation'
+        })
         throw new Error(appError.message)
       }
 
@@ -50,7 +53,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
       let url = builder.buildUrl()
       url = builder.adjustUrlForApiKey(url)
       const fetchOptions = builder.buildFetchOptions()
-      
+
       // undici用のオプションに変換
       const undiciOptions = this.convertToUndiciOptions(fetchOptions, url.toString())
 
@@ -59,15 +62,9 @@ export class NodeHttpClientDI implements HttpClientInterface {
 
       // レスポンス処理
       return await this.processUndiciResponse(response, startTime)
-
     } catch (error) {
       // エラーレスポンスを作成
-      return this.createNodeErrorResponse(
-        error,
-        startTime,
-        request.url,
-        request.method
-      )
+      return this.createNodeErrorResponse(error, startTime, request.url, request.method)
     }
   }
 
@@ -84,14 +81,13 @@ export class NodeHttpClientDI implements HttpClientInterface {
 
     try {
       const builder = new RequestBuilder(request, resolveVariables, this.getCookieHeader)
-      
+
       // リクエスト検証
       const validationErrors = builder.validate()
       if (validationErrors.length > 0) {
-        const appError = ErrorHandler.handleValidationError(
-          validationErrors.join(', '),
-          { context: 'requestValidation' }
-        )
+        const appError = ErrorHandler.handleValidationError(validationErrors.join(', '), {
+          context: 'requestValidation'
+        })
         throw new Error(appError.message)
       }
 
@@ -113,14 +109,8 @@ export class NodeHttpClientDI implements HttpClientInterface {
 
       // レスポンス処理
       return await this.processUndiciResponse(response, startTime)
-
     } catch (error) {
-      return this.createNodeErrorResponse(
-        error,
-        startTime,
-        request.url,
-        request.method
-      )
+      return this.createNodeErrorResponse(error, startTime, request.url, request.method)
     }
   }
 
@@ -129,11 +119,11 @@ export class NodeHttpClientDI implements HttpClientInterface {
    */
   private convertToUndiciOptions(fetchOptions: RequestInit, _url: string) {
     const globalSettings = getGlobalSettings()
-    
+
     const undiciOptions: Record<string, unknown> = {
       method: fetchOptions.method,
       headers: fetchOptions.headers,
-      body: fetchOptions.body,
+      body: fetchOptions.body
     }
 
     // タイムアウト設定
@@ -184,14 +174,17 @@ export class NodeHttpClientDI implements HttpClientInterface {
   /**
    * undiciレスポンスを処理
    */
-  private async processUndiciResponse(response: { 
-    statusCode: number
-    headers: Record<string, string>
-    body: { arrayBuffer(): Promise<ArrayBuffer> }
-  }, startTime: number): Promise<ApiResponse> {
+  private async processUndiciResponse(
+    response: {
+      statusCode: number
+      headers: Record<string, string>
+      body: { arrayBuffer(): Promise<ArrayBuffer> }
+    },
+    startTime: number
+  ): Promise<ApiResponse> {
     try {
       const duration = Date.now() - startTime
-      
+
       // ヘッダーをRecord形式に変換
       const headers: Record<string, string> = {}
       if (response.headers) {
@@ -222,10 +215,12 @@ export class NodeHttpClientDI implements HttpClientInterface {
             data: bodyText
           }
         }
-      } else if (contentType.startsWith('image/') || 
-                 contentType.startsWith('video/') || 
-                 contentType.startsWith('audio/') ||
-                 contentType === 'application/pdf') {
+      } else if (
+        contentType.startsWith('image/') ||
+        contentType.startsWith('video/') ||
+        contentType.startsWith('audio/') ||
+        contentType === 'application/pdf'
+      ) {
         // バイナリデータの処理
         const base64Data = Buffer.from(buffer).toString('base64')
         responseData = {
@@ -249,7 +244,6 @@ export class NodeHttpClientDI implements HttpClientInterface {
         duration,
         timestamp: new Date().toISOString()
       }
-
     } catch (error) {
       const appError = ErrorHandler.handleSystemError(error, {
         context: 'processUndiciResponse',
@@ -311,7 +305,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
     requestMethod: string
   ): ApiResponse {
     const duration = Date.now() - startTime
-    
+
     const appError = ErrorHandler.handleSystemError(error, {
       requestUrl,
       requestMethod,
@@ -325,7 +319,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
     // undiciエラーの特定の処理
     if (error && typeof error === 'object' && 'code' in error) {
       const errorCode = (error as Error & { code?: string }).code
-      
+
       switch (errorCode) {
         case 'ECONNREFUSED':
           statusText = 'Connection Refused'
@@ -405,7 +399,10 @@ export async function createNodeHttpClient(): Promise<NodeHttpClientDI> {
   try {
     // 実際のundiciをインポート
     const { request, ProxyAgent } = await import('undici')
-    return new NodeHttpClientDI(request as UndiciRequestInterface, ProxyAgent as ProxyAgentInterface)
+    return new NodeHttpClientDI(
+      request as UndiciRequestInterface,
+      ProxyAgent as ProxyAgentInterface
+    )
   } catch (error) {
     console.error('Failed to import undici:', error)
     throw new Error('Failed to initialize NodeHttpClient: undici is not available')

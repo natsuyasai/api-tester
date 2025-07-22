@@ -30,7 +30,7 @@ export class ApiServiceV2 {
       // Electronのレンダラープロセス環境でも、Node.js APIが利用可能な場合はNodeHttpClientを使用
       return await createNodeHttpClient()
     }
-    
+
     // ElectronのNode.js環境またはメインプロセスの場合
     if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
       return await createNodeHttpClient()
@@ -69,7 +69,7 @@ export class ApiServiceV2 {
       // HTTPリクエストを実行
       const httpClient = await this.getHttpClient()
       const apiResponse = await httpClient.executeRequest(request, variableResolver)
-      
+
       // ステータスによってエラー判定
       if (apiResponse.status >= 400) {
         executionStatus = 'error'
@@ -83,12 +83,11 @@ export class ApiServiceV2 {
       }
 
       return apiResponse
-
     } catch (error) {
       const endTime = Date.now()
       const duration = endTime - startTime
       executionStatus = 'error'
-      
+
       const appError = ErrorHandler.handleNetworkError(error, {
         requestUrl: request.url,
         requestMethod: request.method,
@@ -136,27 +135,32 @@ export class ApiServiceV2 {
     try {
       const httpClient = await this.getHttpClient()
       const apiResponse = await httpClient.executeRequestWithCancel(
-        request, 
-        variableResolver, 
+        request,
+        variableResolver,
         cancelToken
       )
-      
+
       if (apiResponse.status >= 400) {
         executionStatus = 'error'
         errorMessage = `HTTP ${apiResponse.status}: ${apiResponse.statusText}`
       }
 
       if (saveToHistory) {
-        this.saveToHistory(request, apiResponse, apiResponse.duration, executionStatus, errorMessage)
+        this.saveToHistory(
+          request,
+          apiResponse,
+          apiResponse.duration,
+          executionStatus,
+          errorMessage
+        )
       }
 
       return apiResponse
-
     } catch (error) {
       const endTime = Date.now()
       const duration = endTime - startTime
       executionStatus = 'error'
-      
+
       const appError = ErrorHandler.handleNetworkError(error, {
         requestUrl: request.url,
         requestMethod: request.method,
@@ -167,7 +171,8 @@ export class ApiServiceV2 {
 
       const errorResponse = {
         status: 0,
-        statusText: error instanceof Error && error.name === 'AbortError' ? 'Cancelled' : 'Network Error',
+        statusText:
+          error instanceof Error && error.name === 'AbortError' ? 'Cancelled' : 'Network Error',
         headers: {},
         data: {
           type: 'error' as const,
@@ -189,11 +194,14 @@ export class ApiServiceV2 {
   /**
    * リクエストの検証（拡張版）
    */
-  static async validateRequest(request: ApiRequest, variableResolver?: (text: string) => string): Promise<string[]> {
+  static async validateRequest(
+    request: ApiRequest,
+    variableResolver?: (text: string) => string
+  ): Promise<string[]> {
     const httpClient = await this.getHttpClient()
     const basicValidation = httpClient.validateRequest(request, variableResolver)
     const advancedValidation = this.validateRequestAdvanced(request)
-    
+
     return [...basicValidation, ...advancedValidation]
   }
 
@@ -214,7 +222,8 @@ export class ApiServiceV2 {
 
     // FormDataの検証
     if (request.bodyType === 'form-data') {
-      const enabledPairs = request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
+      const enabledPairs =
+        request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
 
       if (enabledPairs.length === 0) {
         errors.push('At least one form field is required for form-data')
@@ -281,9 +290,9 @@ export class ApiServiceV2 {
       const { addExecutionHistory } = useCollectionStore.getState()
       addExecutionHistory(request, response, duration, executionStatus, errorMessage)
     } catch (historyError) {
-      const error = ErrorHandler.handleStorageError(historyError, { 
+      const error = ErrorHandler.handleStorageError(historyError, {
         context: 'saveExecutionHistory',
-        requestId: request.id 
+        requestId: request.id
       })
       ErrorHandler.logError(error)
     }
@@ -298,19 +307,17 @@ export class ApiServiceV2 {
     maxConcurrency: number = 3
   ): Promise<ApiResponse[]> {
     const results: ApiResponse[] = []
-    
+
     // 並行実行数を制限
     const chunks = this.chunkArray(requests, maxConcurrency)
-    
+
     for (const chunk of chunks) {
-      const promises = chunk.map(request => 
-        this.executeRequest(request, variableResolver, true)
-      )
-      
+      const promises = chunk.map((request) => this.executeRequest(request, variableResolver, true))
+
       const chunkResults = await Promise.all(promises)
       results.push(...chunkResults)
     }
-    
+
     return results
   }
 
@@ -343,15 +350,15 @@ export class ApiServiceV2 {
     }
   }> {
     const results: ApiResponse[] = []
-    
+
     for (let i = 0; i < iterations; i++) {
       const result = await this.executeRequest(request, variableResolver, false)
       results.push(result)
     }
 
     // 統計情報を計算
-    const durations = results.map(r => r.duration)
-    const successCount = results.filter(r => r.status >= 200 && r.status < 400).length
+    const durations = results.map((r) => r.duration)
+    const successCount = results.filter((r) => r.status >= 200 && r.status < 400).length
     const errorCount = iterations - successCount
 
     const statistics = {
@@ -388,16 +395,19 @@ export class ApiServiceV2 {
 
     try {
       const response = await this.executeRequest(request, undefined, false)
-      
+
       // ステータス0はネットワークエラー
       if (response.status === 0) {
         return {
           isHealthy: false,
           responseTime: response.duration,
-          error: response.data && typeof response.data === 'object' && 'error' in response.data ? String(response.data.error) : 'Network error'
+          error:
+            response.data && typeof response.data === 'object' && 'error' in response.data
+              ? String(response.data.error)
+              : 'Network error'
         }
       }
-      
+
       return {
         isHealthy: response.status >= 200 && response.status < 400,
         responseTime: response.duration,
@@ -415,12 +425,15 @@ export class ApiServiceV2 {
   /**
    * cURLコマンドの生成
    */
-  static buildCurlCommand(request: ApiRequest, variableResolver?: (text: string) => string): string {
+  static buildCurlCommand(
+    request: ApiRequest,
+    variableResolver?: (text: string) => string
+  ): string {
     const resolveVariables = variableResolver || ((text: string) => text)
-    
+
     try {
       const url = new URL(resolveVariables(request.url))
-      
+
       // URL パラメータを追加
       const enabledParams = request.params.filter((param) => param.enabled && param.key)
       enabledParams.forEach((param) => {
@@ -455,7 +468,7 @@ export class ApiServiceV2 {
             if (request.auth.apiKey) {
               const key = resolveVariables(request.auth.apiKey.key)
               const value = resolveVariables(request.auth.apiKey.value)
-              
+
               if (request.auth.apiKey.location === 'header') {
                 command += ` -H "${key}: ${value}"`
               } else if (request.auth.apiKey.location === 'query') {
@@ -470,11 +483,12 @@ export class ApiServiceV2 {
       if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
         if (request.bodyType === 'form-data') {
           // FormDataの場合、-Fオプションを使用
-          const enabledPairs = request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
+          const enabledPairs =
+            request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
 
           enabledPairs.forEach((pair) => {
             const key = resolveVariables(pair.key)
-            
+
             if (pair.isFile && pair.fileName) {
               // ファイルの場合
               command += ` -F "${key}=@${pair.fileName}"`
@@ -486,21 +500,24 @@ export class ApiServiceV2 {
           })
         } else if (request.bodyType === 'x-www-form-urlencoded') {
           // URL-encoded formの場合
-          const enabledPairs = request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
-          
+          const enabledPairs =
+            request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
+
           if (enabledPairs.length > 0) {
-            const formData = enabledPairs.map((pair) => {
-              const key = encodeURIComponent(resolveVariables(pair.key))
-              const value = encodeURIComponent(resolveVariables(pair.value))
-              return `${key}=${value}`
-            }).join('&')
-            
+            const formData = enabledPairs
+              .map((pair) => {
+                const key = encodeURIComponent(resolveVariables(pair.key))
+                const value = encodeURIComponent(resolveVariables(pair.value))
+                return `${key}=${value}`
+              })
+              .join('&')
+
             command += ` -d "${formData}"`
             command += ` -H "Content-Type: application/x-www-form-urlencoded"`
           }
         } else if (request.body) {
           const body = resolveVariables(request.body)
-          
+
           if (request.bodyType === 'graphql') {
             const graphqlPayload = {
               query: body,

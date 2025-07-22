@@ -209,12 +209,12 @@ export class NodeFileService {
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true })
       const files = entries
-        .filter(entry => entry.isFile())
-        .map(entry => join(dirPath, entry.name))
+        .filter((entry) => entry.isFile())
+        .map((entry) => join(dirPath, entry.name))
 
       if (extension) {
         const ext = extension.startsWith('.') ? extension : `.${extension}`
-        return files.filter(file => extname(file).toLowerCase() === ext)
+        return files.filter((file) => extname(file).toLowerCase() === ext)
       }
 
       return files
@@ -259,15 +259,15 @@ export class NodeFileService {
    * @param encoding - エンコーディング（デフォルト: utf8）
    */
   static async writeTextFile(
-    filePath: string, 
-    content: string, 
+    filePath: string,
+    content: string,
     encoding: BufferEncoding = 'utf8'
   ): Promise<void> {
     try {
       // ディレクトリが存在しない場合は作成
       const dirPath = join(filePath, '..')
       await this.createDirectory(dirPath)
-      
+
       await fs.writeFile(filePath, content, encoding)
     } catch (error) {
       throw new Error('ファイルの書き込みに失敗しました')
@@ -284,7 +284,7 @@ export class NodeFileService {
       // ディレクトリが存在しない場合は作成
       const dirPath = join(filePath, '..')
       await this.createDirectory(dirPath)
-      
+
       await fs.writeFile(filePath, buffer)
     } catch (error) {
       throw new Error('バイナリファイルの書き込みに失敗しました')

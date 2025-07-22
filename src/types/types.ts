@@ -106,7 +106,11 @@ export interface ErrorResponseData extends ResponseData {
   error: string
 }
 
-export type ApiResponseData = JsonResponseData | TextResponseData | BinaryResponseData | ErrorResponseData
+export type ApiResponseData =
+  | JsonResponseData
+  | TextResponseData
+  | BinaryResponseData
+  | ErrorResponseData
 
 // APIレスポンスの型定義
 export interface ApiResponse {

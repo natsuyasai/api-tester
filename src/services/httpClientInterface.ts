@@ -16,15 +16,9 @@ export interface HttpClientInterface {
     cancelToken?: AbortSignal
   ): Promise<ApiResponse>
 
-  validateRequest(
-    request: ApiRequest,
-    variableResolver?: (text: string) => string
-  ): string[]
+  validateRequest(request: ApiRequest, variableResolver?: (text: string) => string): string[]
 
-  getRequestDetails(
-    request: ApiRequest,
-    variableResolver?: (text: string) => string
-  ): any
+  getRequestDetails(request: ApiRequest, variableResolver?: (text: string) => string): any
 
   setCookieResolver(resolver: (domain: string) => string): void
 }
@@ -33,7 +27,10 @@ export interface HttpClientInterface {
  * undici request関数のインターフェース
  */
 export interface UndiciRequestInterface {
-  (url: string, options?: any): Promise<{
+  (
+    url: string,
+    options?: any
+  ): Promise<{
     statusCode: number
     headers: Record<string, string>
     body: {

@@ -32,7 +32,7 @@ vi.mock('@renderer/utils/errorUtils', () => ({
       }
     }),
     logError: vi.fn(),
-    extractErrorMessage: vi.fn((error: unknown) => 
+    extractErrorMessage: vi.fn((error: unknown) =>
       error instanceof Error ? error.message : 'Unknown error'
     )
   }
@@ -48,12 +48,8 @@ describe('NodeHttpClientDI', () => {
     name: 'Test Request',
     url: 'https://api.example.com/users',
     method: 'GET',
-    headers: [
-      { key: 'Content-Type', value: 'application/json', enabled: true }
-    ],
-    params: [
-      { key: 'limit', value: '10', enabled: true }
-    ],
+    headers: [{ key: 'Content-Type', value: 'application/json', enabled: true }],
+    params: [{ key: 'limit', value: '10', enabled: true }],
     body: '',
     bodyType: 'json',
     bodyKeyValuePairs: [],
@@ -63,16 +59,16 @@ describe('NodeHttpClientDI', () => {
   beforeEach(() => {
     // undiciRequestのモックを作成
     mockUndiciRequest = vi.fn()
-    
+
     // ProxyAgentのモックを作成
     MockProxyAgent = vi.fn(() => ({
       dispatch: vi.fn(),
       close: vi.fn()
     })) as any
-    
+
     // DIクライアントを作成
     httpClient = createMockNodeHttpClient(mockUndiciRequest, MockProxyAgent)
-    
+
     vi.clearAllMocks()
   })
 
@@ -84,9 +80,7 @@ describe('NodeHttpClientDI', () => {
           'content-type': 'application/json'
         },
         body: {
-          arrayBuffer: vi.fn().mockResolvedValue(
-            new TextEncoder().encode('{"users": []}').buffer
-          )
+          arrayBuffer: vi.fn().mockResolvedValue(new TextEncoder().encode('{"users": []}').buffer)
         }
       }
 
@@ -121,9 +115,9 @@ describe('NodeHttpClientDI', () => {
           'content-type': 'application/json'
         },
         body: {
-          arrayBuffer: vi.fn().mockResolvedValue(
-            new TextEncoder().encode('{"id": 1, "name": "John Doe"}').buffer
-          )
+          arrayBuffer: vi
+            .fn()
+            .mockResolvedValue(new TextEncoder().encode('{"id": 1, "name": "John Doe"}').buffer)
         }
       }
 
@@ -151,9 +145,7 @@ describe('NodeHttpClientDI', () => {
           'content-type': 'text/plain'
         },
         body: {
-          arrayBuffer: vi.fn().mockResolvedValue(
-            new TextEncoder().encode('Hello World').buffer
-          )
+          arrayBuffer: vi.fn().mockResolvedValue(new TextEncoder().encode('Hello World').buffer)
         }
       }
 
@@ -192,7 +184,7 @@ describe('NodeHttpClientDI', () => {
     it('should handle network errors', async () => {
       const networkError = new Error('ECONNREFUSED')
       ;(networkError as any).code = 'ECONNREFUSED'
-      
+
       mockUndiciRequest.mockRejectedValue(networkError)
 
       const result = await httpClient.executeRequest(mockApiRequest)
@@ -205,7 +197,7 @@ describe('NodeHttpClientDI', () => {
     it('should handle timeout errors', async () => {
       const timeoutError = new Error('Request timeout')
       ;(timeoutError as any).code = 'UND_ERR_HEADERS_TIMEOUT'
-      
+
       mockUndiciRequest.mockRejectedValue(timeoutError)
 
       const result = await httpClient.executeRequest(mockApiRequest)
@@ -234,9 +226,7 @@ describe('NodeHttpClientDI', () => {
           'content-type': 'application/json'
         },
         body: {
-          arrayBuffer: vi.fn().mockResolvedValue(
-            new TextEncoder().encode('invalid json {').buffer
-          )
+          arrayBuffer: vi.fn().mockResolvedValue(new TextEncoder().encode('invalid json {').buffer)
         }
       }
 
@@ -257,9 +247,7 @@ describe('NodeHttpClientDI', () => {
         statusCode: 200,
         headers: { 'content-type': 'application/json' },
         body: {
-          arrayBuffer: vi.fn().mockResolvedValue(
-            new TextEncoder().encode('{}').buffer
-          )
+          arrayBuffer: vi.fn().mockResolvedValue(new TextEncoder().encode('{}').buffer)
         }
       }
 
@@ -283,7 +271,7 @@ describe('NodeHttpClientDI', () => {
     it('should handle cancelled requests', async () => {
       const abortError = new Error('Request aborted')
       abortError.name = 'AbortError'
-      
+
       mockUndiciRequest.mockRejectedValue(abortError)
 
       const result = await httpClient.executeRequestWithCancel(
@@ -301,7 +289,7 @@ describe('NodeHttpClientDI', () => {
   describe('validateRequest', () => {
     it('should validate request without executing', () => {
       const errors = httpClient.validateRequest(mockApiRequest)
-      
+
       expect(Array.isArray(errors)).toBe(true)
       expect(mockUndiciRequest).not.toHaveBeenCalled()
     })
@@ -313,7 +301,7 @@ describe('NodeHttpClientDI', () => {
       }
 
       const errors = httpClient.validateRequest(invalidRequest)
-      
+
       expect(errors.length).toBeGreaterThan(0)
     })
   })
@@ -356,9 +344,7 @@ describe('NodeHttpClientDI', () => {
         statusCode: 200,
         headers: { 'content-type': 'application/json' },
         body: {
-          arrayBuffer: vi.fn().mockResolvedValue(
-            new TextEncoder().encode('{}').buffer
-          )
+          arrayBuffer: vi.fn().mockResolvedValue(new TextEncoder().encode('{}').buffer)
         }
       }
 
@@ -388,9 +374,7 @@ describe('NodeHttpClientDI', () => {
         statusCode: 200,
         headers: { 'content-type': 'application/json' },
         body: {
-          arrayBuffer: vi.fn().mockResolvedValue(
-            new TextEncoder().encode('{}').buffer
-          )
+          arrayBuffer: vi.fn().mockResolvedValue(new TextEncoder().encode('{}').buffer)
         }
       }
 
@@ -444,9 +428,7 @@ describe('NodeHttpClientDI', () => {
         statusCode: 200,
         headers: { 'content-type': 'application/json' },
         body: {
-          arrayBuffer: vi.fn().mockResolvedValue(
-            new TextEncoder().encode('{}').buffer
-          )
+          arrayBuffer: vi.fn().mockResolvedValue(new TextEncoder().encode('{}').buffer)
         }
       }
 
@@ -491,9 +473,7 @@ describe('NodeHttpClientDI', () => {
         statusCode: 200,
         headers: { 'content-type': 'application/json' },
         body: {
-          arrayBuffer: vi.fn().mockResolvedValue(
-            new TextEncoder().encode('{}').buffer
-          )
+          arrayBuffer: vi.fn().mockResolvedValue(new TextEncoder().encode('{}').buffer)
         }
       }
 
@@ -525,9 +505,7 @@ describe('NodeHttpClientDI', () => {
         statusCode: 200,
         headers: { 'content-type': 'application/json' },
         body: {
-          arrayBuffer: vi.fn().mockResolvedValue(
-            new TextEncoder().encode('{}').buffer
-          )
+          arrayBuffer: vi.fn().mockResolvedValue(new TextEncoder().encode('{}').buffer)
         }
       }
 
@@ -562,9 +540,7 @@ describe('NodeHttpClientDI', () => {
         statusCode: 200,
         headers: { 'content-type': 'application/json' },
         body: {
-          arrayBuffer: vi.fn().mockResolvedValue(
-            new TextEncoder().encode('{}').buffer
-          )
+          arrayBuffer: vi.fn().mockResolvedValue(new TextEncoder().encode('{}').buffer)
         }
       }
 
@@ -608,9 +584,7 @@ describe('NodeHttpClientDI', () => {
         statusCode: 200,
         headers: { 'content-type': 'application/json' },
         body: {
-          arrayBuffer: vi.fn().mockResolvedValue(
-            new TextEncoder().encode('{}').buffer
-          )
+          arrayBuffer: vi.fn().mockResolvedValue(new TextEncoder().encode('{}').buffer)
         }
       }
 
@@ -620,7 +594,7 @@ describe('NodeHttpClientDI', () => {
 
       const call = mockUndiciRequest.mock.calls[0]
       const options = call[1]
-      
+
       expect(options).not.toHaveProperty('headersTimeout')
       expect(options).not.toHaveProperty('bodyTimeout')
 
@@ -638,8 +612,10 @@ describe('NodeHttpClientDI', () => {
 
   describe('variable resolver', () => {
     it('should resolve variables in request', async () => {
-      const variableResolver = vi.fn((text: string) => text.replace('{{baseUrl}}', 'https://api.example.com'))
-      
+      const variableResolver = vi.fn((text: string) =>
+        text.replace('{{baseUrl}}', 'https://api.example.com')
+      )
+
       const requestWithVariables: ApiRequest = {
         ...mockApiRequest,
         url: '{{baseUrl}}/users'
@@ -649,9 +625,7 @@ describe('NodeHttpClientDI', () => {
         statusCode: 200,
         headers: { 'content-type': 'application/json' },
         body: {
-          arrayBuffer: vi.fn().mockResolvedValue(
-            new TextEncoder().encode('{}').buffer
-          )
+          arrayBuffer: vi.fn().mockResolvedValue(new TextEncoder().encode('{}').buffer)
         }
       }
 
@@ -704,9 +678,7 @@ describe('NodeHttpClientDI', () => {
         statusCode: 200,
         headers: { 'content-type': 'application/json' },
         body: {
-          arrayBuffer: vi.fn().mockResolvedValue(
-            new TextEncoder().encode('{}').buffer
-          )
+          arrayBuffer: vi.fn().mockResolvedValue(new TextEncoder().encode('{}').buffer)
         }
       }
 
@@ -738,7 +710,7 @@ describe('NodeHttpClientDI', () => {
     it('should map ENOTFOUND error correctly', async () => {
       const notFoundError = new Error('Host not found')
       ;(notFoundError as any).code = 'ENOTFOUND'
-      
+
       mockUndiciRequest.mockRejectedValue(notFoundError)
 
       const result = await httpClient.executeRequest(mockApiRequest)
@@ -751,7 +723,7 @@ describe('NodeHttpClientDI', () => {
     it('should map ETIMEDOUT error correctly', async () => {
       const timeoutError = new Error('Connection timeout')
       ;(timeoutError as any).code = 'ETIMEDOUT'
-      
+
       mockUndiciRequest.mockRejectedValue(timeoutError)
 
       const result = await httpClient.executeRequest(mockApiRequest)
@@ -764,7 +736,7 @@ describe('NodeHttpClientDI', () => {
     it('should map ECONNRESET error correctly', async () => {
       const resetError = new Error('Connection reset')
       ;(resetError as any).code = 'ECONNRESET'
-      
+
       mockUndiciRequest.mockRejectedValue(resetError)
 
       const result = await httpClient.executeRequest(mockApiRequest)
@@ -777,7 +749,7 @@ describe('NodeHttpClientDI', () => {
     it('should map UND_ERR_CONNECT_TIMEOUT error correctly', async () => {
       const connectTimeoutError = new Error('Connect timeout')
       ;(connectTimeoutError as any).code = 'UND_ERR_CONNECT_TIMEOUT'
-      
+
       mockUndiciRequest.mockRejectedValue(connectTimeoutError)
 
       const result = await httpClient.executeRequest(mockApiRequest)
@@ -790,7 +762,7 @@ describe('NodeHttpClientDI', () => {
     it('should map UND_ERR_BODY_TIMEOUT error correctly', async () => {
       const bodyTimeoutError = new Error('Body timeout')
       ;(bodyTimeoutError as any).code = 'UND_ERR_BODY_TIMEOUT'
-      
+
       mockUndiciRequest.mockRejectedValue(bodyTimeoutError)
 
       const result = await httpClient.executeRequest(mockApiRequest)
@@ -803,7 +775,7 @@ describe('NodeHttpClientDI', () => {
     it('should use default error status for unknown errors', async () => {
       const unknownError = new Error('Unknown error')
       ;(unknownError as any).code = 'UNKNOWN_ERROR'
-      
+
       mockUndiciRequest.mockRejectedValue(unknownError)
 
       const result = await httpClient.executeRequest(mockApiRequest)

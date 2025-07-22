@@ -37,7 +37,7 @@ export class YamlService {
    * コレクション（フォルダ）とAPIタブをYAML形式でエクスポート（フォルダ構成対応）
    */
   static exportCollectionsToYaml(collections: Collection[], tabs: ApiTab[]): string {
-    const yamlCollections: YamlCollection[] = collections.map((collection) => 
+    const yamlCollections: YamlCollection[] = collections.map((collection) =>
       this.convertCollectionToYaml(collection, tabs)
     )
 
@@ -87,7 +87,10 @@ export class YamlService {
   /**
    * YAML形式からコレクションとAPIタブにインポート（フォルダ構成対応）
    */
-  static importCollectionsFromYaml(yamlContent: string): { collections: Collection[], tabs: ApiTab[] } {
+  static importCollectionsFromYaml(yamlContent: string): {
+    collections: Collection[]
+    tabs: ApiTab[]
+  } {
     try {
       const data = yaml.load(yamlContent) as YamlExportData
 
@@ -113,7 +116,7 @@ export class YamlService {
         // v1.0形式（レガシー）のフォールバック処理
         const legacyTabs = this.importFromYaml(yamlContent)
         importedTabs.push(...legacyTabs)
-        
+
         // デフォルトコレクションを作成
         if (legacyTabs.length > 0) {
           const defaultCollection: Collection = {
@@ -122,14 +125,14 @@ export class YamlService {
             description: `${legacyTabs.length}個のリクエストをインポート`,
             children: [],
             requests: [],
-            tabs: legacyTabs.map(tab => tab.id),
+            tabs: legacyTabs.map((tab) => tab.id),
             created: new Date().toISOString(),
             updated: new Date().toISOString()
           }
           importedCollections.push(defaultCollection)
-          
+
           // タブのcollectionIdを設定
-          legacyTabs.forEach(tab => {
+          legacyTabs.forEach((tab) => {
             tab.collectionId = defaultCollection.id
           })
         }
@@ -367,8 +370,8 @@ export class YamlService {
 
   private static convertCollectionToYaml(collection: Collection, tabs: ApiTab[]): YamlCollection {
     // このコレクションに属するタブを取得
-    const collectionTabs = tabs.filter(tab => tab.collectionId === collection.id)
-    
+    const collectionTabs = tabs.filter((tab) => tab.collectionId === collection.id)
+
     const yamlCollection: YamlCollection = {
       id: collection.id,
       name: collection.name,
@@ -384,9 +387,12 @@ export class YamlService {
     return yamlCollection
   }
 
-  private static convertYamlToCollectionAndTabs(yamlCollection: YamlCollection): { collection: Collection, tabs: ApiTab[] } {
+  private static convertYamlToCollectionAndTabs(yamlCollection: YamlCollection): {
+    collection: Collection
+    tabs: ApiTab[]
+  } {
     const collectionId = yamlCollection.id || uuidv4()
-    
+
     // YAMLリクエストをタブに変換
     const tabs = yamlCollection.requests.map((yamlRequest, index) => {
       const tab = this.convertYamlRequestToTab(yamlRequest, index)
@@ -401,7 +407,7 @@ export class YamlService {
       parentId: yamlCollection.parentId,
       children: [],
       requests: [],
-      tabs: yamlCollection.tabs || tabs.map(tab => tab.id),
+      tabs: yamlCollection.tabs || tabs.map((tab) => tab.id),
       activeTabId: yamlCollection.activeTabId,
       created: yamlCollection.created || new Date().toISOString(),
       updated: yamlCollection.updated || new Date().toISOString()

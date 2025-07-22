@@ -37,10 +37,9 @@ export class NodeHttpClient {
       // リクエスト検証
       const validationErrors = builder.validate()
       if (validationErrors.length > 0) {
-        const appError = ErrorHandler.handleValidationError(
-          validationErrors.join(', '),
-          { context: 'requestValidation' }
-        )
+        const appError = ErrorHandler.handleValidationError(validationErrors.join(', '), {
+          context: 'requestValidation'
+        })
         throw new Error(appError.message)
       }
 
@@ -48,7 +47,7 @@ export class NodeHttpClient {
       let url = builder.buildUrl()
       url = builder.adjustUrlForApiKey(url)
       const fetchOptions = builder.buildFetchOptions()
-      
+
       // undici用のオプションに変換
       const undiciOptions = this.convertToUndiciOptions(fetchOptions, url.toString())
 
@@ -57,15 +56,9 @@ export class NodeHttpClient {
 
       // レスポンス処理
       return await this.processUndiciResponse(response, startTime)
-
     } catch (error) {
       // エラーレスポンスを作成
-      return this.createNodeErrorResponse(
-        error,
-        startTime,
-        request.url,
-        request.method
-      )
+      return this.createNodeErrorResponse(error, startTime, request.url, request.method)
     }
   }
 
@@ -82,14 +75,13 @@ export class NodeHttpClient {
 
     try {
       const builder = new RequestBuilder(request, resolveVariables, this.getCookieHeader)
-      
+
       // リクエスト検証
       const validationErrors = builder.validate()
       if (validationErrors.length > 0) {
-        const appError = ErrorHandler.handleValidationError(
-          validationErrors.join(', '),
-          { context: 'requestValidation' }
-        )
+        const appError = ErrorHandler.handleValidationError(validationErrors.join(', '), {
+          context: 'requestValidation'
+        })
         throw new Error(appError.message)
       }
 
@@ -111,14 +103,8 @@ export class NodeHttpClient {
 
       // レスポンス処理
       return await this.processUndiciResponse(response, startTime)
-
     } catch (error) {
-      return this.createNodeErrorResponse(
-        error,
-        startTime,
-        request.url,
-        request.method
-      )
+      return this.createNodeErrorResponse(error, startTime, request.url, request.method)
     }
   }
 
@@ -127,11 +113,11 @@ export class NodeHttpClient {
    */
   private convertToUndiciOptions(fetchOptions: RequestInit, url: string) {
     const globalSettings = getGlobalSettings()
-    
+
     const undiciOptions: any = {
       method: fetchOptions.method,
       headers: fetchOptions.headers,
-      body: fetchOptions.body,
+      body: fetchOptions.body
     }
 
     // タイムアウト設定
@@ -180,7 +166,7 @@ export class NodeHttpClient {
   private async processUndiciResponse(response: any, startTime: number): Promise<ApiResponse> {
     try {
       const duration = Date.now() - startTime
-      
+
       // ヘッダーをRecord形式に変換
       const headers: Record<string, string> = {}
       if (response.headers) {
@@ -211,10 +197,12 @@ export class NodeHttpClient {
             data: bodyText
           }
         }
-      } else if (contentType.startsWith('image/') || 
-                 contentType.startsWith('video/') || 
-                 contentType.startsWith('audio/') ||
-                 contentType === 'application/pdf') {
+      } else if (
+        contentType.startsWith('image/') ||
+        contentType.startsWith('video/') ||
+        contentType.startsWith('audio/') ||
+        contentType === 'application/pdf'
+      ) {
         // バイナリデータの処理
         const base64Data = Buffer.from(buffer).toString('base64')
         responseData = {
@@ -238,7 +226,6 @@ export class NodeHttpClient {
         duration,
         timestamp: new Date().toISOString()
       }
-
     } catch (error) {
       const appError = ErrorHandler.handleSystemError(error, {
         context: 'processUndiciResponse',
@@ -300,7 +287,7 @@ export class NodeHttpClient {
     requestMethod: string
   ): ApiResponse {
     const duration = Date.now() - startTime
-    
+
     const appError = ErrorHandler.handleSystemError(error, {
       requestUrl,
       requestMethod,
@@ -314,7 +301,7 @@ export class NodeHttpClient {
     // undiciエラーの特定の処理
     if (error && typeof error === 'object' && 'code' in error) {
       const errorCode = (error as any).code
-      
+
       switch (errorCode) {
         case 'ECONNREFUSED':
           statusText = 'Connection Refused'

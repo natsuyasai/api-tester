@@ -76,7 +76,7 @@ export const useConfigStore = create<ConfigState & ConfigActions>()(
             })
           }
         } catch (error) {
-          const appError = ErrorHandler.handleParsingError(error, { 
+          const appError = ErrorHandler.handleParsingError(error, {
             context: 'importConfig',
             configLength: configJson.length
           })

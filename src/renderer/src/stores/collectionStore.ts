@@ -124,13 +124,12 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
             }
           })
         }, 0)
-        
+
         // 自動保存
         get().saveToStorage()
 
         return id
       },
-
 
       updateCollection: (id: string, updates: Partial<Omit<Collection, 'id'>>) => {
         set(
@@ -456,7 +455,7 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
           let collections: Collection[] = []
           let executionHistory: RequestExecutionHistory[] = []
           let maxHistorySize = 100
-          
+
           if (stored) {
             const data = JSON.parse(stored) as {
               collections: Collection[]
@@ -471,7 +470,7 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
               maxHistorySize = data.maxHistorySize || 100
             }
           }
-          
+
           // デフォルトフォルダが存在しない場合は作成
           if (collections.length === 0) {
             const defaultCollection: Collection = {
@@ -485,11 +484,11 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
               updated: new Date().toISOString()
             }
             collections = [defaultCollection]
-            
+
             // デフォルトフォルダをアクティブに設定
             set({ activeCollectionId: defaultCollection.id }, false, 'setActiveCollection')
           }
-          
+
           set(
             {
               collections,
@@ -499,14 +498,17 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
             false,
             'loadFromStorage'
           )
-          
+
           // 読み込み完了後にデータを保存（デフォルトフォルダが追加された場合）
-          if (!stored || (JSON.parse(stored || '{}') as { collections?: unknown[] }).collections?.length === 0) {
+          if (
+            !stored ||
+            (JSON.parse(stored || '{}') as { collections?: unknown[] }).collections?.length === 0
+          ) {
             get().saveToStorage()
           }
         } catch (error) {
           console.error('Failed to load collection data from localStorage:', error)
-          
+
           // エラー時もデフォルトフォルダを作成
           const defaultCollection: Collection = {
             id: uuidv4(),
@@ -518,7 +520,7 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
             created: new Date().toISOString(),
             updated: new Date().toISOString()
           }
-          
+
           set(
             {
               collections: [defaultCollection],
@@ -529,7 +531,7 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
             false,
             'loadFromStorage'
           )
-          
+
           // デフォルト状態を保存
           get().saveToStorage()
         }

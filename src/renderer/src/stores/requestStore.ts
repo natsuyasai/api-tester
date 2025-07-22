@@ -192,7 +192,11 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           ...tab,
           request: {
             ...tab.request,
-            bodyKeyValuePairs: KeyValuePairOperations.update(tab.request.bodyKeyValuePairs || [], index, keyValueUpdate)
+            bodyKeyValuePairs: KeyValuePairOperations.update(
+              tab.request.bodyKeyValuePairs || [],
+              index,
+              keyValueUpdate
+            )
           }
         }))
       },
@@ -202,7 +206,10 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           ...tab,
           request: {
             ...tab.request,
-            bodyKeyValuePairs: KeyValuePairOperations.remove(tab.request.bodyKeyValuePairs || [], index)
+            bodyKeyValuePairs: KeyValuePairOperations.remove(
+              tab.request.bodyKeyValuePairs || [],
+              index
+            )
           }
         }))
       },

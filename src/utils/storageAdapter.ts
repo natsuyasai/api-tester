@@ -9,14 +9,19 @@ const isNodeEnvironment = () => {
   if (typeof window !== 'undefined' && window.process && window.process.type) {
     return true
   }
-  
+
   // ElectronのNode.js環境またはメインプロセス
   if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
     return true
   }
 
   // Node.js環境
-  if (typeof process !== 'undefined' && process.versions && process.versions.node && typeof window === 'undefined') {
+  if (
+    typeof process !== 'undefined' &&
+    process.versions &&
+    process.versions.node &&
+    typeof window === 'undefined'
+  ) {
     return true
   }
 
@@ -32,7 +37,7 @@ interface StorageInterface {
   removeItem(key: string): void | Promise<void>
   clear(): void | Promise<void>
   keys(): string[] | Promise<string[]>
-  length: number | Promise<number>
+  length(): number | Promise<number>
 }
 
 /**
@@ -64,7 +69,7 @@ class BrowserStorageAdapter implements StorageInterface {
     return keys
   }
 
-  get length(): number {
+  length(): number {
     return localStorage.length
   }
 }
@@ -131,14 +136,14 @@ class NodeStorageAdapter implements StorageInterface {
     if (this.localStorageAdapter) {
       return Array.from({ length: this.localStorageAdapter.length }, (_, i) =>
         this.localStorageAdapter.key(i)
-      ).filter(key => key !== null)
+      ).filter((key) => key !== null)
     } else if (this.nodeStorage) {
       return await this.nodeStorage.keys()
     }
     return []
   }
 
-  async get length(): Promise<number> {
+  async length(): Promise<number> {
     if (this.localStorageAdapter) {
       return this.localStorageAdapter.length
     } else if (this.nodeStorage) {
@@ -175,10 +180,10 @@ export class StorageAdapter {
   static setItem(key: string, value: string): void {
     const storage = this.getInstance()
     const result = storage.setItem(key, value)
-    
+
     // 非同期の場合はPromiseを処理（ただし結果を待機しない）
     if (result instanceof Promise) {
-      result.catch(error => {
+      result.catch((error) => {
         console.error(`Storage setItem error for key "${key}":`, error)
       })
     }
@@ -190,7 +195,7 @@ export class StorageAdapter {
   static async setItemAsync(key: string, value: string): Promise<void> {
     const storage = this.getInstance()
     const result = storage.setItem(key, value)
-    
+
     if (result instanceof Promise) {
       await result
     }
@@ -202,13 +207,15 @@ export class StorageAdapter {
   static getItem(key: string): string | null {
     const storage = this.getInstance()
     const result = storage.getItem(key)
-    
+
     if (result instanceof Promise) {
       // Node.js環境では同期的なアクセスが困難なため、警告を出す
-      console.warn(`Synchronous getItem for key "${key}" in Node.js environment may return stale data. Use getItemAsync instead.`)
+      console.warn(
+        `Synchronous getItem for key "${key}" in Node.js environment may return stale data. Use getItemAsync instead.`
+      )
       return null
     }
-    
+
     return result
   }
 
@@ -218,11 +225,11 @@ export class StorageAdapter {
   static async getItemAsync(key: string): Promise<string | null> {
     const storage = this.getInstance()
     const result = storage.getItem(key)
-    
+
     if (result instanceof Promise) {
       return await result
     }
-    
+
     return result
   }
 
@@ -232,9 +239,9 @@ export class StorageAdapter {
   static removeItem(key: string): void {
     const storage = this.getInstance()
     const result = storage.removeItem(key)
-    
+
     if (result instanceof Promise) {
-      result.catch(error => {
+      result.catch((error) => {
         console.error(`Storage removeItem error for key "${key}":`, error)
       })
     }
@@ -246,7 +253,7 @@ export class StorageAdapter {
   static async removeItemAsync(key: string): Promise<void> {
     const storage = this.getInstance()
     const result = storage.removeItem(key)
-    
+
     if (result instanceof Promise) {
       await result
     }
@@ -258,9 +265,9 @@ export class StorageAdapter {
   static clear(): void {
     const storage = this.getInstance()
     const result = storage.clear()
-    
+
     if (result instanceof Promise) {
-      result.catch(error => {
+      result.catch((error) => {
         console.error('Storage clear error:', error)
       })
     }
@@ -272,7 +279,7 @@ export class StorageAdapter {
   static async clearAsync(): Promise<void> {
     const storage = this.getInstance()
     const result = storage.clear()
-    
+
     if (result instanceof Promise) {
       await result
     }
@@ -290,9 +297,13 @@ export class StorageAdapter {
    */
   static async getDebugInfo() {
     const storage = this.getInstance()
-    const keys = await (storage.keys() instanceof Promise ? storage.keys() : Promise.resolve(storage.keys()))
-    const length = await (storage.length instanceof Promise ? storage.length : Promise.resolve(storage.length))
-    
+    const keys = await (storage.keys() instanceof Promise
+      ? storage.keys()
+      : Promise.resolve(storage.keys()))
+    const length = await (storage.length instanceof Promise
+      ? storage.length
+      : Promise.resolve(storage.length))
+
     return {
       environment: isNodeEnvironment() ? 'Node.js' : 'Browser',
       keysCount: Array.isArray(keys) ? keys.length : length,

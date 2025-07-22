@@ -34,10 +34,9 @@ export class HttpClient {
       // リクエスト検証
       const validationErrors = builder.validate()
       if (validationErrors.length > 0) {
-        const appError = ErrorHandler.handleValidationError(
-          validationErrors.join(', '),
-          { context: 'requestValidation' }
-        )
+        const appError = ErrorHandler.handleValidationError(validationErrors.join(', '), {
+          context: 'requestValidation'
+        })
         throw new Error(appError.message)
       }
 
@@ -55,15 +54,9 @@ export class HttpClient {
       // レスポンス処理
       const processor = new ResponseProcessor(response, startTime)
       return await processor.processResponse()
-
     } catch (error) {
       // エラーレスポンスを作成
-      return ResponseProcessor.createErrorResponse(
-        error,
-        startTime,
-        request.url,
-        request.method
-      )
+      return ResponseProcessor.createErrorResponse(error, startTime, request.url, request.method)
     }
   }
 
@@ -72,7 +65,7 @@ export class HttpClient {
    */
   private applyProxySettings(options: RequestInit, _url: string): RequestInit {
     const globalSettings = getGlobalSettings()
-    
+
     if (!globalSettings.proxyEnabled || !globalSettings.proxyUrl) {
       return options
     }
@@ -81,7 +74,7 @@ export class HttpClient {
       // Node.js環境でのプロキシ設定（実際のElectron環境では異なる実装が必要）
       // ここではプレースホルダーとして構造を示す
       const proxyOptions = {
-        ...options,
+        ...options
         // プロキシ設定はElectronのメインプロセスで処理されることが多い
         // または、proxy-agentなどのライブラリを使用
       }
@@ -93,7 +86,7 @@ export class HttpClient {
         proxyUrl: globalSettings.proxyUrl
       })
       ErrorHandler.logError(appError)
-      
+
       // プロキシ設定エラーの場合は元のオプションを返す
       return options
     }
@@ -112,14 +105,13 @@ export class HttpClient {
 
     try {
       const builder = new RequestBuilder(request, resolveVariables, this.getCookieHeader)
-      
+
       // リクエスト検証
       const validationErrors = builder.validate()
       if (validationErrors.length > 0) {
-        const appError = ErrorHandler.handleValidationError(
-          validationErrors.join(', '),
-          { context: 'requestValidation' }
-        )
+        const appError = ErrorHandler.handleValidationError(validationErrors.join(', '), {
+          context: 'requestValidation'
+        })
         throw new Error(appError.message)
       }
 
@@ -142,14 +134,8 @@ export class HttpClient {
       // レスポンス処理
       const processor = new ResponseProcessor(response, startTime)
       return await processor.processResponse()
-
     } catch (error) {
-      return ResponseProcessor.createErrorResponse(
-        error,
-        startTime,
-        request.url,
-        request.method
-      )
+      return ResponseProcessor.createErrorResponse(error, startTime, request.url, request.method)
     }
   }
 

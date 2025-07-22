@@ -15,11 +15,7 @@ export class KeyValuePairOperations {
   /**
    * 指定インデックスのキーバリューペアを更新
    */
-  static update<T extends KeyValuePair>(
-    items: T[],
-    index: number,
-    update: Partial<T>
-  ): T[] {
+  static update<T extends KeyValuePair>(items: T[], index: number, update: Partial<T>): T[] {
     if (index < 0 || index >= items.length) {
       return items
     }

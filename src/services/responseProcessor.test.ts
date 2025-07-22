@@ -18,7 +18,7 @@ describe('ResponseProcessor', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     // デフォルトのResponseモック
     mockResponse = {
       status: 200,
@@ -261,11 +261,11 @@ describe('ResponseProcessor', () => {
     it('should create error response for network error', () => {
       const error = new Error('Network error')
       const startTime = Date.now() - 500
-      
+
       const errorResponse = ResponseProcessor.createErrorResponse(
-        error, 
-        startTime, 
-        'https://api.example.com/test', 
+        error,
+        startTime,
+        'https://api.example.com/test',
         'GET'
       )
 
@@ -283,11 +283,11 @@ describe('ResponseProcessor', () => {
     it('should handle timeout error', () => {
       const timeoutError = new Error('Request timeout')
       timeoutError.name = 'AbortError'
-      
+
       const errorResponse = ResponseProcessor.createErrorResponse(
-        timeoutError, 
-        Date.now() - 1000, 
-        'https://api.example.com/test', 
+        timeoutError,
+        Date.now() - 1000,
+        'https://api.example.com/test',
         'POST'
       )
 
@@ -296,11 +296,11 @@ describe('ResponseProcessor', () => {
 
     it('should handle fetch error', () => {
       const fetchError = new Error('fetch failed')
-      
+
       const errorResponse = ResponseProcessor.createErrorResponse(
-        fetchError, 
-        Date.now() - 800, 
-        'https://api.example.com/test', 
+        fetchError,
+        Date.now() - 800,
+        'https://api.example.com/test',
         'PUT'
       )
 
@@ -315,7 +315,7 @@ describe('ResponseProcessor', () => {
         'cache-control': 'no-cache',
         'x-custom-header': 'custom-value'
       })
-      
+
       mockResponse.headers = headers
       mockResponse.text.mockResolvedValue('{}')
 

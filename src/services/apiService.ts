@@ -221,9 +221,9 @@ export class ApiService {
           const { addExecutionHistory } = useCollectionStore.getState()
           addExecutionHistory(request, apiResponse, duration, executionStatus, errorMessage)
         } catch (historyError) {
-          const error = ErrorHandler.handleStorageError(historyError, { 
+          const error = ErrorHandler.handleStorageError(historyError, {
             context: 'saveExecutionHistory',
-            requestId: request.id 
+            requestId: request.id
           })
           ErrorHandler.logError(error)
         }
@@ -273,9 +273,9 @@ export class ApiService {
           const { addExecutionHistory } = useCollectionStore.getState()
           addExecutionHistory(request, apiResponse, duration, executionStatus, errorMessage)
         } catch (historyError) {
-          const error = ErrorHandler.handleStorageError(historyError, { 
+          const error = ErrorHandler.handleStorageError(historyError, {
             context: 'saveExecutionHistory_error',
-            requestId: request.id 
+            requestId: request.id
           })
           ErrorHandler.logError(error)
         }
@@ -446,9 +446,9 @@ export class ApiService {
         }
       }
     } catch (error) {
-      const appError = ErrorHandler.handleParsingError(error, { 
+      const appError = ErrorHandler.handleParsingError(error, {
         context: 'processBinaryResponse',
-        contentType 
+        contentType
       })
       ErrorHandler.logError(appError)
       return {
@@ -480,9 +480,9 @@ export class ApiService {
           isPreviewable: true
         }
       } catch (error) {
-        const appError = ErrorHandler.handleParsingError(error, { 
+        const appError = ErrorHandler.handleParsingError(error, {
           context: 'convertImageToBase64',
-          contentType 
+          contentType
         })
         ErrorHandler.logError(appError)
         return {
@@ -515,9 +515,9 @@ export class ApiService {
           isPreviewable: true
         }
       } catch (error) {
-        const appError = ErrorHandler.handleParsingError(error, { 
+        const appError = ErrorHandler.handleParsingError(error, {
           context: 'convertDocumentToBase64',
-          contentType 
+          contentType
         })
         ErrorHandler.logError(appError)
         return {
@@ -550,9 +550,9 @@ export class ApiService {
           isPreviewable: true
         }
       } catch (error) {
-        const appError = ErrorHandler.handleParsingError(error, { 
+        const appError = ErrorHandler.handleParsingError(error, {
           context: 'convertMediaToBase64',
-          contentType 
+          contentType
         })
         ErrorHandler.logError(appError)
         return {

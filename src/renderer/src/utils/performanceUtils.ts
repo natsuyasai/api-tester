@@ -49,12 +49,16 @@ export function useThrottle<T extends (...args: unknown[]) => unknown>(
  */
 export function useShallowMemo<T>(value: T): T {
   const ref = useRef<T>(value)
-  
+
   const isEqual = useMemo(() => {
     if (value === ref.current) return true
-    
-    if (typeof value !== 'object' || value === null || 
-        typeof ref.current !== 'object' || ref.current === null) {
+
+    if (
+      typeof value !== 'object' ||
+      value === null ||
+      typeof ref.current !== 'object' ||
+      ref.current === null
+    ) {
       return false
     }
 
@@ -66,7 +70,9 @@ export function useShallowMemo<T>(value: T): T {
     }
 
     for (const key of keys1) {
-      if ((value as Record<string, unknown>)[key] !== (ref.current as Record<string, unknown>)[key]) {
+      if (
+        (value as Record<string, unknown>)[key] !== (ref.current as Record<string, unknown>)[key]
+      ) {
         return false
       }
     }
@@ -146,30 +152,25 @@ export function useCleanup(cleanup: () => void): void {
 /**
  * 重い計算のメモ化
  */
-export function useComputedValue<T>(
-  computeFn: () => T,
-  dependencies: unknown[]
-): T {
+export function useComputedValue<T>(computeFn: () => T, dependencies: unknown[]): T {
   return useMemo(computeFn, dependencies)
 }
 
 /**
  * 状態変更の最適化
  */
-export function useOptimizedState<T>(
-  initialValue: T
-): [T, (value: T | ((prev: T) => T)) => void] {
+export function useOptimizedState<T>(initialValue: T): [T, (value: T | ((prev: T) => T)) => void] {
   const [state, setState] = useState(initialValue)
-  
+
   const optimizedSetState = useCallback((value: T | ((prev: T) => T)) => {
-    setState(prev => {
+    setState((prev) => {
       const nextValue = typeof value === 'function' ? (value as (prev: T) => T)(prev) : value
-      
+
       // 値が変更されていない場合は更新しない
       if (Object.is(prev, nextValue)) {
         return prev
       }
-      
+
       return nextValue
     })
   }, [])
@@ -191,28 +192,31 @@ export function useAsyncOperation<T extends unknown[], R>(
   const [error, setError] = useState<unknown | null>(null)
   const runningRef = useRef<Promise<R> | null>(null)
 
-  const execute = useCallback(async (...args: T): Promise<R> => {
-    if (runningRef.current) {
-      return runningRef.current
-    }
+  const execute = useCallback(
+    async (...args: T): Promise<R> => {
+      if (runningRef.current) {
+        return runningRef.current
+      }
 
-    setIsLoading(true)
-    setError(null)
+      setIsLoading(true)
+      setError(null)
 
-    const promise = asyncFn(...args)
-    runningRef.current = promise
+      const promise = asyncFn(...args)
+      runningRef.current = promise
 
-    try {
-      const result = await promise
-      return result
-    } catch (err) {
-      setError(err)
-      throw err
-    } finally {
-      setIsLoading(false)
-      runningRef.current = null
-    }
-  }, [asyncFn])
+      try {
+        const result = await promise
+        return result
+      } catch (err) {
+        setError(err)
+        throw err
+      } finally {
+        setIsLoading(false)
+        runningRef.current = null
+      }
+    },
+    [asyncFn]
+  )
 
   return { execute, isLoading, error }
 }
@@ -232,7 +236,7 @@ export function useCachedValue<T>(
   useEffect(() => {
     const cache = cacheRef.current
     const cached = cache.get(key)
-    
+
     // キャッシュが有効な場合
     if (cached && Date.now() - cached.timestamp < ttl) {
       setValue(cached.value)
@@ -241,9 +245,9 @@ export function useCachedValue<T>(
 
     // 新しい値を取得
     const result = fetchFn()
-    
+
     if (result instanceof Promise) {
-      result.then(resolvedValue => {
+      result.then((resolvedValue) => {
         cache.set(key, { value: resolvedValue, timestamp: Date.now() })
         setValue(resolvedValue)
       })
@@ -261,30 +265,30 @@ export function useCachedValue<T>(
  */
 export function deepEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true
-  
+
   if (a instanceof Date && b instanceof Date) {
     return a.getTime() === b.getTime()
   }
-  
-  if (!a || !b || (typeof a !== 'object') || (typeof b !== 'object')) {
+
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object') {
     return a === b
   }
-  
+
   const keysA = Object.keys(a)
   const keysB = Object.keys(b)
-  
+
   if (keysA.length !== keysB.length) {
     return false
   }
-  
+
   for (const key of keysA) {
     if (!keysB.includes(key)) return false
-    
+
     if (!deepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key])) {
       return false
     }
   }
-  
+
   return true
 }
 
@@ -302,9 +306,7 @@ export function updateArrayItem<T>(
 
   const newArray = [...array]
   const oldItem = array[index]
-  const newItem = typeof update === 'function' 
-    ? update(oldItem)
-    : { ...oldItem, ...update }
+  const newItem = typeof update === 'function' ? update(oldItem) : { ...oldItem, ...update }
 
   // 値が変更されていない場合は元の配列を返す
   if (deepEqual(oldItem, newItem)) {
@@ -314,4 +316,3 @@ export function updateArrayItem<T>(
   newArray[index] = newItem
   return newArray
 }
-

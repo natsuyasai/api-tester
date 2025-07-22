@@ -32,13 +32,14 @@ export class TTLCache<K, V> {
   private cache = new Map<K, { value: V; expiry: number }>()
   private defaultTTL: number
 
-  constructor(defaultTTL: number = 5 * 60 * 1000) { // 5分
+  constructor(defaultTTL: number = 5 * 60 * 1000) {
+    // 5分
     this.defaultTTL = defaultTTL
   }
 
   get(key: K): V | undefined {
     const item = this.cache.get(key)
-    
+
     if (!item) {
       return undefined
     }
@@ -104,13 +105,13 @@ export class LRUCache<K, V> {
 
   get(key: K): V | undefined {
     const value = this.cache.get(key)
-    
+
     if (value !== undefined) {
       // アクセス順を更新（削除して再追加）
       this.cache.delete(key)
       this.cache.set(key, value)
     }
-    
+
     return value
   }
 
@@ -124,7 +125,7 @@ export class LRUCache<K, V> {
         this.cache.delete(firstKey)
       }
     }
-    
+
     this.cache.set(key, value)
   }
 
@@ -154,11 +155,7 @@ export class ObjectPool<T> {
   private resetFn?: (obj: T) => void
   private maxSize: number
 
-  constructor(
-    createFn: () => T,
-    resetFn?: (obj: T) => void,
-    maxSize: number = 50
-  ) {
+  constructor(createFn: () => T, resetFn?: (obj: T) => void, maxSize: number = 50) {
     this.createFn = createFn
     this.resetFn = resetFn
     this.maxSize = maxSize
@@ -202,7 +199,8 @@ export class MemoryMonitor {
     return this.instance
   }
 
-  startMonitoring(interval: number = 30000): void { // 30秒間隔
+  startMonitoring(interval: number = 30000): void {
+    // 30秒間隔
     if (this.intervalId) {
       return
     }
@@ -210,7 +208,7 @@ export class MemoryMonitor {
     this.intervalId = setInterval(() => {
       if ('memory' in performance) {
         const memInfo = (performance as any).memory as MemoryInfo
-        this.observers.forEach(observer => observer(memInfo))
+        this.observers.forEach((observer) => observer(memInfo))
       }
     }, interval)
   }
@@ -279,11 +277,14 @@ export class LazyLoader<T> {
  */
 export class BinaryDataManager {
   private static chunks = new Map<string, ArrayBuffer>()
-  private static metadata = new Map<string, {
-    size: number
-    type: string
-    lastAccess: number
-  }>()
+  private static metadata = new Map<
+    string,
+    {
+      size: number
+      type: string
+      lastAccess: number
+    }
+  >()
 
   static store(id: string, data: ArrayBuffer, type: string): void {
     this.chunks.set(id, data)
@@ -311,9 +312,10 @@ export class BinaryDataManager {
     return hasChunk && hasMeta
   }
 
-  static cleanup(maxAge: number = 60 * 60 * 1000): void { // 1時間
+  static cleanup(maxAge: number = 60 * 60 * 1000): void {
+    // 1時間
     const now = Date.now()
-    
+
     for (const [id, meta] of this.metadata.entries()) {
       if (now - meta.lastAccess > maxAge) {
         this.chunks.delete(id)
@@ -360,7 +362,7 @@ export class StringPool {
     if (existing) {
       return existing
     }
-    
+
     this.pool.set(str, str)
     return str
   }

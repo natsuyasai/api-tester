@@ -63,7 +63,10 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
         status: 0,
         statusText: 'Request Failed',
         headers: {},
-        data: { type: 'error' as const, error: error instanceof Error ? error.message : 'Unknown error' },
+        data: {
+          type: 'error' as const,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        },
         duration: 0,
         timestamp: new Date().toISOString()
       })

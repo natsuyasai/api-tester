@@ -28,7 +28,8 @@ export class RequestBuilder {
     const globalSettings = getGlobalSettings()
     return {
       timeout: this.request.settings?.timeout ?? globalSettings.defaultTimeout,
-      followRedirects: this.request.settings?.followRedirects ?? globalSettings.defaultFollowRedirects,
+      followRedirects:
+        this.request.settings?.followRedirects ?? globalSettings.defaultFollowRedirects,
       maxRedirects: this.request.settings?.maxRedirects ?? globalSettings.defaultMaxRedirects,
       validateSSL: this.request.settings?.validateSSL ?? globalSettings.defaultValidateSSL,
       userAgent: this.request.settings?.userAgent ?? globalSettings.defaultUserAgent
@@ -41,14 +42,11 @@ export class RequestBuilder {
   buildUrl(): URL {
     try {
       const url = new URL(this.variableResolver(this.request.url))
-      
+
       // 有効なパラメータを追加
       const enabledParams = KeyValuePairOperations.getEnabled(this.request.params)
       enabledParams.forEach((param) => {
-        url.searchParams.set(
-          this.variableResolver(param.key), 
-          this.variableResolver(param.value)
-        )
+        url.searchParams.set(this.variableResolver(param.key), this.variableResolver(param.value))
       })
 
       return url
@@ -66,14 +64,11 @@ export class RequestBuilder {
    */
   buildHeaders(): Headers {
     const headers = new Headers()
-    
+
     // 基本ヘッダーを設定
     const enabledHeaders = KeyValuePairOperations.getEnabled(this.request.headers)
     enabledHeaders.forEach((header) => {
-      headers.set(
-        this.variableResolver(header.key), 
-        this.variableResolver(header.value)
-      )
+      headers.set(this.variableResolver(header.key), this.variableResolver(header.value))
     })
 
     // 認証ヘッダーを追加
@@ -122,7 +117,7 @@ export class RequestBuilder {
         if (auth.apiKey) {
           const key = this.variableResolver(auth.apiKey.key)
           const value = this.variableResolver(auth.apiKey.value)
-          
+
           if (auth.apiKey.location === 'header') {
             headers.set(key, value)
           }
@@ -212,14 +207,11 @@ export class RequestBuilder {
     if (this.request.bodyKeyValuePairs) {
       const enabledPairs = KeyValuePairOperations.getEnabled(this.request.bodyKeyValuePairs)
       const params = new URLSearchParams()
-      
+
       enabledPairs.forEach((pair) => {
-        params.append(
-          this.variableResolver(pair.key),
-          this.variableResolver(pair.value)
-        )
+        params.append(this.variableResolver(pair.key), this.variableResolver(pair.value))
       })
-      
+
       return params.toString()
     }
     return this.variableResolver(this.request.body)
@@ -233,14 +225,14 @@ export class RequestBuilder {
 
     if (this.request.bodyKeyValuePairs) {
       const enabledPairs = KeyValuePairOperations.getEnabled(this.request.bodyKeyValuePairs)
-      
+
       enabledPairs.forEach((pair) => {
         const key = this.variableResolver(pair.key)
-        
+
         if (pair.isFile && pair.fileContent) {
           // ファイルの場合
           let blob: Blob
-          
+
           if (pair.fileEncoding === 'base64') {
             const binaryString = atob(pair.fileContent)
             const bytes = new Uint8Array(binaryString.length)
@@ -251,7 +243,7 @@ export class RequestBuilder {
           } else {
             blob = new Blob([pair.fileContent])
           }
-          
+
           formData.append(key, blob, pair.fileName || 'file')
         } else {
           // 通常の値
@@ -268,7 +260,7 @@ export class RequestBuilder {
    */
   buildFetchOptions(): RequestInit {
     const settings = this.getRequestSettings()
-    
+
     return {
       method: this.request.method,
       headers: this.buildHeaders(),
@@ -282,14 +274,12 @@ export class RequestBuilder {
    * APIキーがクエリパラメータの場合のURL調整
    */
   adjustUrlForApiKey(url: URL): URL {
-    if (this.request.auth?.type === 'api-key' && 
-        this.request.auth.apiKey?.location === 'query') {
-      
+    if (this.request.auth?.type === 'api-key' && this.request.auth.apiKey?.location === 'query') {
       const key = this.variableResolver(this.request.auth.apiKey.key)
       const value = this.variableResolver(this.request.auth.apiKey.value)
       url.searchParams.set(key, value)
     }
-    
+
     return url
   }
 
@@ -312,9 +302,9 @@ export class RequestBuilder {
 
     // ヘッダー検証
     const invalidHeaders = this.request.headers
-      .filter(h => h.enabled && h.key.trim())
-      .filter(h => !/^[a-zA-Z0-9\-_]+$/.test(h.key))
-    
+      .filter((h) => h.enabled && h.key.trim())
+      .filter((h) => !/^[a-zA-Z0-9\-_]+$/.test(h.key))
+
     if (invalidHeaders.length > 0) {
       errors.push('無効なヘッダー名があります')
     }

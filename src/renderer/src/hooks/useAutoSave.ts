@@ -64,12 +64,15 @@ export const useAutoSave = () => {
       // タブとコレクションの両方を保存
       saveAllTabs()
       saveCollections()
-      
+
       previousAppStateHashRef.current = currentHash
       lastSaveRef.current = Date.now()
 
       if (settings.debugLogs) {
-        console.log('[AutoSave] アプリケーション状態を自動保存しました:', new Date().toLocaleTimeString())
+        console.log(
+          '[AutoSave] アプリケーション状態を自動保存しました:',
+          new Date().toLocaleTimeString()
+        )
       }
     } catch (error) {
       console.error('[AutoSave] 自動保存に失敗しました:', error)
