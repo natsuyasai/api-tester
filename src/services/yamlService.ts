@@ -1,6 +1,6 @@
 import yaml from 'js-yaml'
 import { v4 as uuidv4 } from 'uuid'
-import { ApiTab, ApiRequest } from '@/types/types'
+import { ApiTab, ApiRequest, Collection } from '@/types/types'
 import { KeyValuePairOperations } from '@renderer/utils/keyValueUtils'
 export interface YamlExportData {
   version: string
@@ -8,9 +8,16 @@ export interface YamlExportData {
 }
 
 export interface YamlCollection {
+  id?: string
   name: string
   description?: string
+  parentId?: string
   requests: YamlRequest[]
+  children?: YamlCollection[]
+  tabs?: string[]
+  activeTabId?: string
+  created?: string
+  updated?: string
 }
 
 export interface YamlRequest {
@@ -27,7 +34,28 @@ export interface YamlRequest {
 
 export class YamlService {
   /**
-   * APIタブをYAML形式でエクスポート
+   * コレクション（フォルダ）とAPIタブをYAML形式でエクスポート（フォルダ構成対応）
+   */
+  static exportCollectionsToYaml(collections: Collection[], tabs: ApiTab[]): string {
+    const yamlCollections: YamlCollection[] = collections.map((collection) => 
+      this.convertCollectionToYaml(collection, tabs)
+    )
+
+    const exportData: YamlExportData = {
+      version: '2.0', // フォルダ構成対応版
+      collections: yamlCollections
+    }
+
+    return yaml.dump(exportData, {
+      indent: 2,
+      lineWidth: 120,
+      noRefs: true,
+      sortKeys: false
+    })
+  }
+
+  /**
+   * APIタブをYAML形式でエクスポート（レガシー互換性）
    */
   static exportToYaml(tabs: ApiTab[]): string {
     const collections: YamlCollection[] = []
@@ -57,7 +85,67 @@ export class YamlService {
   }
 
   /**
-   * YAML形式からAPIタブにインポート
+   * YAML形式からコレクションとAPIタブにインポート（フォルダ構成対応）
+   */
+  static importCollectionsFromYaml(yamlContent: string): { collections: Collection[], tabs: ApiTab[] } {
+    try {
+      const data = yaml.load(yamlContent) as YamlExportData
+
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid YAML format')
+      }
+
+      if (!data.collections || !Array.isArray(data.collections)) {
+        throw new Error('No collections found in YAML')
+      }
+
+      const importedCollections: Collection[] = []
+      const importedTabs: ApiTab[] = []
+
+      // v2.0形式（フォルダ構成対応）の処理
+      if (data.version === '2.0') {
+        data.collections.forEach((yamlCollection) => {
+          const { collection, tabs } = this.convertYamlToCollectionAndTabs(yamlCollection)
+          importedCollections.push(collection)
+          importedTabs.push(...tabs)
+        })
+      } else {
+        // v1.0形式（レガシー）のフォールバック処理
+        const legacyTabs = this.importFromYaml(yamlContent)
+        importedTabs.push(...legacyTabs)
+        
+        // デフォルトコレクションを作成
+        if (legacyTabs.length > 0) {
+          const defaultCollection: Collection = {
+            id: uuidv4(),
+            name: 'インポートされたコレクション',
+            description: `${legacyTabs.length}個のリクエストをインポート`,
+            children: [],
+            requests: [],
+            tabs: legacyTabs.map(tab => tab.id),
+            created: new Date().toISOString(),
+            updated: new Date().toISOString()
+          }
+          importedCollections.push(defaultCollection)
+          
+          // タブのcollectionIdを設定
+          legacyTabs.forEach(tab => {
+            tab.collectionId = defaultCollection.id
+          })
+        }
+      }
+
+      return { collections: importedCollections, tabs: importedTabs }
+    } catch (error) {
+      if (error instanceof yaml.YAMLException) {
+        throw new Error(`YAML parsing error: ${error.message}`)
+      }
+      throw error
+    }
+  }
+
+  /**
+   * YAML形式からAPIタブにインポート（レガシー互換性）
    */
   static importFromYaml(yamlContent: string): ApiTab[] {
     try {
@@ -275,6 +363,51 @@ export class YamlService {
     }
 
     return yamlRequest
+  }
+
+  private static convertCollectionToYaml(collection: Collection, tabs: ApiTab[]): YamlCollection {
+    // このコレクションに属するタブを取得
+    const collectionTabs = tabs.filter(tab => tab.collectionId === collection.id)
+    
+    const yamlCollection: YamlCollection = {
+      id: collection.id,
+      name: collection.name,
+      description: collection.description,
+      parentId: collection.parentId,
+      requests: collectionTabs.map((tab) => this.convertTabToYamlRequest(tab)),
+      tabs: collection.tabs,
+      activeTabId: collection.activeTabId,
+      created: collection.created,
+      updated: collection.updated
+    }
+
+    return yamlCollection
+  }
+
+  private static convertYamlToCollectionAndTabs(yamlCollection: YamlCollection): { collection: Collection, tabs: ApiTab[] } {
+    const collectionId = yamlCollection.id || uuidv4()
+    
+    // YAMLリクエストをタブに変換
+    const tabs = yamlCollection.requests.map((yamlRequest, index) => {
+      const tab = this.convertYamlRequestToTab(yamlRequest, index)
+      tab.collectionId = collectionId
+      return tab
+    })
+
+    const collection: Collection = {
+      id: collectionId,
+      name: yamlCollection.name,
+      description: yamlCollection.description,
+      parentId: yamlCollection.parentId,
+      children: [],
+      requests: [],
+      tabs: yamlCollection.tabs || tabs.map(tab => tab.id),
+      activeTabId: yamlCollection.activeTabId,
+      created: yamlCollection.created || new Date().toISOString(),
+      updated: yamlCollection.updated || new Date().toISOString()
+    }
+
+    return { collection, tabs }
   }
 
   private static convertYamlRequestToTab(yamlRequest: YamlRequest, index: number): ApiTab {

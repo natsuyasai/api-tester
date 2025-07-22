@@ -114,8 +114,23 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
           'createCollection'
         )
 
+        // 新規フォルダに初期タブを自動作成（非同期で実行）
+        setTimeout(() => {
+          void import('../services/initializationService').then(({ InitializationService }) => {
+            try {
+              InitializationService.createTabForNewCollection(id)
+            } catch (error) {
+              console.error('新規フォルダの初期タブ作成に失敗:', error)
+            }
+          })
+        }, 0)
+        
+        // 自動保存
+        get().saveToStorage()
+
         return id
       },
+
 
       updateCollection: (id: string, updates: Partial<Omit<Collection, 'id'>>) => {
         set(
@@ -438,6 +453,10 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
       loadFromStorage: () => {
         try {
           const stored = localStorage.getItem('api-tester-collections')
+          let collections: Collection[] = []
+          let executionHistory: RequestExecutionHistory[] = []
+          let maxHistorySize = 100
+          
           if (stored) {
             const data = JSON.parse(stored) as {
               collections: Collection[]
@@ -447,19 +466,72 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
             }
 
             if (Array.isArray(data.collections) && Array.isArray(data.executionHistory)) {
-              set(
-                {
-                  collections: data.collections,
-                  executionHistory: data.executionHistory,
-                  maxHistorySize: data.maxHistorySize || 100
-                },
-                false,
-                'loadFromStorage'
-              )
+              collections = data.collections
+              executionHistory = data.executionHistory
+              maxHistorySize = data.maxHistorySize || 100
             }
+          }
+          
+          // デフォルトフォルダが存在しない場合は作成
+          if (collections.length === 0) {
+            const defaultCollection: Collection = {
+              id: uuidv4(),
+              name: 'デフォルトフォルダ',
+              description: 'デフォルトのリクエスト保存フォルダ',
+              children: [],
+              requests: [],
+              tabs: [],
+              created: new Date().toISOString(),
+              updated: new Date().toISOString()
+            }
+            collections = [defaultCollection]
+            
+            // デフォルトフォルダをアクティブに設定
+            set({ activeCollectionId: defaultCollection.id }, false, 'setActiveCollection')
+          }
+          
+          set(
+            {
+              collections,
+              executionHistory,
+              maxHistorySize
+            },
+            false,
+            'loadFromStorage'
+          )
+          
+          // 読み込み完了後にデータを保存（デフォルトフォルダが追加された場合）
+          if (!stored || (JSON.parse(stored || '{}') as { collections?: unknown[] }).collections?.length === 0) {
+            get().saveToStorage()
           }
         } catch (error) {
           console.error('Failed to load collection data from localStorage:', error)
+          
+          // エラー時もデフォルトフォルダを作成
+          const defaultCollection: Collection = {
+            id: uuidv4(),
+            name: 'デフォルトフォルダ',
+            description: 'デフォルトのリクエスト保存フォルダ',
+            children: [],
+            requests: [],
+            tabs: [],
+            created: new Date().toISOString(),
+            updated: new Date().toISOString()
+          }
+          
+          set(
+            {
+              collections: [defaultCollection],
+              executionHistory: [],
+              maxHistorySize: 100,
+              activeCollectionId: defaultCollection.id
+            },
+            false,
+            'loadFromStorage'
+          )
+          
+          // デフォルト状態を保存
+          get().saveToStorage()
         }
       }
     }),

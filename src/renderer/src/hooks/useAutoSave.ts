@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react'
+import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
 import { useTabStore } from '@renderer/stores/tabStore'
 
@@ -8,28 +9,43 @@ import { useTabStore } from '@renderer/stores/tabStore'
 export const useAutoSave = () => {
   const { settings } = useGlobalSettingsStore()
   const { tabs, saveAllTabs } = useTabStore()
+  const { collections, saveToStorage: saveCollections } = useCollectionStore()
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastSaveRef = useRef<number>(Date.now())
 
-  // タブの状態を文字列化してハッシュ化する関数
-  const getTabsHash = useCallback(() => {
-    return JSON.stringify(
-      tabs.map((tab) => ({
-        id: tab.id,
-        title: tab.title,
-        request: tab.request,
-        response: tab.response
-          ? {
-              status: tab.response.status,
-              headers: tab.response.headers,
-              data: '[Response Data]' // レスポンスデータは文字列化せずに固定メッセージ
-            }
-          : null
-      }))
-    )
-  }, [tabs])
+  // アプリケーションの状態を文字列化してハッシュ化する関数
+  const getAppStateHash = useCallback(() => {
+    const tabsState = tabs.map((tab) => ({
+      id: tab.id,
+      title: tab.title,
+      collectionId: tab.collectionId,
+      request: tab.request,
+      response: tab.response
+        ? {
+            status: tab.response.status,
+            headers: tab.response.headers,
+            data: '[Response Data]' // レスポンスデータは文字列化せずに固定メッセージ
+          }
+        : null
+    }))
 
-  const previousTabsHashRef = useRef<string>('')
+    const collectionsState = collections.map((collection) => ({
+      id: collection.id,
+      name: collection.name,
+      description: collection.description,
+      parentId: collection.parentId,
+      tabs: collection.tabs,
+      activeTabId: collection.activeTabId,
+      updated: collection.updated
+    }))
+
+    return JSON.stringify({
+      tabs: tabsState,
+      collections: collectionsState
+    })
+  }, [tabs, collections])
+
+  const previousAppStateHashRef = useRef<string>('')
 
   // 自動保存を実行する関数
   const performAutoSave = useCallback(() => {
@@ -37,26 +53,28 @@ export const useAutoSave = () => {
       return
     }
 
-    const currentHash = getTabsHash()
+    const currentHash = getAppStateHash()
 
     // 前回の保存時と内容が変わっていない場合はスキップ
-    if (currentHash === previousTabsHashRef.current) {
+    if (currentHash === previousAppStateHashRef.current) {
       return
     }
-    previousTabsHashRef.current = currentHash
 
     try {
+      // タブとコレクションの両方を保存
       saveAllTabs()
-      previousTabsHashRef.current = currentHash
+      saveCollections()
+      
+      previousAppStateHashRef.current = currentHash
       lastSaveRef.current = Date.now()
 
       if (settings.debugLogs) {
-        console.log('[AutoSave] Tabs auto-saved at', new Date().toLocaleTimeString())
+        console.log('[AutoSave] アプリケーション状態を自動保存しました:', new Date().toLocaleTimeString())
       }
     } catch (error) {
-      console.error('[AutoSave] Failed to auto-save tabs:', error)
+      console.error('[AutoSave] 自動保存に失敗しました:', error)
     }
-  }, [settings.autoSave, settings.debugLogs, saveAllTabs, getTabsHash])
+  }, [settings.autoSave, settings.debugLogs, saveAllTabs, saveCollections, getAppStateHash])
 
   // 自動保存タイマーをリセットする関数
   const resetAutoSaveTimer = useCallback(() => {
@@ -71,7 +89,7 @@ export const useAutoSave = () => {
     }
   }, [settings.autoSave, settings.autoSaveInterval, performAutoSave])
 
-  // タブの変更を監視して自動保存をトリガー
+  // タブとコレクションの変更を監視して自動保存をトリガー
   useEffect(() => {
     if (!settings.autoSave) {
       if (timeoutRef.current) {
@@ -89,7 +107,7 @@ export const useAutoSave = () => {
         clearTimeout(timeoutRef.current)
       }
     }
-  }, [tabs, settings.autoSave, settings.autoSaveInterval, resetAutoSaveTimer])
+  }, [tabs, collections, settings.autoSave, settings.autoSaveInterval, resetAutoSaveTimer])
 
   // 手動保存用の関数（API経由で呼び出し可能）
   const forceSave = () => {

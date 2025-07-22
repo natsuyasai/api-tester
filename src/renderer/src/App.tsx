@@ -8,15 +8,12 @@ import { TabContent } from './components/tab/TabContent'
 import { useAutoSave } from './hooks/useAutoSave'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useTabCollectionSync } from './hooks/useTabCollectionSync'
-import { useCollectionStore } from './stores/collectionStore'
-import { useTabStore } from './stores/tabStore'
+import { InitializationService } from './services/initializationService'
 
 function App(): JSX.Element {
   const [showSettings, setShowSettings] = useState(false)
   const [showCollectionPanel, setShowCollectionPanel] = useState(false)
   const [showExecutionHistory, setShowExecutionHistory] = useState(false)
-  const { loadAllTabs } = useTabStore()
-  const { loadFromStorage } = useCollectionStore()
 
   useKeyboardShortcuts()
   useAutoSave() // 自動保存機能を有効化
@@ -24,11 +21,14 @@ function App(): JSX.Element {
 
   // テーマ管理はglobalSettingsStoreで自動的に処理される
 
-  // アプリケーション起動時にタブとコレクションを復元
+  // アプリケーション起動時に完全な初期化を実行
   useEffect(() => {
-    loadAllTabs()
-    loadFromStorage()
-  }, [loadAllTabs, loadFromStorage])
+    try {
+      InitializationService.initializeApp()
+    } catch (error) {
+      console.error('アプリケーション初期化エラー:', error)
+    }
+  }, [])
 
   const handleShowSettings = () => {
     setShowSettings(true)
