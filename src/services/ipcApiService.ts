@@ -23,9 +23,11 @@ export class IpcApiService {
   ): Promise<ApiResponse> {
     // Electronのレンダラープロセスかどうかを確認
     if (hasApiExecutor()) {
+      // 変数を事前に解決したリクエストを作成
+      const resolvedRequest = this.resolveVariablesInRequest(request, variableResolver)
       const result = await window.apiExecutor.executeRequest(
-        request,
-        variableResolver,
+        resolvedRequest,
+        undefined,
         saveToHistory
       )
 
@@ -52,9 +54,11 @@ export class IpcApiService {
   ): Promise<ApiResponse> {
     // ElectronのIPCではAbortSignalの転送は複雑なため、通常のexecuteRequestを使用
     if (hasApiExecutor()) {
+      // 変数を事前に解決したリクエストを作成
+      const resolvedRequest = this.resolveVariablesInRequest(request, variableResolver)
       const result = await window.apiExecutor.executeRequestWithCancel(
-        request,
-        variableResolver,
+        resolvedRequest,
+        undefined,
         saveToHistory
       )
 
@@ -83,7 +87,9 @@ export class IpcApiService {
     variableResolver?: (text: string) => string
   ): Promise<string[]> {
     if (hasApiExecutor()) {
-      const result = await window.apiExecutor.validateRequest(request, variableResolver)
+      // 変数を事前に解決したリクエストを作成
+      const resolvedRequest = this.resolveVariablesInRequest(request, variableResolver)
+      const result = await window.apiExecutor.validateRequest(resolvedRequest, undefined)
 
       if (result.success && result.errors) {
         return result.errors
@@ -98,6 +104,87 @@ export class IpcApiService {
   }
 
   /**
+   * リクエスト内の変数を事前に解決
+   */
+  private static resolveVariablesInRequest(
+    request: ApiRequest,
+    variableResolver?: (text: string) => string
+  ): ApiRequest {
+    if (!variableResolver) {
+      return request
+    }
+
+    const resolvedRequest: ApiRequest = { ...request }
+
+    // URLの変数解決
+    resolvedRequest.url = variableResolver(request.url)
+
+    // ヘッダーの変数解決
+    if (request.headers) {
+      resolvedRequest.headers = request.headers.map((header) => ({
+        ...header,
+        key: variableResolver(header.key),
+        value: variableResolver(header.value)
+      }))
+    }
+
+    // クエリパラメータの変数解決
+    if (request.params) {
+      resolvedRequest.params = request.params.map((param) => ({
+        ...param,
+        key: variableResolver(param.key),
+        value: variableResolver(param.value)
+      }))
+    }
+
+    // ボディの変数解決
+    if (request.body) {
+      resolvedRequest.body = variableResolver(request.body)
+    }
+
+    // フォームデータの変数解決
+    if (request.bodyKeyValuePairs) {
+      resolvedRequest.bodyKeyValuePairs = request.bodyKeyValuePairs.map((pair) => ({
+        ...pair,
+        key: variableResolver(pair.key),
+        value: variableResolver(pair.value)
+      }))
+    }
+
+    // 認証情報の変数解決
+    if (request.auth) {
+      const resolvedAuth = { ...request.auth }
+      
+      if (resolvedAuth.basic) {
+        resolvedAuth.basic = {
+          ...resolvedAuth.basic,
+          username: variableResolver(resolvedAuth.basic.username),
+          password: variableResolver(resolvedAuth.basic.password)
+        }
+      }
+      
+      if (resolvedAuth.bearer) {
+        resolvedAuth.bearer = {
+          ...resolvedAuth.bearer,
+          token: variableResolver(resolvedAuth.bearer.token)
+        }
+      }
+      
+      if (resolvedAuth.apiKey) {
+        resolvedAuth.apiKey = {
+          ...resolvedAuth.apiKey,
+          key: variableResolver(resolvedAuth.apiKey.key),
+          value: variableResolver(resolvedAuth.apiKey.value)
+        }
+      }
+      
+      resolvedRequest.auth = resolvedAuth
+    }
+
+    return resolvedRequest
+  }
+
+  /**
    * cURLコマンドの生成（IPC経由）
    */
   static async buildCurlCommand(
@@ -105,7 +192,9 @@ export class IpcApiService {
     variableResolver?: (text: string) => string
   ): Promise<string> {
     if (hasApiExecutor()) {
-      const result = await window.apiExecutor.buildCurlCommand(request, variableResolver)
+      // 変数を事前に解決したリクエストを作成
+      const resolvedRequest = this.resolveVariablesInRequest(request, variableResolver)
+      const result = await window.apiExecutor.buildCurlCommand(resolvedRequest, undefined)
 
       if (result.success && result.curlCommand) {
         return result.curlCommand

@@ -234,8 +234,8 @@ const applyThemeAndFont = (settings: GlobalSettings): void => {
 }
 
 // 起動時にテーマとフォントを適用
-const initialSettings = loadSettings()
-applyThemeAndFont(initialSettings)
+// const initialSettings = loadSettings()
+// applyThemeAndFont(initialSettings)
 
 // 設定変更の監視
 useGlobalSettingsStore.subscribe(

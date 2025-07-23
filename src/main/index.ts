@@ -16,6 +16,7 @@ import {
   MessageBoxOptions
 } from 'electron'
 import icon from '../../resources/icon.png?asset'
+import { ApiServiceV2 } from '../services/apiServiceV2'
 
 /**
  * エラーメッセージボックスを表示する共通関数
@@ -378,9 +379,6 @@ ipcMain.handle(
   'executeApiRequest',
   async (_event, request: unknown, variableResolver?: unknown, saveToHistory = true) => {
     try {
-      // ApiServiceV2を動的インポート
-      const { ApiServiceV2 } = await import('../services/apiServiceV2')
-
       // APIリクエストを実行
       const response = await ApiServiceV2.executeRequest(
         request as any,
@@ -413,9 +411,6 @@ ipcMain.handle(
     try {
       // AbortControllerを作成
       const abortController = new AbortController()
-
-      // ApiServiceV2を動的インポート
-      const { ApiServiceV2 } = await import('../services/apiServiceV2')
 
       // APIリクエストを実行
       const response = await ApiServiceV2.executeRequestWithCancel(
@@ -452,8 +447,6 @@ ipcMain.handle(
   'validateApiRequest',
   async (_event, request: unknown, variableResolver?: unknown) => {
     try {
-      const { ApiServiceV2 } = await import('../services/apiServiceV2')
-
       const errors = await ApiServiceV2.validateRequest(
         request as any,
         variableResolver as ((text: string) => string) | undefined
@@ -484,8 +477,6 @@ ipcMain.handle(
 // cURLコマンド生成
 ipcMain.handle('buildCurlCommand', async (_event, request: unknown, variableResolver?: unknown) => {
   try {
-    const { ApiServiceV2 } = await import('../services/apiServiceV2')
-
     const curlCommand = ApiServiceV2.buildCurlCommand(
       request as any,
       variableResolver as ((text: string) => string) | undefined
@@ -515,8 +506,6 @@ ipcMain.handle('buildCurlCommand', async (_event, request: unknown, variableReso
 // ヘルスチェック実行
 ipcMain.handle('healthCheck', async (_event, url: unknown) => {
   try {
-    const { ApiServiceV2 } = await import('../services/apiServiceV2')
-
     const result = await ApiServiceV2.healthCheck(url as string)
 
     return {
