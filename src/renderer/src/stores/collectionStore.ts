@@ -114,17 +114,6 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
           'createCollection'
         )
 
-        // 新規フォルダに初期タブを自動作成（非同期で実行）
-        setTimeout(() => {
-          void import('../services/initializationService').then(({ InitializationService }) => {
-            try {
-              InitializationService.createTabForNewCollection(id)
-            } catch (error) {
-              console.error('新規フォルダの初期タブ作成に失敗:', error)
-            }
-          })
-        }, 0)
-
         // 自動保存
         get().saveToStorage()
 

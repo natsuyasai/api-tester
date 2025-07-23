@@ -1,7 +1,4 @@
 import { ApiRequest } from '@/types/types'
-import { getGlobalSettings } from '@renderer/stores/globalSettingsStore'
-import { ErrorHandler } from '@renderer/utils/errorUtils'
-import { KeyValuePairOperations } from '@renderer/utils/keyValueUtils'
 
 /**
  * HTTPリクエスト構築サービス
@@ -22,17 +19,15 @@ export class RequestBuilder {
   }
 
   /**
-   * リクエスト設定を取得（グローバル設定をフォールバック）
+   * リクエスト設定を取得（デフォルト値をフォールバック）
    */
   getRequestSettings() {
-    const globalSettings = getGlobalSettings()
     return {
-      timeout: this.request.settings?.timeout ?? globalSettings.defaultTimeout,
-      followRedirects:
-        this.request.settings?.followRedirects ?? globalSettings.defaultFollowRedirects,
-      maxRedirects: this.request.settings?.maxRedirects ?? globalSettings.defaultMaxRedirects,
-      validateSSL: this.request.settings?.validateSSL ?? globalSettings.defaultValidateSSL,
-      userAgent: this.request.settings?.userAgent ?? globalSettings.defaultUserAgent
+      timeout: this.request.settings?.timeout ?? 30,
+      followRedirects: this.request.settings?.followRedirects ?? true,
+      maxRedirects: this.request.settings?.maxRedirects ?? 5,
+      validateSSL: this.request.settings?.validateSSL ?? true,
+      userAgent: this.request.settings?.userAgent ?? 'API-Tester/1.0'
     }
   }
 
@@ -44,18 +39,14 @@ export class RequestBuilder {
       const url = new URL(this.variableResolver(this.request.url))
 
       // 有効なパラメータを追加
-      const enabledParams = KeyValuePairOperations.getEnabled(this.request.params)
+      const enabledParams = this.request.params.filter((param) => param.enabled && param.key.trim())
       enabledParams.forEach((param) => {
         url.searchParams.set(this.variableResolver(param.key), this.variableResolver(param.value))
       })
 
       return url
     } catch (_error) {
-      const appError = ErrorHandler.handleValidationError('無効なURLです', {
-        url: this.request.url,
-        context: 'buildUrl'
-      })
-      throw new Error(appError.message)
+      throw new Error(`無効なURLです: ${this.request.url}`)
     }
   }
 
@@ -66,7 +57,9 @@ export class RequestBuilder {
     const headers = new Headers()
 
     // 基本ヘッダーを設定
-    const enabledHeaders = KeyValuePairOperations.getEnabled(this.request.headers)
+    const enabledHeaders = this.request.headers.filter(
+      (header) => header.enabled && header.key.trim()
+    )
     enabledHeaders.forEach((header) => {
       headers.set(this.variableResolver(header.key), this.variableResolver(header.value))
     })
@@ -140,10 +133,7 @@ export class RequestBuilder {
         }
       } catch (error) {
         // Cookie設定エラーは警告レベル
-        const appError = ErrorHandler.handleSystemError(error, {
-          context: 'addCookieHeaders'
-        })
-        void ErrorHandler.logError(appError)
+        console.warn('Cookie設定エラー:', error)
       }
     }
   }
@@ -205,7 +195,9 @@ export class RequestBuilder {
    */
   private buildFormUrlEncodedBody(): string {
     if (this.request.bodyKeyValuePairs) {
-      const enabledPairs = KeyValuePairOperations.getEnabled(this.request.bodyKeyValuePairs)
+      const enabledPairs = this.request.bodyKeyValuePairs.filter(
+        (pair) => pair.enabled && pair.key.trim()
+      )
       const params = new URLSearchParams()
 
       enabledPairs.forEach((pair) => {
@@ -224,7 +216,9 @@ export class RequestBuilder {
     const formData = new FormData()
 
     if (this.request.bodyKeyValuePairs) {
-      const enabledPairs = KeyValuePairOperations.getEnabled(this.request.bodyKeyValuePairs)
+      const enabledPairs = this.request.bodyKeyValuePairs.filter(
+        (pair) => pair.enabled && pair.key.trim()
+      )
 
       enabledPairs.forEach((pair) => {
         const key = this.variableResolver(pair.key)

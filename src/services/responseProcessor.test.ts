@@ -316,12 +316,7 @@ describe('ResponseProcessor', () => {
       const error = new Error('Network error')
       const startTime = Date.now() - 500
 
-      const errorResponse = ResponseProcessor.createErrorResponse(
-        error,
-        startTime,
-        'https://api.example.com/test',
-        'GET'
-      )
+      const errorResponse = ResponseProcessor.createErrorResponse(error, startTime)
 
       expect(errorResponse.status).toBe(0)
       expect(errorResponse.statusText).toBe('Network Error')
@@ -338,12 +333,7 @@ describe('ResponseProcessor', () => {
       const timeoutError = new Error('Request timeout')
       timeoutError.name = 'AbortError'
 
-      const errorResponse = ResponseProcessor.createErrorResponse(
-        timeoutError,
-        Date.now() - 1000,
-        'https://api.example.com/test',
-        'POST'
-      )
+      const errorResponse = ResponseProcessor.createErrorResponse(timeoutError, Date.now() - 1000)
 
       expect(errorResponse.statusText).toBe('Request Timeout')
     })
@@ -351,12 +341,7 @@ describe('ResponseProcessor', () => {
     it('should handle fetch error', () => {
       const fetchError = new Error('fetch failed')
 
-      const errorResponse = ResponseProcessor.createErrorResponse(
-        fetchError,
-        Date.now() - 800,
-        'https://api.example.com/test',
-        'PUT'
-      )
+      const errorResponse = ResponseProcessor.createErrorResponse(fetchError, Date.now() - 800)
 
       expect(errorResponse.statusText).toBe('Fetch Error')
     })

@@ -1,6 +1,4 @@
 import { ApiRequest, ApiResponse } from '@/types/types'
-import { getGlobalSettings } from '@renderer/stores/globalSettingsStore'
-import { ErrorHandler } from '@renderer/utils/errorUtils'
 import { RequestBuilder } from './requestBuilder'
 import { ResponseProcessor } from './responseProcessor'
 
@@ -34,10 +32,7 @@ export class HttpClient {
       // リクエスト検証
       const validationErrors = builder.validate()
       if (validationErrors.length > 0) {
-        const appError = ErrorHandler.handleValidationError(validationErrors.join(', '), {
-          context: 'requestValidation'
-        })
-        throw new Error(appError.message)
+        throw new Error(`Request validation failed: ${validationErrors.join(', ')}`)
       }
 
       // URL と fetch オプションを構築
@@ -56,7 +51,7 @@ export class HttpClient {
       return await processor.processResponse()
     } catch (error) {
       // エラーレスポンスを作成
-      return ResponseProcessor.createErrorResponse(error, startTime, request.url, request.method)
+      return ResponseProcessor.createErrorResponse(error, startTime)
     }
   }
 
@@ -64,32 +59,8 @@ export class HttpClient {
    * プロキシ設定を適用
    */
   private applyProxySettings(options: RequestInit, _url: string): RequestInit {
-    const globalSettings = getGlobalSettings()
-
-    if (!globalSettings.proxyEnabled || !globalSettings.proxyUrl) {
-      return options
-    }
-
-    try {
-      // Node.js環境でのプロキシ設定（実際のElectron環境では異なる実装が必要）
-      // ここではプレースホルダーとして構造を示す
-      const proxyOptions = {
-        ...options
-        // プロキシ設定はElectronのメインプロセスで処理されることが多い
-        // または、proxy-agentなどのライブラリを使用
-      }
-
-      return proxyOptions
-    } catch (error) {
-      const appError = ErrorHandler.handleSystemError(error, {
-        context: 'applyProxySettings',
-        proxyUrl: globalSettings.proxyUrl
-      })
-      void ErrorHandler.logError(appError)
-
-      // プロキシ設定エラーの場合は元のオプションを返す
-      return options
-    }
+    // プロキシ設定はElectronメインプロセスで処理されるため、レンダラープロセスでは無効
+    return options
   }
 
   /**
@@ -109,10 +80,7 @@ export class HttpClient {
       // リクエスト検証
       const validationErrors = builder.validate()
       if (validationErrors.length > 0) {
-        const appError = ErrorHandler.handleValidationError(validationErrors.join(', '), {
-          context: 'requestValidation'
-        })
-        throw new Error(appError.message)
+        throw new Error(`Request validation failed: ${validationErrors.join(', ')}`)
       }
 
       // URL と fetch オプションを構築
@@ -135,7 +103,7 @@ export class HttpClient {
       const processor = new ResponseProcessor(response, startTime)
       return await processor.processResponse()
     } catch (error) {
-      return ResponseProcessor.createErrorResponse(error, startTime, request.url, request.method)
+      return ResponseProcessor.createErrorResponse(error, startTime)
     }
   }
 
@@ -170,7 +138,7 @@ export class HttpClient {
       }
     } catch (error) {
       return {
-        error: ErrorHandler.extractErrorMessage(error),
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
         context: 'getRequestDetails'
       }
     }

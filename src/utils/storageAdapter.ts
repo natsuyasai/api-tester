@@ -3,23 +3,15 @@
  * 実行環境に応じてLocalStorageまたはNodeStorageServiceを使用
  */
 
+import { NodeStorageService } from '../main/services/nodeStorageService'
+
 // Node.js環境判定
 const isNodeEnvironment = () => {
-  // Electronのレンダラープロセス環境
-  if (typeof window !== 'undefined' && window.process && window.process.type) {
-    return true
-  }
-
-  // ElectronのNode.js環境またはメインプロセス
-  if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
-    return true
-  }
-
-  // Node.js環境
+  // Node.js環境またはElectronメインプロセス（windowが存在しない）
   if (
     typeof process !== 'undefined' &&
     process.versions &&
-    process.versions.node &&
+    (process.versions.node || process.versions.electron) &&
     typeof window === 'undefined'
   ) {
     return true
@@ -78,8 +70,7 @@ class BrowserStorageAdapter implements StorageInterface {
  * Node.js用ストレージアダプター
  */
 class NodeStorageAdapter implements StorageInterface {
-  private nodeStorage: typeof import('../services/nodeStorageService').NodeStorageService | null =
-    null
+  private nodeStorage: any | null = null
   private localStorageAdapter: StorageInterface | null = null
 
   constructor() {
@@ -91,7 +82,6 @@ class NodeStorageAdapter implements StorageInterface {
 
   private async initNodeStorage() {
     try {
-      const { NodeStorageService } = await import('../services/nodeStorageService')
       this.nodeStorage = NodeStorageService
       this.localStorageAdapter = NodeStorageService.createLocalStorageAdapter()
       if (this.localStorageAdapter && 'init' in this.localStorageAdapter) {

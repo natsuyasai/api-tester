@@ -4,6 +4,7 @@
  */
 
 import { ApiRequest, ApiResponse } from '@/types/types'
+import { ApiServiceV2 } from '../../../services/apiServiceV2'
 
 // 型ガード関数
 function hasApiExecutor(): boolean {
@@ -38,7 +39,6 @@ export class IpcApiService {
       }
     } else {
       // フォールバック: 直接ApiServiceV2を使用
-      const { ApiServiceV2 } = await import('../../../services/apiServiceV2')
       return await ApiServiceV2.executeRequest(request, variableResolver, saveToHistory)
     }
   }
@@ -69,7 +69,6 @@ export class IpcApiService {
       }
     } else {
       // フォールバック: 直接ApiServiceV2を使用
-      const { ApiServiceV2 } = await import('../../../services/apiServiceV2')
       return await ApiServiceV2.executeRequestWithCancel(
         request,
         cancelToken,
@@ -98,7 +97,6 @@ export class IpcApiService {
       }
     } else {
       // フォールバック: 直接ApiServiceV2を使用
-      const { ApiServiceV2 } = await import('../../../services/apiServiceV2')
       return await ApiServiceV2.validateRequest(request, variableResolver)
     }
   }
@@ -203,7 +201,6 @@ export class IpcApiService {
       }
     } else {
       // フォールバック: 直接ApiServiceV2を使用
-      const { ApiServiceV2 } = await import('../../../services/apiServiceV2')
       return ApiServiceV2.buildCurlCommand(request, variableResolver)
     }
   }
@@ -232,7 +229,6 @@ export class IpcApiService {
       }
     } else {
       // フォールバック: 直接ApiServiceV2を使用
-      const { ApiServiceV2 } = await import('../../../services/apiServiceV2')
       return await ApiServiceV2.healthCheck(url)
     }
   }
@@ -243,7 +239,6 @@ export class IpcApiService {
    */
   static async setCookieResolver(resolver: (domain: string) => string): Promise<void> {
     // IPC経由では複雑なため、フォールバックのみ実装
-    const { ApiServiceV2 } = await import('./apiServiceV2')
     return await ApiServiceV2.setCookieResolver(resolver)
   }
 
@@ -257,7 +252,6 @@ export class IpcApiService {
     maxConcurrency: number = 3
   ): Promise<ApiResponse[]> {
     // IPC経由では非効率なため、フォールバックのみ実装
-    const { ApiServiceV2 } = await import('./apiServiceV2')
     return await ApiServiceV2.executeBatchRequests(requests, variableResolver, maxConcurrency)
   }
 
@@ -280,7 +274,6 @@ export class IpcApiService {
     }
   }> {
     // IPC経由では非効率なため、フォールバックのみ実装
-    const { ApiServiceV2 } = await import('./apiServiceV2')
     return await ApiServiceV2.runPerformanceTest(request, iterations, variableResolver)
   }
 }

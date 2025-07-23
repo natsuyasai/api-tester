@@ -11,7 +11,7 @@ interface TabState {
 }
 
 interface TabActions {
-  addTab: (collectionId?: string) => void
+  addTab: (collectionId?: string) => string
   closeTab: (tabId: string) => void
   setActiveTab: (tabId: string) => void
   updateTabTitle: (tabId: string, title: string) => void
@@ -69,6 +69,7 @@ export const useTabStore = create<TabState & TabActions>()(
           false,
           'addTab'
         )
+        return newTab.id
       },
 
       closeTab: (tabId: string) => {

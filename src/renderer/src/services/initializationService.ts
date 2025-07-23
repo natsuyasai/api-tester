@@ -1,5 +1,6 @@
 import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { useTabStore } from '@renderer/stores/tabStore'
+import { TabCollectionManager } from './tabCollectionManager'
 
 /**
  * アプリケーション初期化サービス
@@ -38,16 +39,7 @@ export class InitializationService {
 
       if (defaultCollectionTabs.length === 0) {
         // デフォルトフォルダにタブが存在しない場合、新しいタブを作成
-        tabStore.addTab(defaultCollection.id)
-
-        // コレクションにタブIDを追加
-        const newTabs = useTabStore.getState().tabs
-        const newTab = newTabs.find((t) => t.collectionId === defaultCollection.id)
-
-        if (newTab) {
-          collectionStore.addTabToCollection(defaultCollection.id, newTab.id)
-          collectionStore.setCollectionActiveTab(defaultCollection.id, newTab.id)
-        }
+        TabCollectionManager.createTabInCollection(defaultCollection.id)
       }
 
       // 5. アクティブなタブが存在しない場合の処理
@@ -90,20 +82,11 @@ export class InitializationService {
       // 強制的にリセット
       tabStore.resetTabs()
 
-      // デフォルトコレクションを確実に作成
-      const defaultCollectionId = collectionStore.createCollection(
+      // デフォルトコレクションを確実に作成（初期タブ付き）
+      const { collectionId: defaultCollectionId } = TabCollectionManager.createCollectionWithTab(
         'デフォルトフォルダ',
         'デフォルトのリクエスト保存フォルダ'
       )
-
-      // 作成されたタブをデフォルトコレクションに関連付け
-      const currentTabs = useTabStore.getState().tabs
-      if (currentTabs.length > 0) {
-        const defaultTab = currentTabs[0]
-        tabStore.setTabCollection(defaultTab.id, defaultCollectionId)
-        collectionStore.addTabToCollection(defaultCollectionId, defaultTab.id)
-        collectionStore.setCollectionActiveTab(defaultCollectionId, defaultTab.id)
-      }
 
       collectionStore.setActiveCollection(defaultCollectionId)
 
@@ -136,26 +119,13 @@ export class InitializationService {
         return
       }
 
-      // 新しいタブを作成
-      tabStore.addTab(collectionId)
+      // 新しいタブを作成（統一APIを使用）
+      const tabId = TabCollectionManager.createTabInCollection(collectionId)
 
-      // 作成されたタブを取得
-      const newTabs = useTabStore.getState().tabs
-      const newTab = newTabs.find((t) => t.collectionId === collectionId)
-
-      if (newTab) {
-        // コレクションにタブIDを追加
-        collectionStore.addTabToCollection(collectionId, newTab.id)
-        collectionStore.setCollectionActiveTab(collectionId, newTab.id)
-
-        console.log(`新規フォルダ "${collection.name}" に初期タブを作成しました:`, {
-          tabId: newTab.id,
-          tabTitle: newTab.title,
-          collectionId: collectionId
-        })
-      } else {
-        console.error('タブの作成に失敗しました')
-      }
+      console.log(`新規フォルダ "${collection.name}" に初期タブを作成しました:`, {
+        tabId,
+        collectionId
+      })
     } catch (error) {
       console.error('新規フォルダのタブ作成中にエラーが発生:', error)
     }

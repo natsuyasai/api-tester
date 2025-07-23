@@ -1,12 +1,11 @@
 import { ApiRequest, ApiResponse, ApiResponseData } from '@/types/types'
-import { getGlobalSettings } from '@renderer/stores/globalSettingsStore'
-import { ErrorHandler } from '@renderer/utils/errorUtils'
 import {
   HttpClientInterface,
   UndiciRequestInterface,
   ProxyAgentInterface
 } from '../../services/httpClientInterface'
 import { RequestBuilder } from '../../services/requestBuilder'
+import { getMainProcessConfig } from '../config/defaultConfig'
 
 /**
  * 依存性注入対応のNode.js環境用HTTP通信クライアント
@@ -43,10 +42,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
       // リクエスト検証
       const validationErrors = builder.validate()
       if (validationErrors.length > 0) {
-        const appError = ErrorHandler.handleValidationError(validationErrors.join(', '), {
-          context: 'requestValidation'
-        })
-        throw new Error(appError.message)
+        throw new Error(`Request validation failed: ${validationErrors.join(', ')}`)
       }
 
       // URL と オプションを構築
@@ -85,10 +81,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
       // リクエスト検証
       const validationErrors = builder.validate()
       if (validationErrors.length > 0) {
-        const appError = ErrorHandler.handleValidationError(validationErrors.join(', '), {
-          context: 'requestValidation'
-        })
-        throw new Error(appError.message)
+        throw new Error(`Request validation failed: ${validationErrors.join(', ')}`)
       }
 
       // URL と オプションを構築
@@ -118,7 +111,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
    * Fetch APIのオプションをundici用に変換
    */
   private convertToUndiciOptions(fetchOptions: RequestInit, _url: string) {
-    const globalSettings = getGlobalSettings()
+    const globalSettings = getMainProcessConfig()
 
     const undiciOptions: Record<string, unknown> = {
       method: fetchOptions.method,
@@ -155,11 +148,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
         }
         undiciOptions.dispatcher = new this.ProxyAgentClass(proxyOptions) as unknown
       } catch (error) {
-        const appError = ErrorHandler.handleSystemError(error, {
-          context: 'proxyConfiguration',
-          proxyUrl: globalSettings.proxyUrl
-        })
-        void ErrorHandler.logError(appError)
+        console.error('Proxy configuration error:', error)
       }
     }
 
@@ -245,11 +234,8 @@ export class NodeHttpClientDI implements HttpClientInterface {
         timestamp: new Date().toISOString()
       }
     } catch (error) {
-      const appError = ErrorHandler.handleSystemError(error, {
-        context: 'processUndiciResponse',
-        status: response?.statusCode
-      })
-      void ErrorHandler.logError(appError)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      console.error('Error processing undici response:', errorMessage)
 
       return {
         status: 0,
@@ -257,7 +243,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
         headers: {},
         data: {
           type: 'error' as const,
-          error: appError.message
+          error: errorMessage
         },
         duration: Date.now() - startTime,
         timestamp: new Date().toISOString()
@@ -301,17 +287,13 @@ export class NodeHttpClientDI implements HttpClientInterface {
   private createNodeErrorResponse(
     error: unknown,
     startTime: number,
-    requestUrl: string,
-    requestMethod: string
+    _requestUrl: string,
+    _requestMethod: string
   ): ApiResponse {
     const duration = Date.now() - startTime
 
-    const appError = ErrorHandler.handleSystemError(error, {
-      requestUrl,
-      requestMethod,
-      context: 'executeRequest'
-    })
-    void ErrorHandler.logError(appError)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    console.error('Node HTTP client error:', errorMessage)
 
     const status = 0
     let statusText = 'Network Error'
@@ -347,7 +329,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
       headers: {},
       data: {
         type: 'error' as const,
-        error: appError.message
+        error: errorMessage
       },
       duration,
       timestamp: new Date().toISOString()
@@ -385,7 +367,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
       }
     } catch (error) {
       return {
-        error: ErrorHandler.extractErrorMessage(error),
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
         context: 'getRequestDetails'
       }
     }

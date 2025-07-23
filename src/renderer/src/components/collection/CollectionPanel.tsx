@@ -1,5 +1,6 @@
 import { JSX, useState } from 'react'
 import { Collection } from '@/types/types'
+import { TabCollectionManager } from '@renderer/services/tabCollectionManager'
 import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { useTabStore } from '@renderer/stores/tabStore'
 import styles from './CollectionPanel.module.scss'
@@ -56,7 +57,16 @@ export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): 
 
   const handleCreateCollection = () => {
     if (newCollectionName.trim()) {
-      collectionStore.createCollection(newCollectionName.trim(), undefined, newCollectionParent)
+      // 新しい統一APIを使用してコレクションと初期タブを作成
+      const { collectionId } = TabCollectionManager.createCollectionWithTab(
+        newCollectionName.trim(),
+        undefined,
+        newCollectionParent
+      )
+
+      // 作成したコレクションをアクティブに設定
+      collectionStore.setActiveCollection(collectionId)
+
       setNewCollectionName('')
       setNewCollectionParent(undefined)
       setShowCreateForm(false)

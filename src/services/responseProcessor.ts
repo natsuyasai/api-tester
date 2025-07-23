@@ -6,7 +6,7 @@ import {
   BinaryResponseData,
   ErrorResponseData
 } from '@/types/types'
-import { ErrorHandler } from '@renderer/utils/errorUtils'
+// ErrorHandlerは削除し、直接エラーハンドリングを行う
 
 /**
  * HTTPレスポンス処理サービス
@@ -70,16 +70,11 @@ export class ResponseProcessor {
       // バイナリデータの場合
       return await this.processBinaryResponse(contentType)
     } catch (error) {
-      const appError = ErrorHandler.handleParsingError(error, {
-        context: 'processResponseData',
-        contentType,
-        status: this.response.status
-      })
-      void ErrorHandler.logError(appError)
+      console.error('Response data processing error:', error)
 
       return {
         type: 'error',
-        error: appError.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         contentType
       } as ErrorResponseData
     }
@@ -147,11 +142,7 @@ export class ResponseProcessor {
 
       return await this.convertBlobToTypedData(blob, contentType, size)
     } catch (error) {
-      const appError = ErrorHandler.handleParsingError(error, {
-        context: 'processBinaryResponse',
-        contentType
-      })
-      void ErrorHandler.logError(appError)
+      console.error('Binary response processing error:', error)
 
       return {
         type: 'binary',
@@ -160,7 +151,7 @@ export class ResponseProcessor {
         data: null,
         subType: 'other',
         isPreviewable: false,
-        error: appError.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
   }
@@ -232,7 +223,7 @@ export class ResponseProcessor {
         dataUrl: null,
         originalBlob: blob,
         isPreviewable: false,
-        error: ErrorHandler.extractErrorMessage(error) || 'Processing failed'
+        error: error instanceof Error ? error.message : 'Processing failed'
       }
     }
   }
@@ -260,11 +251,7 @@ export class ResponseProcessor {
         isPreviewable: true
       }
     } catch (error) {
-      const appError = ErrorHandler.handleParsingError(error, {
-        context: 'processImageBlob',
-        contentType
-      })
-      void ErrorHandler.logError(appError)
+      console.error('Image blob processing error:', error)
 
       return {
         type: 'binary',
@@ -275,7 +262,7 @@ export class ResponseProcessor {
         dataUrl: null,
         originalBlob: blob,
         isPreviewable: false,
-        error: appError.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
   }
@@ -303,11 +290,7 @@ export class ResponseProcessor {
         isPreviewable: true
       }
     } catch (error) {
-      const appError = ErrorHandler.handleParsingError(error, {
-        context: 'processDocumentBlob',
-        contentType
-      })
-      void ErrorHandler.logError(appError)
+      console.error('Document blob processing error:', error)
 
       return {
         type: 'binary',
@@ -318,7 +301,7 @@ export class ResponseProcessor {
         dataUrl: null,
         originalBlob: blob,
         isPreviewable: false,
-        error: appError.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
   }
@@ -346,11 +329,7 @@ export class ResponseProcessor {
         isPreviewable: true
       }
     } catch (error) {
-      const appError = ErrorHandler.handleParsingError(error, {
-        context: 'processMediaBlob',
-        contentType
-      })
-      void ErrorHandler.logError(appError)
+      console.error('Media blob processing error:', error)
 
       return {
         type: 'binary',
@@ -361,7 +340,7 @@ export class ResponseProcessor {
         dataUrl: null,
         originalBlob: blob,
         isPreviewable: false,
-        error: appError.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
   }
@@ -385,21 +364,11 @@ export class ResponseProcessor {
   /**
    * エラーレスポンスを作成
    */
-  static createErrorResponse(
-    error: unknown,
-    startTime: number,
-    requestUrl: string,
-    requestMethod: string
-  ): ApiResponse {
+  static createErrorResponse(error: unknown, startTime: number): ApiResponse {
     const endTime = Date.now()
     const duration = endTime - startTime
 
-    const appError = ErrorHandler.handleNetworkError(error, {
-      requestUrl,
-      requestMethod,
-      context: 'executeRequest'
-    })
-    void ErrorHandler.logError(appError)
+    console.error('Network request error:', error)
 
     // エラータイプの判定
     let statusText = 'Network Error'
@@ -417,7 +386,7 @@ export class ResponseProcessor {
       headers: {},
       data: {
         type: 'error',
-        error: appError.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         contentType: 'text/plain'
       } as ErrorResponseData,
       duration,

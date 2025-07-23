@@ -1,8 +1,7 @@
 import { request, ProxyAgent } from 'undici'
 import { ApiRequest, ApiResponse, ApiResponseData } from '@/types/types'
-import { getGlobalSettings } from '@renderer/stores/globalSettingsStore'
-import { ErrorHandler } from '@renderer/utils/errorUtils'
-import { RequestBuilder } from './requestBuilder'
+import { getMainProcessConfig } from '../config/defaultConfig'
+import { RequestBuilder } from '../../services/requestBuilder'
 
 // undici用の型定義は不要（Record<string, unknown>を使用）
 

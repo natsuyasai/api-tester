@@ -1,6 +1,4 @@
 import { ApiRequest, ApiResponse } from '@/types/types'
-import { useCollectionStore } from '@renderer/stores/collectionStore'
-import { ErrorHandler } from '@renderer/utils/errorUtils'
 import { createNodeHttpClient } from '../main/services/nodeHttpClientDI'
 import { HttpClient } from './httpClient'
 import { HttpClientInterface } from './httpClientInterface'
@@ -26,23 +24,17 @@ export class ApiServiceV2 {
    * 実行環境に応じて適切なHTTPクライアントを作成
    */
   private static async createHttpClient(): Promise<HttpClient | HttpClientInterface> {
-    // Electron環境（Node.js）かブラウザ環境かを判定
-    if (typeof window !== 'undefined' && window.process && window.process.type) {
-      // Electronのレンダラープロセス環境でも、Node.js APIが利用可能な場合はNodeHttpClientを使用
+    // Node.js環境またはElectronメインプロセス（windowが存在しない）
+    if (
+      typeof process !== 'undefined' &&
+      process.versions &&
+      (process.versions.node || process.versions.electron) &&
+      typeof window === 'undefined'
+    ) {
       return await createNodeHttpClient()
     }
 
-    // ElectronのNode.js環境またはメインプロセスの場合
-    if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
-      return await createNodeHttpClient()
-    }
-
-    // Node.js環境の場合
-    if (typeof process !== 'undefined' && process.versions && process.versions.node) {
-      return await createNodeHttpClient()
-    }
-
-    // ブラウザ環境の場合（従来の動作を維持）
+    // ブラウザ環境またはElectronレンダラープロセス
     return new HttpClient()
   }
 
@@ -89,13 +81,8 @@ export class ApiServiceV2 {
       const duration = endTime - startTime
       executionStatus = 'error'
 
-      const appError = ErrorHandler.handleNetworkError(error, {
-        requestUrl: request.url,
-        requestMethod: request.method,
-        context: 'executeRequest'
-      })
-      void ErrorHandler.logError(appError)
-      errorMessage = appError.message
+      errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      console.error('API execution error:', errorMessage)
 
       // エラーレスポンスを作成
       const errorResponse = {
@@ -162,13 +149,8 @@ export class ApiServiceV2 {
       const duration = endTime - startTime
       executionStatus = 'error'
 
-      const appError = ErrorHandler.handleNetworkError(error, {
-        requestUrl: request.url,
-        requestMethod: request.method,
-        context: 'executeRequestWithCancel'
-      })
-      void ErrorHandler.logError(appError)
-      errorMessage = appError.message
+      errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      console.error('API execution error (with cancel):', errorMessage)
 
       const errorResponse = {
         status: 0,
@@ -279,6 +261,7 @@ export class ApiServiceV2 {
 
   /**
    * 実行履歴への保存
+   * 注意: Node.js環境では履歴保存は行わない（レンダラープロセス専用機能）
    */
   private static saveToHistory(
     request: ApiRequest,
@@ -287,15 +270,25 @@ export class ApiServiceV2 {
     executionStatus: 'success' | 'error',
     errorMessage?: string
   ): void {
+    // Node.js環境（メインプロセス）では履歴保存をスキップ
+    if (typeof window === 'undefined') {
+      return
+    }
+
     try {
-      const { addExecutionHistory } = useCollectionStore.getState()
-      addExecutionHistory(request, response, duration, executionStatus, errorMessage)
+      // レンダラープロセスでのみ実行
+      if (typeof window !== 'undefined' && 'useCollectionStore' in window) {
+        // 動的にcollectionStoreにアクセス
+        const collectionStore = (window as any).useCollectionStore
+        if (collectionStore && typeof collectionStore.getState === 'function') {
+          const { addExecutionHistory } = collectionStore.getState()
+          if (typeof addExecutionHistory === 'function') {
+            addExecutionHistory(request, response, duration, executionStatus, errorMessage)
+          }
+        }
+      }
     } catch (historyError) {
-      const error = ErrorHandler.handleStorageError(historyError, {
-        context: 'saveExecutionHistory',
-        requestId: request.id
-      })
-      void ErrorHandler.logError(error)
+      console.error('Failed to save execution history:', historyError)
     }
   }
 
@@ -418,7 +411,7 @@ export class ApiServiceV2 {
       return {
         isHealthy: false,
         responseTime: 0,
-        error: ErrorHandler.extractErrorMessage(error)
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
       }
     }
   }
@@ -536,11 +529,8 @@ export class ApiServiceV2 {
 
       return command
     } catch (error) {
-      const appError = ErrorHandler.handleValidationError('Invalid request for cURL generation', {
-        context: 'buildCurlCommand',
-        error: ErrorHandler.extractErrorMessage(error)
-      })
-      throw new Error(appError.message)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      throw new Error(`Invalid request for cURL generation: ${errorMessage}`)
     }
   }
 

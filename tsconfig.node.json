@@ -6,20 +6,20 @@
     "src/preload/**/*",
     "src/preload/index.d.ts",
     "src/logic/**/*",
-    "src/services/apiServiceV2.ts",
     "src/services/fileService.ts",
     "src/services/graphqlService.ts",
-    "src/services/httpClient.ts",
     "src/services/httpClientInterface.ts",
     "src/services/requestBuilder.ts",
-    "src/services/responseProcessor.ts",
     "src/utils/performanceUtils.ts",
     "src/utils/storageAdapter.ts",
     "src/types",
     "test/logic/**/*"
   ],
   "exclude": [
-    "src/renderer/**/*"
+    "src/renderer/**/*",
+    "src/main/services/nodeHttpClient.ts",
+    "src/main/services/nodeHttpClientDI.test.ts",
+    "src/services/responseProcessor.ts"
   ],
   "compilerOptions": {
     "composite": true,
