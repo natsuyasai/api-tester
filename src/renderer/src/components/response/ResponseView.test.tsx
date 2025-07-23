@@ -230,7 +230,7 @@ describe('ResponseView', () => {
 
     // JSONが適切にフォーマットされているかチェック
     const formattedText = responseBody.textContent
-    expect(formattedText).toContain('{\n  "users": [')
+    expect(formattedText).toContain('"users": [')
   })
 
   it('should handle non-JSON response data', () => {

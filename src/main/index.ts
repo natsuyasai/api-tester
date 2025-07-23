@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import { promises as fs } from 'fs'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -280,6 +283,123 @@ ipcMain.handle('getCurrentIpAddress', async () => {
       success: true,
       ipAddress: data.origin,
       proxyEnabled: currentProxySettings.enabled
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+})
+
+// API実行
+ipcMain.handle('executeApiRequest', async (_event, request: unknown, variableResolver?: unknown, saveToHistory = true) => {
+  try {
+    // ApiServiceV2を動的インポート
+    const { ApiServiceV2 } = await import('../services/apiServiceV2')
+    
+    // APIリクエストを実行
+    const response = await ApiServiceV2.executeRequest(
+      request as any, 
+      variableResolver as ((text: string) => string) | undefined, 
+      saveToHistory as boolean
+    )
+    
+    return {
+      success: true,
+      response
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+})
+
+// キャンセル可能なAPI実行
+ipcMain.handle('executeApiRequestWithCancel', async (_event, request: unknown, variableResolver?: unknown, saveToHistory = true) => {
+  try {
+    // AbortControllerを作成
+    const abortController = new AbortController()
+    
+    // ApiServiceV2を動的インポート
+    const { ApiServiceV2 } = await import('../services/apiServiceV2')
+    
+    // APIリクエストを実行
+    const response = await ApiServiceV2.executeRequestWithCancel(
+      request as any, 
+      abortController.signal, 
+      variableResolver as ((text: string) => string) | undefined, 
+      saveToHistory as boolean
+    )
+    
+    return {
+      success: true,  
+      response
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+})
+
+// APIリクエストの検証
+ipcMain.handle('validateApiRequest', async (_event, request: unknown, variableResolver?: unknown) => {
+  try {
+    const { ApiServiceV2 } = await import('../services/apiServiceV2')
+    
+    const errors = await ApiServiceV2.validateRequest(
+      request as any, 
+      variableResolver as ((text: string) => string) | undefined
+    )
+    
+    return {
+      success: true,
+      errors
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+})
+
+// cURLコマンド生成
+ipcMain.handle('buildCurlCommand', async (_event, request: unknown, variableResolver?: unknown) => {
+  try {
+    const { ApiServiceV2 } = await import('../services/apiServiceV2')
+    
+    const curlCommand = ApiServiceV2.buildCurlCommand(
+      request as any, 
+      variableResolver as ((text: string) => string) | undefined
+    )
+    
+    return {
+      success: true,
+      curlCommand
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+})
+
+// ヘルスチェック実行
+ipcMain.handle('healthCheck', async (_event, url: unknown) => {
+  try {
+    const { ApiServiceV2 } = await import('../services/apiServiceV2')
+    
+    const result = await ApiServiceV2.healthCheck(url as string)
+    
+    return {
+      success: true,
+      result
     }
   } catch (error) {
     return {

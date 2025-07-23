@@ -48,6 +48,48 @@ export interface ProxySettings {
   bypassList?: string[]
 }
 
+export interface ApiExecutor {
+  executeRequest: (
+    request: unknown, 
+    variableResolver?: unknown, 
+    saveToHistory?: boolean
+  ) => Promise<{
+    success: boolean
+    response?: unknown
+    error?: string
+  }>
+  executeRequestWithCancel: (
+    request: unknown, 
+    variableResolver?: unknown, 
+    saveToHistory?: boolean
+  ) => Promise<{
+    success: boolean
+    response?: unknown
+    error?: string
+  }>
+  validateRequest: (
+    request: unknown, 
+    variableResolver?: unknown
+  ) => Promise<{
+    success: boolean
+    errors?: string[]
+    error?: string
+  }>
+  buildCurlCommand: (
+    request: unknown, 
+    variableResolver?: unknown
+  ) => Promise<{
+    success: boolean
+    curlCommand?: string
+    error?: string
+  }>
+  healthCheck: (url: string) => Promise<{
+    success: boolean
+    result?: unknown
+    error?: string
+  }>
+}
+
 declare global {
   interface Window {
     electron: ElectronAPI
@@ -55,6 +97,7 @@ declare global {
     dialogAPI: DialogAPI
     fileAPI: FileAPI
     proxyAPI: ProxyAPI
+    apiExecutor: ApiExecutor
     lizard: Lizard
   }
 }

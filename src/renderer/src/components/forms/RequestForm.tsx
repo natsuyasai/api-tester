@@ -1,5 +1,5 @@
 import { JSX, useState } from 'react'
-import { ApiServiceV2 } from '@/services/apiServiceV2'
+import { IpcApiService } from '@/services/ipcApiService'
 import { HttpMethod } from '@/types/types'
 import { useEnvironmentStore } from '@renderer/stores/environmentStore'
 import { useRequestStore } from '@renderer/stores/requestStore'
@@ -46,7 +46,7 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
     if (!request.url) return
 
     // リクエストのバリデーション
-    const validationErrors = await ApiServiceV2.validateRequest(request, resolveVariables)
+    const validationErrors = await IpcApiService.validateRequest(request, resolveVariables)
     if (validationErrors.length > 0) {
       alert(`Validation errors:\n${validationErrors.join('\n')}`)
       return
@@ -54,7 +54,7 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
 
     setLoading(true)
     try {
-      const response = await ApiServiceV2.executeRequest(request, resolveVariables)
+      const response = await IpcApiService.executeRequest(request, resolveVariables)
       setResponse(tabId, response)
     } catch (error) {
       console.error('Request failed:', error)

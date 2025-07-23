@@ -84,7 +84,7 @@ export class NodeStorageService {
       const content = await NodeFileService.processFile(filePath, 'binary')
       const data = JSON.parse(content) as { value?: unknown }
 
-      return data.value ?? null
+      return typeof data.value === 'string' ? data.value : null
     } catch (error) {
       console.error(`ストレージからの取得に失敗 (key: ${key}):`, error)
       return null
@@ -310,13 +310,17 @@ export class NodeStorageService {
         })
       },
 
-      get length() {
+      length(): number {
         return cache.size
       },
 
       key(index: number): string | null {
         const keys = Array.from(cache.keys())
         return keys[index] || null
+      },
+
+      keys(): string[] {
+        return Array.from(cache.keys())
       }
     }
   }

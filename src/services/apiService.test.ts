@@ -64,7 +64,7 @@ describe('ApiService', () => {
 
       expect(result.status).toBe(200)
       expect(result.statusText).toBe('OK')
-      expect(result.data).toEqual({ users: [] })
+      expect(result.data).toEqual({ type: 'json', data: { users: [] }, contentType: 'application/json' })
       expect(result.duration).toBeGreaterThanOrEqual(0)
       expect(result.timestamp).toBeDefined()
     })
@@ -98,7 +98,7 @@ describe('ApiService', () => {
       )
 
       expect(result.status).toBe(201)
-      expect(result.data).toEqual({ id: 1, name: 'John Doe' })
+      expect(result.data).toEqual({ type: 'json', data: { id: 1, name: 'John Doe' }, contentType: 'application/json' })
     })
 
     it('should handle network errors', async () => {
@@ -147,7 +147,7 @@ describe('ApiService', () => {
 
       const result = await ApiService.executeRequest(basicRequest)
 
-      expect(result.data).toBe('Plain text response')
+      expect(result.data).toEqual({ type: 'text', data: 'Plain text response', contentType: 'text/plain' })
     })
 
     it('should handle binary responses', async () => {

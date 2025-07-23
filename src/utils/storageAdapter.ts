@@ -78,7 +78,8 @@ class BrowserStorageAdapter implements StorageInterface {
  * Node.js用ストレージアダプター
  */
 class NodeStorageAdapter implements StorageInterface {
-  private nodeStorage: typeof import('../services/nodeStorageService').NodeStorageService | null = null
+  private nodeStorage: typeof import('../services/nodeStorageService').NodeStorageService | null =
+    null
   private localStorageAdapter: StorageInterface | null = null
 
   constructor() {
@@ -94,7 +95,8 @@ class NodeStorageAdapter implements StorageInterface {
       this.nodeStorage = NodeStorageService
       this.localStorageAdapter = NodeStorageService.createLocalStorageAdapter()
       if (this.localStorageAdapter && 'init' in this.localStorageAdapter) {
-        await this.localStorageAdapter.init()
+        const adapter = this.localStorageAdapter as { init: () => Promise<void> }
+        await adapter.init()
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)

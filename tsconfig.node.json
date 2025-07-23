@@ -4,12 +4,21 @@
     "electron.vite.config.*",
     "src/main/**/*",
     "src/preload/**/*",
+    "src/preload/index.d.ts",
     "src/logic/**/*",
+    "src/services/**/*",
+    "src/utils/**/*",
     "src/types",
     "test/logic/**/*"
   ],
+  "exclude": [
+    "src/renderer/**/*",
+    "src/renderer/src/stores/globalSettingsStore.ts",
+    "src/services/ipcApiService.ts"
+  ],
   "compilerOptions": {
     "composite": true,
+    "skipLibCheck": true,
     "types": [
       "electron-vite/node",
       "vitest/globals"

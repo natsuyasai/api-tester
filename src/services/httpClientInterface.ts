@@ -18,13 +18,18 @@ export interface HttpClientInterface {
 
   validateRequest(request: ApiRequest, variableResolver?: (text: string) => string): string[]
 
-  getRequestDetails(request: ApiRequest, variableResolver?: (text: string) => string): {
-    url: string
-    method: string
-    headers: Record<string, string>
-    body: string | FormData | null
-    settings: unknown
-  } | { error: string; context: string }
+  getRequestDetails(
+    request: ApiRequest,
+    variableResolver?: (text: string) => string
+  ):
+    | {
+        url: string
+        method: string
+        headers: Record<string, string>
+        body: string | FormData | null
+        settings: unknown
+      }
+    | { error: string; context: string }
 
   setCookieResolver(resolver: (domain: string) => string): void
 }

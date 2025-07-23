@@ -170,7 +170,11 @@ export class NodeHttpClient {
    * undiciレスポンスを処理
    */
   private async processUndiciResponse(
-    response: { statusCode: number; headers: Record<string, unknown>; body: { arrayBuffer(): Promise<ArrayBuffer> } },
+    response: {
+      statusCode: number
+      headers: Record<string, unknown>
+      body: { arrayBuffer(): Promise<ArrayBuffer> }
+    },
     startTime: number
   ): Promise<ApiResponse> {
     try {

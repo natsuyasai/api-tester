@@ -70,19 +70,47 @@ This is an Electron-based API testing tool built with React and TypeScript. The 
 - **UI Tests**: Storybook with Play Functions
 - **Browser Testing**: Playwright integration through Vitest
 
+## Core Architecture
+
+### HTTP Client Architecture
+
+このアプリケーションは環境に応じて適切なHTTPクライアントを自動選択する二重化アーキテクチャを採用：
+
+- **ブラウザ環境**: `HttpClient` (fetch API使用)
+- **Node.js/Electron環境**: `NodeHttpClient` (undici使用)
+
+### 重要なアーキテクチャコンポーネント
+
+- **ApiServiceV2** (`src/services/apiServiceV2.ts`): メインAPIサービス。HTTP実行、バッチリクエスト、パフォーマンステスト機能
+- **TabStore** (`src/renderer/src/stores/tabStore.ts`): Zustandベースのタブ管理ストア。マルチタブ機能の中核
+- **CollectionStore**: リクエストのコレクション管理と実行履歴
+- **型システム** (`src/types/types.ts`): 充実した型定義でREST/GraphQL両対応
+
+### キー機能
+
+- **マルチタブAPI テスト**: REST/GraphQLリクエストの同時管理
+- **コレクション管理**: フォルダ構造でのリクエスト整理
+- **実行履歴**: 詳細な実行ログと統計
+- **変数システム**: 環境変数とグローバル変数対応
+- **認証システム**: Basic、Bearer、API Key認証
+- **インポート/エクスポート**: YAML形式での設定管理
+
 ## Key Configuration Files
 
 - `electron.vite.config.ts` - Main build configuration with path aliases
-- `vitest.config.ts` - Test configuration with Storybook integration
+- `vitest.config.ts` - Test configuration with Storybook integration and 70% coverage requirement
 - `.storybook/main.ts` - Storybook configuration with custom aliases
 - `package.json` - Contains all build, test, and development scripts
+- `tailwind.config.ts` - Tailwind CSS v4 configuration
 
 ## Component Structure
 
 Components are organized under `src/renderer/src/components/` with:
 
-- `root/` - Root-level components
+- `forms/` - Form-related components (RequestForm, etc.)
+- `response/` - Response display components (ResponseView, PreviewRenderer, PropertySelector)
 - `tab/` - Tab-related components for multi-tab API testing interface
+- `root/` - Root-level components
 
 ## IPC Communication
 
