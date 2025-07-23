@@ -16,7 +16,7 @@ export interface MainProcessConfig {
 }
 
 export const DEFAULT_MAIN_CONFIG: MainProcessConfig = {
-  defaultTimeout: 30,
+  defaultTimeout: 60, // 60秒に延長（APIテストでは長めのタイムアウトが必要）
   allowInsecureConnections: false,
   defaultMaxRedirects: 5,
   proxyEnabled: false

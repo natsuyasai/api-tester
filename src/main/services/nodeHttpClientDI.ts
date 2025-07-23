@@ -60,7 +60,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
       return await this.processUndiciResponse(response, startTime)
     } catch (error) {
       // エラーレスポンスを作成
-      return this.createNodeErrorResponse(error, startTime, request.url, request.method)
+      return this.createNodeErrorResponse(error, startTime)
     }
   }
 
@@ -103,7 +103,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
       // レスポンス処理
       return await this.processUndiciResponse(response, startTime)
     } catch (error) {
-      return this.createNodeErrorResponse(error, startTime, request.url, request.method)
+      return this.createNodeErrorResponse(error, startTime)
     }
   }
 
@@ -119,10 +119,28 @@ export class NodeHttpClientDI implements HttpClientInterface {
       body: fetchOptions.body
     }
 
-    // タイムアウト設定
+    // タイムアウト設定（undiciでは3つの異なるタイムアウトがある）
     if (globalSettings.defaultTimeout > 0) {
-      undiciOptions.headersTimeout = globalSettings.defaultTimeout * 1000
-      undiciOptions.bodyTimeout = globalSettings.defaultTimeout * 1000
+      const timeoutMs = globalSettings.defaultTimeout * 1000
+      // ヘッダー受信のタイムアウト（通常は短めに設定）
+      undiciOptions.headersTimeout = Math.min(timeoutMs, 30000) // 最大30秒
+      // ボディ受信のタイムアウト（ファイルダウンロードなどを考慮して長めに）
+      undiciOptions.bodyTimeout = timeoutMs
+    }
+
+    // 全体のリクエストタイムアウトはAbortControllerで制御
+    if (globalSettings.defaultTimeout > 0 && !fetchOptions.signal) {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => {
+        controller.abort()
+      }, globalSettings.defaultTimeout * 1000)
+      
+      undiciOptions.signal = controller.signal
+      
+      // リクエスト完了後にタイムアウトをクリア
+      ;(undiciOptions.signal as AbortSignal).addEventListener('abort', () => {
+        clearTimeout(timeoutId)
+      })
     }
 
     // SSL検証設定
@@ -132,8 +150,8 @@ export class NodeHttpClientDI implements HttpClientInterface {
       undiciOptions.rejectUnauthorized = false
     }
 
-    // リダイレクト設定
-    undiciOptions.maxRedirections = globalSettings.defaultMaxRedirects || 5
+    // リダイレクト設定は削除（undiciでサポートされなくなったため）
+    // undici では自動でリダイレクトが処理される
 
     // プロキシ設定
     if (globalSettings.proxyEnabled && globalSettings.proxyUrl && this.ProxyAgentClass) {
@@ -152,7 +170,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
       }
     }
 
-    // キャンセルシグナル
+    // キャンセルシグナル（既存のsignalがある場合は優先）
     if (fetchOptions.signal) {
       undiciOptions.signal = fetchOptions.signal
     }
@@ -286,9 +304,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
    */
   private createNodeErrorResponse(
     error: unknown,
-    startTime: number,
-    _requestUrl: string,
-    _requestMethod: string
+    startTime: number
   ): ApiResponse {
     const duration = Date.now() - startTime
 
@@ -298,29 +314,39 @@ export class NodeHttpClientDI implements HttpClientInterface {
     const status = 0
     let statusText = 'Network Error'
 
-    // undiciエラーの特定の処理
-    if (error && typeof error === 'object' && 'code' in error) {
-      const errorCode = (error as Error & { code?: string }).code
+    // undiciエラーとAbortErrorの特定の処理
+    if (error && typeof error === 'object') {
+      // AbortError（タイムアウト含む）の処理
+      if ('name' in error && error.name === 'AbortError') {
+        statusText = 'Request Timeout'
+      } else if ('code' in error) {
+        const errorCode = (error as Error & { code?: string }).code
 
-      switch (errorCode) {
-        case 'ECONNREFUSED':
-          statusText = 'Connection Refused'
-          break
-        case 'ENOTFOUND':
-          statusText = 'Host Not Found'
-          break
-        case 'ETIMEDOUT':
-        case 'UND_ERR_CONNECT_TIMEOUT':
-          statusText = 'Connection Timeout'
-          break
-        case 'UND_ERR_HEADERS_TIMEOUT':
-        case 'UND_ERR_BODY_TIMEOUT':
-          statusText = 'Request Timeout'
-          break
-        case 'ECONNRESET':
-          statusText = 'Connection Reset'
-          break
+        switch (errorCode) {
+          case 'ECONNREFUSED':
+            statusText = 'Connection Refused'
+            break
+          case 'ENOTFOUND':
+            statusText = 'Host Not Found'
+            break
+          case 'ETIMEDOUT':
+          case 'UND_ERR_CONNECT_TIMEOUT':
+            statusText = 'Connection Timeout'
+            break
+          case 'UND_ERR_HEADERS_TIMEOUT':
+          case 'UND_ERR_BODY_TIMEOUT':
+            statusText = 'Request Timeout'
+            break
+          case 'ECONNRESET':
+            statusText = 'Connection Reset'
+            break
+        }
       }
+    }
+
+    // エラーメッセージからタイムアウト関連の検出
+    if (errorMessage.includes('timeout') || errorMessage.includes('aborted')) {
+      statusText = 'Request Timeout'
     }
 
     return {
