@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { YamlService } from '@/services/yamlService'
 import { useTabStore } from '@renderer/stores/tabStore'
+import { showErrorDialog } from '@renderer/utils/errorUtils'
 
 export const useYamlOperations = () => {
   const { tabs } = useTabStore()
@@ -21,7 +22,12 @@ export const useYamlOperations = () => {
         })
       }
     } catch (error) {
-      console.error('Failed to import YAML:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      void showErrorDialog(
+        'YAML インポートエラー',
+        'YAMLファイルのインポート中にエラーが発生しました',
+        errorMessage
+      )
       throw error
     }
   }, [])
@@ -45,7 +51,12 @@ export const useYamlOperations = () => {
         }
       }
     } catch (error) {
-      console.error('Failed to save file:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      await showErrorDialog(
+        'ファイル保存エラー',
+        'ファイルの保存中にエラーが発生しました',
+        errorMessage
+      )
       throw error
     }
   }, [exportYaml])
@@ -72,7 +83,12 @@ export const useYamlOperations = () => {
         }
       }
     } catch (error) {
-      console.error('Failed to load file:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      await showErrorDialog(
+        'ファイル読み込みエラー',
+        'ファイルの読み込み中にエラーが発生しました',
+        errorMessage
+      )
       throw error
     }
   }, [importYaml])

@@ -9,6 +9,7 @@ import { useAutoSave } from './hooks/useAutoSave'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useTabCollectionSync } from './hooks/useTabCollectionSync'
 import { InitializationService } from './services/initializationService'
+import { showErrorDialog } from './utils/errorUtils'
 
 function App(): JSX.Element {
   const [showSettings, setShowSettings] = useState(false)
@@ -23,11 +24,19 @@ function App(): JSX.Element {
 
   // アプリケーション起動時に完全な初期化を実行
   useEffect(() => {
-    try {
-      InitializationService.initializeApp()
-    } catch (error) {
-      console.error('アプリケーション初期化エラー:', error)
+    const initializeApp = async () => {
+      try {
+        InitializationService.initializeApp()
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        await showErrorDialog(
+          'アプリケーション初期化エラー',
+          'アプリケーションの初期化中にエラーが発生しました',
+          errorMessage
+        )
+      }
     }
+    void initializeApp()
   }, [])
 
   const handleShowSettings = () => {

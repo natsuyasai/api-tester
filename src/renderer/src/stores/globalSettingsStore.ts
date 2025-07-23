@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
+import { showErrorDialog } from '@renderer/utils/errorUtils'
 
 // グローバル設定の型定義
 export interface GlobalSettings {
@@ -98,7 +99,12 @@ const loadSettings = (): GlobalSettings => {
       return { ...DEFAULT_GLOBAL_SETTINGS, ...parsed } as GlobalSettings
     }
   } catch (error) {
-    console.error('Failed to load global settings:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    void showErrorDialog(
+      'グローバル設定読み込みエラー',
+      'グローバル設定の読み込み中にエラーが発生しました',
+      errorMessage
+    )
   }
   return DEFAULT_GLOBAL_SETTINGS
 }
@@ -108,7 +114,12 @@ const saveSettings = (settings: GlobalSettings): void => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
   } catch (error) {
-    console.error('Failed to save global settings:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    void showErrorDialog(
+      'グローバル設定保存エラー',
+      'グローバル設定の保存中にエラーが発生しました',
+      errorMessage
+    )
   }
 }
 
@@ -144,7 +155,12 @@ export const useGlobalSettingsStore = create<GlobalSettingsState>()(
           return true
         }
       } catch (error) {
-        console.error('Failed to import settings:', error)
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        void showErrorDialog(
+          '設定インポートエラー',
+          '設定のインポート中にエラーが発生しました',
+          errorMessage
+        )
       }
       return false
     }
@@ -169,13 +185,22 @@ const applyProxySettings = async (settings: GlobalSettings): Promise<void> => {
 
       const result = await window.proxyAPI.setProxyConfig(proxySettings)
       if (!result.success) {
-        console.error('Failed to apply proxy settings:', result.error)
+        await showErrorDialog(
+          'プロキシ設定適用エラー',
+          'プロキシ設定の適用中にエラーが発生しました',
+          result.error || 'Unknown error'
+        )
       } else {
         console.log('Proxy settings applied:', result.message)
       }
     }
   } catch (error) {
-    console.error('Error applying proxy settings:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    await showErrorDialog(
+      'プロキシ設定エラー',
+      'プロキシ設定の処理中にエラーが発生しました',
+      errorMessage
+    )
   }
 }
 

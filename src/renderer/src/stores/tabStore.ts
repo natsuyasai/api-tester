@@ -3,6 +3,7 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { ApiTab } from '@/types/types'
 import { KeyValuePairOperations } from '@renderer/utils/keyValueUtils'
+import { showErrorDialog } from '@renderer/utils/errorUtils'
 
 interface TabState {
   tabs: ApiTab[]
@@ -232,7 +233,12 @@ export const useTabStore = create<TabState & TabActions>()(
           }
           localStorage.setItem('api-tester-tabs', JSON.stringify(tabsData))
         } catch (error) {
-          console.error('Failed to save tabs to localStorage:', error)
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          void showErrorDialog(
+            'タブ保存エラー',
+            'タブの保存中にエラーが発生しました',
+            errorMessage
+          )
         }
       },
 
@@ -262,7 +268,12 @@ export const useTabStore = create<TabState & TabActions>()(
             }
           }
         } catch (error) {
-          console.error('Failed to load tabs from localStorage:', error)
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          void showErrorDialog(
+            'タブ読み込みエラー',
+            'タブの読み込み中にエラーが発生しました',
+            errorMessage
+          )
         }
       }
     }),

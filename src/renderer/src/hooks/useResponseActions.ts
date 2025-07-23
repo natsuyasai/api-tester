@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { ApiResponse } from '@/types/types'
 import { useTabStore } from '@renderer/stores/tabStore'
 import { formatJson, getFileExtension, getContentType } from '@renderer/utils/responseUtils'
+import { showErrorDialog } from '@renderer/utils/errorUtils'
 
 interface UseResponseActionsProps {
   tabId: string
@@ -21,7 +22,12 @@ export const useResponseActions = ({
       const content = getCurrentContent()
       await navigator.clipboard.writeText(content)
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      void showErrorDialog(
+        'クリップボードコピーエラー',
+        'クリップボードへのコピー中にエラーが発生しました',
+        errorMessage
+      )
     }
   }, [getCurrentContent])
 
@@ -65,7 +71,12 @@ export const useResponseActions = ({
         }
       }
     } catch (error) {
-      console.error('Failed to export response:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      await showErrorDialog(
+        'レスポンスエクスポートエラー',
+        'レスポンスのエクスポート中にエラーが発生しました',
+        errorMessage
+      )
     }
   }, [tabId, response, getTab])
 
@@ -93,7 +104,12 @@ export const useResponseActions = ({
         }
       }
     } catch (error) {
-      console.error('Failed to download response:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      await showErrorDialog(
+        'レスポンスダウンロードエラー',
+        'レスポンスのダウンロード中にエラーが発生しました',
+        errorMessage
+      )
     }
   }, [response])
 

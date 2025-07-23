@@ -2,6 +2,7 @@ import { JSX, useState, useRef, useEffect, useCallback } from 'react'
 import { useYamlOperations } from '@renderer/hooks/useYamlOperations'
 import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { useTabStore } from '@renderer/stores/tabStore'
+import { showErrorDialog } from '@renderer/utils/errorUtils'
 import styles from './TabBar.module.scss'
 
 interface TabBarProps {
@@ -52,7 +53,12 @@ export const TabBar = ({
     try {
       await saveToFile()
     } catch (error) {
-      console.error('Failed to save file:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      await showErrorDialog(
+        'ファイル保存エラー',
+        'ファイルの保存中にエラーが発生しました',
+        errorMessage
+      )
     }
   }
 
@@ -60,7 +66,12 @@ export const TabBar = ({
     try {
       await loadFromFile()
     } catch (error) {
-      console.error('Failed to load file:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      await showErrorDialog(
+        'ファイル読み込みエラー',
+        'ファイルの読み込み中にエラーが発生しました',
+        errorMessage
+      )
     }
   }
 

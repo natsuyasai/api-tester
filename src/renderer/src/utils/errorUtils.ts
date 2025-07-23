@@ -1,6 +1,31 @@
 /**
  * アプリケーション全体で使用する統一エラーハンドリングユーティリティ
  */
+
+/**
+ * レンダラープロセスでエラーダイアログを表示する関数
+ */
+export async function showErrorDialog(title: string, message: string, detail: string): Promise<void> {
+  // IPCでメインプロセスのメッセージボックスを呼び出し
+  if (window.electron?.showModalMessageBox) {
+    try {
+      await window.electron.showModalMessageBox({
+        type: 'error',
+        title,
+        message,
+        detail,
+        buttons: ['OK']
+      })
+    } catch (error) {
+      console.error('Failed to show error dialog:', error)
+      // フォールバック: アラートを使用
+      alert(`${title}\n\n${message}\n\n${detail}`)
+    }
+  } else {
+    // フォールバック: アラートを使用
+    alert(`${title}\n\n${message}\n\n${detail}`)
+  }
+}
 export enum ErrorType {
   VALIDATION = 'validation',
   NETWORK = 'network',
@@ -104,9 +129,9 @@ export class ErrorHandler {
   }
 
   /**
-   * エラーをログに出力
+   * エラーをログに出力し、ダイアログも表示
    */
-  static logError(appError: AppError, shouldConsoleLog = true): void {
+  static async logError(appError: AppError, shouldConsoleLog = true, showDialog = true): Promise<void> {
     if (shouldConsoleLog) {
       console.error('[ERROR]', {
         type: appError.type,
@@ -118,6 +143,16 @@ export class ErrorHandler {
       if (appError.originalError) {
         console.error('[ORIGINAL ERROR]', appError.originalError)
       }
+    }
+
+    if (showDialog) {
+      const title = `${appError.type.toUpperCase()}エラー`
+      const message = this.getUserFriendlyMessage(appError)
+      const detail = appError.originalError instanceof Error 
+        ? appError.originalError.message 
+        : String(appError.originalError || '')
+      
+      await showErrorDialog(title, message, detail)
     }
   }
 
@@ -134,7 +169,7 @@ export class ErrorHandler {
       return { result }
     } catch (error) {
       const appError = this.createError(errorType, this.extractErrorMessage(error), error, context)
-      this.logError(appError)
+      await this.logError(appError)
       return { error: appError }
     }
   }
@@ -152,7 +187,8 @@ export class ErrorHandler {
       return { result }
     } catch (error) {
       const appError = this.createError(errorType, this.extractErrorMessage(error), error, context)
-      this.logError(appError)
+      // 同期処理では非同期ダイアログ表示はしない（コンソールログのみ）
+      void this.logError(appError, true, false)
       return { error: appError }
     }
   }

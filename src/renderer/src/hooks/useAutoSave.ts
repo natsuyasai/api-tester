@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react'
 import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
 import { useTabStore } from '@renderer/stores/tabStore'
+import { showErrorDialog } from '@renderer/utils/errorUtils'
 
 /**
  * 自動保存機能を管理するカスタムフック
@@ -75,7 +76,12 @@ export const useAutoSave = () => {
         )
       }
     } catch (error) {
-      console.error('[AutoSave] 自動保存に失敗しました:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      void showErrorDialog(
+        '自動保存エラー',
+        '自動保存中にエラーが発生しました',
+        errorMessage
+      )
     }
   }, [settings.autoSave, settings.debugLogs, saveAllTabs, saveCollections, getAppStateHash])
 

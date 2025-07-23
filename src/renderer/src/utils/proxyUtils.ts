@@ -1,6 +1,7 @@
 // プロキシ設定関連のユーティリティ
 
 import { GlobalSettings } from '@renderer/stores/globalSettingsStore'
+import { showErrorDialog } from '@renderer/utils/errorUtils'
 
 export interface ProxyConfig {
   enabled: boolean
@@ -34,7 +35,12 @@ export const extractProxyConfig = (settings: GlobalSettings): ProxyConfig => {
       auth: settings.proxyAuth
     }
   } catch (_error) {
-    console.error('Invalid proxy URL:', settings.proxyUrl, _error)
+    const errorMessage = _error instanceof Error ? _error.message : String(_error)
+    void showErrorDialog(
+      'プロキシURL無効エラー',
+      '無効なプロキシURLが設定されています',
+      `URL: ${settings.proxyUrl}\nエラー: ${errorMessage}`
+    )
     return { enabled: false }
   }
 }

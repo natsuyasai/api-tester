@@ -17,6 +17,26 @@ import {
 } from 'electron'
 import icon from '../../resources/icon.png?asset'
 
+/**
+ * エラーメッセージボックスを表示する共通関数
+ */
+function showErrorDialog(title: string, message: string, detail: string): void {
+  const focusedWindow = BrowserWindow.getFocusedWindow()
+  const dialogOptions = {
+    type: 'error' as const,
+    title,
+    message,
+    detail,
+    buttons: ['OK']
+  }
+  
+  if (focusedWindow) {
+    dialog.showMessageBox(focusedWindow, dialogOptions).catch(console.error)
+  } else {
+    dialog.showMessageBox(dialogOptions).catch(console.error)
+  }
+}
+
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -40,7 +60,12 @@ function createWindow(): void {
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url).catch((error) => {
-      console.error('Failed to open URL:', details.url, error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      showErrorDialog(
+        'URL起動エラー',
+        '外部URLの起動に失敗しました',
+        `URL: ${details.url}\nエラー: ${errorMessage}`
+      )
     })
     return { action: 'deny' }
   })
@@ -49,11 +74,21 @@ function createWindow(): void {
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']).catch((error) => {
-      console.error('Failed to load URL:', process.env['ELECTRON_RENDERER_URL'], error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      showErrorDialog(
+        'レンダラーURL読み込みエラー',
+        '開発環境でのレンダラーURLの読み込みに失敗しました',
+        `URL: ${process.env['ELECTRON_RENDERER_URL']}\nエラー: ${errorMessage}`
+      )
     })
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html')).catch((error) => {
-      console.error('Failed to load file:', join(__dirname, '../renderer/index.html'), error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      showErrorDialog(
+        'レンダラーファイル読み込みエラー',
+        'レンダラーファイルの読み込みに失敗しました',
+        `パス: ${join(__dirname, '../renderer/index.html')}\nエラー: ${errorMessage}`
+      )
     })
   }
 }
@@ -86,7 +121,12 @@ app
     })
   })
   .catch((error) => {
-    console.error('Failed to initialize app:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    showErrorDialog(
+      'アプリケーション初期化エラー',
+      'アプリケーションの初期化に失敗しました',
+      errorMessage
+    )
   })
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -130,9 +170,18 @@ ipcMain.handle('readFile', async (_event, filePath: string) => {
     const data = await fs.readFile(filePath, 'utf-8')
     return { success: true, data }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    // エラーメッセージボックスを表示
+    showErrorDialog(
+      'ファイル読み込みエラー',
+      'ファイルの読み込み中にエラーが発生しました',
+      errorMessage
+    )
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorMessage
     }
   }
 })
@@ -143,9 +192,18 @@ ipcMain.handle('writeFile', async (_event, filePath: string, data: string) => {
     await fs.writeFile(filePath, data, 'utf-8')
     return { success: true }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    // エラーメッセージボックスを表示
+    showErrorDialog(
+      'ファイル書き込みエラー',
+      'ファイルの書き込み中にエラーが発生しました',
+      errorMessage
+    )
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorMessage
     }
   }
 })
@@ -188,7 +246,12 @@ ipcMain.handle('setProxyConfig', async (_event, proxySettings: ProxySettings) =>
         url.password = proxySettings.auth.password
         proxyRules = url.toString()
       } catch (error) {
-        console.error('Failed to add auth to proxy URL:', error)
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        showErrorDialog(
+          'プロキシURL認証設定エラー',
+          'プロキシURLに認証情報を追加する際にエラーが発生しました',
+          `URL: ${proxySettings.url}\nエラー: ${errorMessage}`
+        )
       }
     }
 
@@ -206,9 +269,18 @@ ipcMain.handle('setProxyConfig', async (_event, proxySettings: ProxySettings) =>
       message: `プロキシが設定されました: ${proxySettings.url}`
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    // エラーメッセージボックスを表示
+    showErrorDialog(
+      'プロキシ設定エラー',
+      'プロキシ設定中にエラーが発生しました',
+      errorMessage
+    )
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: errorMessage,
       message: 'プロキシ設定に失敗しました'
     }
   }
@@ -252,10 +324,18 @@ ipcMain.handle(
     } catch (error) {
       const endTime = Date.now()
       const responseTime = endTime - startTime
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+      // エラーメッセージボックスを表示
+      showErrorDialog(
+        'プロキシ接続テストエラー',
+        'プロキシ接続テストが失敗しました',
+        errorMessage
+      )
 
       return {
         success: false,
-        message: `プロキシ接続テストが失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `プロキシ接続テストが失敗しました: ${errorMessage}`,
         responseTime,
         proxyEnabled: currentProxySettings.enabled
       }
@@ -285,9 +365,18 @@ ipcMain.handle('getCurrentIpAddress', async () => {
       proxyEnabled: currentProxySettings.enabled
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    // エラーメッセージボックスを表示
+    showErrorDialog(
+      'IPアドレス取得エラー',
+      'IPアドレスの取得中にエラーが発生しました',
+      errorMessage
+    )
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorMessage
     }
   }
 })
@@ -310,9 +399,18 @@ ipcMain.handle('executeApiRequest', async (_event, request: unknown, variableRes
       response
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    // エラーメッセージボックスを表示
+    showErrorDialog(
+      'API実行エラー',
+      'APIリクエストの実行中にエラーが発生しました',
+      errorMessage
+    )
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorMessage
     }
   }
 })
@@ -339,9 +437,18 @@ ipcMain.handle('executeApiRequestWithCancel', async (_event, request: unknown, v
       response
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    // エラーメッセージボックスを表示
+    showErrorDialog(
+      'API実行エラー（キャンセル可能）',
+      'APIリクエストの実行中にエラーが発生しました',
+      errorMessage
+    )
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorMessage
     }
   }
 })
@@ -361,9 +468,18 @@ ipcMain.handle('validateApiRequest', async (_event, request: unknown, variableRe
       errors
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    // エラーメッセージボックスを表示
+    showErrorDialog(
+      'リクエスト検証エラー',
+      'リクエストの検証中にエラーが発生しました',
+      errorMessage
+    )
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorMessage
     }
   }
 })
@@ -383,9 +499,18 @@ ipcMain.handle('buildCurlCommand', async (_event, request: unknown, variableReso
       curlCommand
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    // エラーメッセージボックスを表示
+    showErrorDialog(
+      'cURLコマンド生成エラー',
+      'cURLコマンドの生成中にエラーが発生しました',
+      errorMessage
+    )
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorMessage
     }
   }
 })
@@ -402,9 +527,18 @@ ipcMain.handle('healthCheck', async (_event, url: unknown) => {
       result
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    // エラーメッセージボックスを表示
+    showErrorDialog(
+      'ヘルスチェックエラー',
+      'ヘルスチェックの実行中にエラーが発生しました',
+      errorMessage
+    )
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorMessage
     }
   }
 })
