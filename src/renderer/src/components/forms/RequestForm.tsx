@@ -1,6 +1,6 @@
 import { JSX, useState } from 'react'
-import { IpcApiService } from '@/services/ipcApiService'
 import { HttpMethod } from '@/types/types'
+import { IpcApiService } from '@renderer/services/ipcApiService'
 import { useEnvironmentStore } from '@renderer/stores/environmentStore'
 import { useRequestStore } from '@renderer/stores/requestStore'
 import { useTabStore } from '@renderer/stores/tabStore'

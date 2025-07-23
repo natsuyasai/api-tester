@@ -38,7 +38,7 @@ export class IpcApiService {
       }
     } else {
       // フォールバック: 直接ApiServiceV2を使用
-      const { ApiServiceV2 } = await import('./apiServiceV2')
+      const { ApiServiceV2 } = await import('../../../services/apiServiceV2')
       return await ApiServiceV2.executeRequest(request, variableResolver, saveToHistory)
     }
   }
@@ -69,7 +69,7 @@ export class IpcApiService {
       }
     } else {
       // フォールバック: 直接ApiServiceV2を使用
-      const { ApiServiceV2 } = await import('./apiServiceV2')
+      const { ApiServiceV2 } = await import('../../../services/apiServiceV2')
       return await ApiServiceV2.executeRequestWithCancel(
         request,
         cancelToken,
@@ -98,7 +98,7 @@ export class IpcApiService {
       }
     } else {
       // フォールバック: 直接ApiServiceV2を使用
-      const { ApiServiceV2 } = await import('./apiServiceV2')
+      const { ApiServiceV2 } = await import('../../../services/apiServiceV2')
       return await ApiServiceV2.validateRequest(request, variableResolver)
     }
   }
@@ -154,7 +154,7 @@ export class IpcApiService {
     // 認証情報の変数解決
     if (request.auth) {
       const resolvedAuth = { ...request.auth }
-      
+
       if (resolvedAuth.basic) {
         resolvedAuth.basic = {
           ...resolvedAuth.basic,
@@ -162,14 +162,14 @@ export class IpcApiService {
           password: variableResolver(resolvedAuth.basic.password)
         }
       }
-      
+
       if (resolvedAuth.bearer) {
         resolvedAuth.bearer = {
           ...resolvedAuth.bearer,
           token: variableResolver(resolvedAuth.bearer.token)
         }
       }
-      
+
       if (resolvedAuth.apiKey) {
         resolvedAuth.apiKey = {
           ...resolvedAuth.apiKey,
@@ -177,7 +177,7 @@ export class IpcApiService {
           value: variableResolver(resolvedAuth.apiKey.value)
         }
       }
-      
+
       resolvedRequest.auth = resolvedAuth
     }
 
@@ -203,7 +203,7 @@ export class IpcApiService {
       }
     } else {
       // フォールバック: 直接ApiServiceV2を使用
-      const { ApiServiceV2 } = await import('./apiServiceV2')
+      const { ApiServiceV2 } = await import('../../../services/apiServiceV2')
       return ApiServiceV2.buildCurlCommand(request, variableResolver)
     }
   }
@@ -232,7 +232,7 @@ export class IpcApiService {
       }
     } else {
       // フォールバック: 直接ApiServiceV2を使用
-      const { ApiServiceV2 } = await import('./apiServiceV2')
+      const { ApiServiceV2 } = await import('../../../services/apiServiceV2')
       return await ApiServiceV2.healthCheck(url)
     }
   }

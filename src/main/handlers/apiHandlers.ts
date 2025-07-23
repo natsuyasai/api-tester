@@ -111,36 +111,33 @@ export function setupApiHandlers(): void {
   )
 
   // cURLコマンド生成
-  ipcMain.handle(
-    'buildCurlCommand',
-    (_event, request: unknown, variableResolver?: unknown) => {
-      try {
-        const curlCommand = ApiServiceV2.buildCurlCommand(
-          request as any,
-          variableResolver as ((text: string) => string) | undefined
-        )
+  ipcMain.handle('buildCurlCommand', (_event, request: unknown, variableResolver?: unknown) => {
+    try {
+      const curlCommand = ApiServiceV2.buildCurlCommand(
+        request as any,
+        variableResolver as ((text: string) => string) | undefined
+      )
 
-        return {
-          success: true,
-          curlCommand
-        }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      return {
+        success: true,
+        curlCommand
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 
-        // エラーメッセージボックスを表示
-        showErrorDialog(
-          'cURLコマンド生成エラー',
-          'cURLコマンドの生成中にエラーが発生しました',
-          errorMessage
-        )
+      // エラーメッセージボックスを表示
+      showErrorDialog(
+        'cURLコマンド生成エラー',
+        'cURLコマンドの生成中にエラーが発生しました',
+        errorMessage
+      )
 
-        return {
-          success: false,
-          error: errorMessage
-        }
+      return {
+        success: false,
+        error: errorMessage
       }
     }
-  )
+  })
 
   // ヘルスチェック実行
   ipcMain.handle('healthCheck', async (_event, url: unknown) => {

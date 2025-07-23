@@ -3,7 +3,7 @@ import './styles/themes.scss'
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { IpcApiService } from '@/services/ipcApiService'
+import { IpcApiService } from '@renderer/services/ipcApiService'
 import App from './App'
 import { useCookieStore } from './stores/cookieStore'
 

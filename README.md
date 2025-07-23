@@ -25,4 +25,3 @@ vitestを使用
 ロジックに関してはカバレッジを70%は満たせるようにする  
 UIはStorybookを使用  
 UI観点のテストはStorybookのPlayFunctionを使用してい行う
-

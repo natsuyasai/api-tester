@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { YamlService } from '@/services/yamlService'
+import { YamlService } from '@renderer/services/yamlService'
 import { useTabStore } from '@renderer/stores/tabStore'
 import { useYamlOperations } from './useYamlOperations'
 

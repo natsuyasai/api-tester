@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { YamlService } from '@/services/yamlService'
+import { YamlService } from '@renderer/services/yamlService'
 import { useTabStore } from '@renderer/stores/tabStore'
 import { showErrorDialog } from '@renderer/utils/errorUtils'
 

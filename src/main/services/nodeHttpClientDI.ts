@@ -5,8 +5,8 @@ import {
   HttpClientInterface,
   UndiciRequestInterface,
   ProxyAgentInterface
-} from './httpClientInterface'
-import { RequestBuilder } from './requestBuilder'
+} from '../../services/httpClientInterface'
+import { RequestBuilder } from '../../services/requestBuilder'
 
 /**
  * 依存性注入対応のNode.js環境用HTTP通信クライアント

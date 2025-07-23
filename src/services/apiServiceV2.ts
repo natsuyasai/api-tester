@@ -1,9 +1,9 @@
 import { ApiRequest, ApiResponse } from '@/types/types'
 import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { ErrorHandler } from '@renderer/utils/errorUtils'
+import { createNodeHttpClient } from '../main/services/nodeHttpClientDI'
 import { HttpClient } from './httpClient'
 import { HttpClientInterface } from './httpClientInterface'
-import { createNodeHttpClient } from './nodeHttpClientDI'
 
 /**
  * リファクタリング版APIサービス
