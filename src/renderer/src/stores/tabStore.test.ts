@@ -66,7 +66,7 @@ describe('TabStore', () => {
       expect(state.activeTabId).toBe(secondTabId)
     })
 
-    it('should not close the last remaining tab', () => {
+    it('should create new tab when closing the last remaining tab', () => {
       const { closeTab } = useTabStore.getState()
       const initialState = useTabStore.getState()
       const tabId = initialState.tabs[0].id
@@ -75,7 +75,8 @@ describe('TabStore', () => {
 
       const state = useTabStore.getState()
       expect(state.tabs).toHaveLength(1)
-      expect(state.tabs[0].id).toBe(tabId)
+      expect(state.tabs[0].id).not.toBe(tabId) // 新しいタブが生成されるため、IDが変わる
+      expect(state.tabs[0].title).toBe('New Request') // 新しいタブのデフォルトタイトル
     })
 
     it('should set active tab', () => {
@@ -263,7 +264,7 @@ describe('TabStore', () => {
       expect(updatedState.tabs.find((tab) => tab.id === activeTabId)).toBeUndefined()
     })
 
-    it('should not close the last tab via keyboard shortcut', () => {
+    it('should create new tab when closing the last tab via keyboard shortcut', () => {
       const { closeActiveTab } = useTabStore.getState()
       const state = useTabStore.getState()
       const tabId = state.tabs[0].id
@@ -272,7 +273,8 @@ describe('TabStore', () => {
 
       const updatedState = useTabStore.getState()
       expect(updatedState.tabs).toHaveLength(1)
-      expect(updatedState.tabs[0].id).toBe(tabId)
+      expect(updatedState.tabs[0].id).not.toBe(tabId) // 新しいタブが生成されるため、IDが変わる
+      expect(updatedState.tabs[0].title).toBe('New Request') // 新しいタブのデフォルトタイトル
     })
 
     it('should return active tab id for editing', () => {

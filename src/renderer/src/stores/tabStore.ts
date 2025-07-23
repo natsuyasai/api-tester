@@ -73,21 +73,31 @@ export const useTabStore = create<TabState & TabActions>()(
 
       closeTab: (tabId: string) => {
         const state = get()
-        if (state.tabs.length <= 1) return
-
         const tabIndex = state.tabs.findIndex((tab) => tab.id === tabId)
         if (tabIndex === -1) return
 
         const newTabs = state.tabs.filter((tab) => tab.id !== tabId)
         let newActiveTabId = state.activeTabId
 
+        // すべてのタブを閉じた場合は新規タブを生成
+        if (newTabs.length === 0) {
+          const newTab = createInitialTab()
+          set(
+            {
+              tabs: [newTab],
+              activeTabId: newTab.id
+            },
+            false,
+            'closeTab - create new tab'
+          )
+          return
+        }
+
         if (state.activeTabId === tabId) {
-          if (newTabs.length > 0) {
-            if (tabIndex >= newTabs.length) {
-              newActiveTabId = newTabs[newTabs.length - 1].id
-            } else {
-              newActiveTabId = newTabs[tabIndex].id
-            }
+          if (tabIndex >= newTabs.length) {
+            newActiveTabId = newTabs[newTabs.length - 1].id
+          } else {
+            newActiveTabId = newTabs[tabIndex].id
           }
         }
 
@@ -212,7 +222,7 @@ export const useTabStore = create<TabState & TabActions>()(
       closeActiveTab: () => {
         const state = get()
         const activeTab = state.getActiveTab()
-        if (activeTab && state.tabs.length > 1) {
+        if (activeTab) {
           state.closeTab(activeTab.id)
         }
       },
