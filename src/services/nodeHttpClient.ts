@@ -154,7 +154,7 @@ export class NodeHttpClient {
           context: 'proxyConfiguration',
           proxyUrl: globalSettings.proxyUrl
         })
-        ErrorHandler.logError(appError)
+        void ErrorHandler.logError(appError)
       }
     }
 
@@ -244,7 +244,7 @@ export class NodeHttpClient {
         context: 'processUndiciResponse',
         status: response?.statusCode
       })
-      ErrorHandler.logError(appError)
+      void ErrorHandler.logError(appError)
 
       return {
         status: 0,
@@ -306,7 +306,7 @@ export class NodeHttpClient {
       requestMethod,
       context: 'executeRequest'
     })
-    ErrorHandler.logError(appError)
+    void ErrorHandler.logError(appError)
 
     const status = 0
     let statusText = 'Network Error'

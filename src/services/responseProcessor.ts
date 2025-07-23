@@ -75,7 +75,7 @@ export class ResponseProcessor {
         contentType,
         status: this.response.status
       })
-      ErrorHandler.logError(appError)
+      void ErrorHandler.logError(appError)
 
       return {
         type: 'error',
@@ -151,7 +151,7 @@ export class ResponseProcessor {
         context: 'processBinaryResponse',
         contentType
       })
-      ErrorHandler.logError(appError)
+      void ErrorHandler.logError(appError)
 
       return {
         type: 'binary',
@@ -264,7 +264,7 @@ export class ResponseProcessor {
         context: 'processImageBlob',
         contentType
       })
-      ErrorHandler.logError(appError)
+      void ErrorHandler.logError(appError)
 
       return {
         type: 'binary',
@@ -307,7 +307,7 @@ export class ResponseProcessor {
         context: 'processDocumentBlob',
         contentType
       })
-      ErrorHandler.logError(appError)
+      void ErrorHandler.logError(appError)
 
       return {
         type: 'binary',
@@ -350,7 +350,7 @@ export class ResponseProcessor {
         context: 'processMediaBlob',
         contentType
       })
-      ErrorHandler.logError(appError)
+      void ErrorHandler.logError(appError)
 
       return {
         type: 'binary',
@@ -399,7 +399,7 @@ export class ResponseProcessor {
       requestMethod,
       context: 'executeRequest'
     })
-    ErrorHandler.logError(appError)
+    void ErrorHandler.logError(appError)
 
     // エラータイプの判定
     let statusText = 'Network Error'

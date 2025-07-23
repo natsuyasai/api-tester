@@ -2,8 +2,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { ApiTab } from '@/types/types'
-import { KeyValuePairOperations } from '@renderer/utils/keyValueUtils'
 import { showErrorDialog } from '@renderer/utils/errorUtils'
+import { KeyValuePairOperations } from '@renderer/utils/keyValueUtils'
 
 interface TabState {
   tabs: ApiTab[]
@@ -234,11 +234,7 @@ export const useTabStore = create<TabState & TabActions>()(
           localStorage.setItem('api-tester-tabs', JSON.stringify(tabsData))
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error)
-          void showErrorDialog(
-            'タブ保存エラー',
-            'タブの保存中にエラーが発生しました',
-            errorMessage
-          )
+          void showErrorDialog('タブ保存エラー', 'タブの保存中にエラーが発生しました', errorMessage)
         }
       },
 

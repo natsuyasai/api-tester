@@ -3,13 +3,37 @@
  */
 
 /**
+ * unknownの値を安全に文字列に変換する
+ */
+function safeStringify(value: unknown): string {
+  if (value === null || value === undefined) {
+    return ''
+  }
+  if (typeof value === 'string') {
+    return value
+  }
+  if (value instanceof Error) {
+    return value.message
+  }
+  try {
+    return JSON.stringify(value)
+  } catch {
+    return '[Complex Object]'
+  }
+}
+
+/**
  * レンダラープロセスでエラーダイアログを表示する関数
  */
-export async function showErrorDialog(title: string, message: string, detail: string): Promise<void> {
+export async function showErrorDialog(
+  title: string,
+  message: string,
+  detail: string
+): Promise<void> {
   // IPCでメインプロセスのメッセージボックスを呼び出し
-  if (window.electron?.showModalMessageBox) {
+  if (window.dialogAPI?.showModalMessageBox) {
     try {
-      await window.electron.showModalMessageBox({
+      await window.dialogAPI.showModalMessageBox({
         type: 'error',
         title,
         message,
@@ -17,13 +41,17 @@ export async function showErrorDialog(title: string, message: string, detail: st
         buttons: ['OK']
       })
     } catch (error) {
-      console.error('Failed to show error dialog:', error)
+      console.error('Failed to show error dialog:', error as Error)
       // フォールバック: アラートを使用
-      alert(`${title}\n\n${message}\n\n${detail}`)
+      if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+        window.alert(`${title}\n\n${message}\n\n${detail}`)
+      }
     }
   } else {
     // フォールバック: アラートを使用
-    alert(`${title}\n\n${message}\n\n${detail}`)
+    if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+      window.alert(`${title}\n\n${message}\n\n${detail}`)
+    }
   }
 }
 export enum ErrorType {
@@ -131,7 +159,11 @@ export class ErrorHandler {
   /**
    * エラーをログに出力し、ダイアログも表示
    */
-  static async logError(appError: AppError, shouldConsoleLog = true, showDialog = true): Promise<void> {
+  static async logError(
+    appError: AppError,
+    shouldConsoleLog = true,
+    showDialog = true
+  ): Promise<void> {
     if (shouldConsoleLog) {
       console.error('[ERROR]', {
         type: appError.type,
@@ -148,10 +180,8 @@ export class ErrorHandler {
     if (showDialog) {
       const title = `${appError.type.toUpperCase()}エラー`
       const message = this.getUserFriendlyMessage(appError)
-      const detail = appError.originalError instanceof Error 
-        ? appError.originalError.message 
-        : String(appError.originalError || '')
-      
+      const detail = safeStringify(appError.originalError)
+
       await showErrorDialog(title, message, detail)
     }
   }

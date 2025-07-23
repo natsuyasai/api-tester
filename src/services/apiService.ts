@@ -212,7 +212,7 @@ export class ApiService {
             context: 'saveExecutionHistory',
             requestId: request.id
           })
-          ErrorHandler.logError(error)
+          void ErrorHandler.logError(error)
         }
       }
 
@@ -227,7 +227,7 @@ export class ApiService {
         requestMethod: request.method,
         context: 'executeRequest'
       })
-      ErrorHandler.logError(appError)
+      void ErrorHandler.logError(appError)
 
       // エラータイプの判定
       let statusText = 'Network Error'
@@ -264,7 +264,7 @@ export class ApiService {
             context: 'saveExecutionHistory_error',
             requestId: request.id
           })
-          ErrorHandler.logError(error)
+          void ErrorHandler.logError(error)
         }
       }
 
@@ -437,7 +437,7 @@ export class ApiService {
         context: 'processBinaryResponse',
         contentType
       })
-      ErrorHandler.logError(appError)
+      void ErrorHandler.logError(appError)
       return {
         type: 'binary',
         size: 0,
@@ -471,7 +471,7 @@ export class ApiService {
           context: 'convertImageToBase64',
           contentType
         })
-        ErrorHandler.logError(appError)
+        void ErrorHandler.logError(appError)
         return {
           type: 'binary',
           subType: 'image',
@@ -506,7 +506,7 @@ export class ApiService {
           context: 'convertDocumentToBase64',
           contentType
         })
-        ErrorHandler.logError(appError)
+        void ErrorHandler.logError(appError)
         return {
           type: 'binary',
           subType: 'document',
@@ -541,7 +541,7 @@ export class ApiService {
           context: 'convertMediaToBase64',
           contentType
         })
-        ErrorHandler.logError(appError)
+        void ErrorHandler.logError(appError)
         return {
           type: 'binary',
           subType: contentType.startsWith('audio/') ? 'audio' : 'video',

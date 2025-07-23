@@ -29,7 +29,7 @@ function showErrorDialog(title: string, message: string, detail: string): void {
     detail,
     buttons: ['OK']
   }
-  
+
   if (focusedWindow) {
     dialog.showMessageBox(focusedWindow, dialogOptions).catch(console.error)
   } else {
@@ -171,14 +171,14 @@ ipcMain.handle('readFile', async (_event, filePath: string) => {
     return { success: true, data }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
+
     // エラーメッセージボックスを表示
     showErrorDialog(
       'ファイル読み込みエラー',
       'ファイルの読み込み中にエラーが発生しました',
       errorMessage
     )
-    
+
     return {
       success: false,
       error: errorMessage
@@ -193,14 +193,14 @@ ipcMain.handle('writeFile', async (_event, filePath: string, data: string) => {
     return { success: true }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
+
     // エラーメッセージボックスを表示
     showErrorDialog(
       'ファイル書き込みエラー',
       'ファイルの書き込み中にエラーが発生しました',
       errorMessage
     )
-    
+
     return {
       success: false,
       error: errorMessage
@@ -270,14 +270,10 @@ ipcMain.handle('setProxyConfig', async (_event, proxySettings: ProxySettings) =>
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
+
     // エラーメッセージボックスを表示
-    showErrorDialog(
-      'プロキシ設定エラー',
-      'プロキシ設定中にエラーが発生しました',
-      errorMessage
-    )
-    
+    showErrorDialog('プロキシ設定エラー', 'プロキシ設定中にエラーが発生しました', errorMessage)
+
     return {
       success: false,
       error: errorMessage,
@@ -327,11 +323,7 @@ ipcMain.handle(
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 
       // エラーメッセージボックスを表示
-      showErrorDialog(
-        'プロキシ接続テストエラー',
-        'プロキシ接続テストが失敗しました',
-        errorMessage
-      )
+      showErrorDialog('プロキシ接続テストエラー', 'プロキシ接続テストが失敗しました', errorMessage)
 
       return {
         success: false,
@@ -366,14 +358,14 @@ ipcMain.handle('getCurrentIpAddress', async () => {
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
+
     // エラーメッセージボックスを表示
     showErrorDialog(
       'IPアドレス取得エラー',
       'IPアドレスの取得中にエラーが発生しました',
       errorMessage
     )
-    
+
     return {
       success: false,
       error: errorMessage
@@ -382,132 +374,137 @@ ipcMain.handle('getCurrentIpAddress', async () => {
 })
 
 // API実行
-ipcMain.handle('executeApiRequest', async (_event, request: unknown, variableResolver?: unknown, saveToHistory = true) => {
-  try {
-    // ApiServiceV2を動的インポート
-    const { ApiServiceV2 } = await import('../services/apiServiceV2')
-    
-    // APIリクエストを実行
-    const response = await ApiServiceV2.executeRequest(
-      request as any, 
-      variableResolver as ((text: string) => string) | undefined, 
-      saveToHistory as boolean
-    )
-    
-    return {
-      success: true,
-      response
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
-    // エラーメッセージボックスを表示
-    showErrorDialog(
-      'API実行エラー',
-      'APIリクエストの実行中にエラーが発生しました',
-      errorMessage
-    )
-    
-    return {
-      success: false,
-      error: errorMessage
+ipcMain.handle(
+  'executeApiRequest',
+  async (_event, request: unknown, variableResolver?: unknown, saveToHistory = true) => {
+    try {
+      // ApiServiceV2を動的インポート
+      const { ApiServiceV2 } = await import('../services/apiServiceV2')
+
+      // APIリクエストを実行
+      const response = await ApiServiceV2.executeRequest(
+        request as any,
+        variableResolver as ((text: string) => string) | undefined,
+        saveToHistory as boolean
+      )
+
+      return {
+        success: true,
+        response
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+      // エラーメッセージボックスを表示
+      showErrorDialog('API実行エラー', 'APIリクエストの実行中にエラーが発生しました', errorMessage)
+
+      return {
+        success: false,
+        error: errorMessage
+      }
     }
   }
-})
+)
 
 // キャンセル可能なAPI実行
-ipcMain.handle('executeApiRequestWithCancel', async (_event, request: unknown, variableResolver?: unknown, saveToHistory = true) => {
-  try {
-    // AbortControllerを作成
-    const abortController = new AbortController()
-    
-    // ApiServiceV2を動的インポート
-    const { ApiServiceV2 } = await import('../services/apiServiceV2')
-    
-    // APIリクエストを実行
-    const response = await ApiServiceV2.executeRequestWithCancel(
-      request as any, 
-      abortController.signal, 
-      variableResolver as ((text: string) => string) | undefined, 
-      saveToHistory as boolean
-    )
-    
-    return {
-      success: true,  
-      response
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
-    // エラーメッセージボックスを表示
-    showErrorDialog(
-      'API実行エラー（キャンセル可能）',
-      'APIリクエストの実行中にエラーが発生しました',
-      errorMessage
-    )
-    
-    return {
-      success: false,
-      error: errorMessage
+ipcMain.handle(
+  'executeApiRequestWithCancel',
+  async (_event, request: unknown, variableResolver?: unknown, saveToHistory = true) => {
+    try {
+      // AbortControllerを作成
+      const abortController = new AbortController()
+
+      // ApiServiceV2を動的インポート
+      const { ApiServiceV2 } = await import('../services/apiServiceV2')
+
+      // APIリクエストを実行
+      const response = await ApiServiceV2.executeRequestWithCancel(
+        request as any,
+        abortController.signal,
+        variableResolver as ((text: string) => string) | undefined,
+        saveToHistory as boolean
+      )
+
+      return {
+        success: true,
+        response
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+      // エラーメッセージボックスを表示
+      showErrorDialog(
+        'API実行エラー（キャンセル可能）',
+        'APIリクエストの実行中にエラーが発生しました',
+        errorMessage
+      )
+
+      return {
+        success: false,
+        error: errorMessage
+      }
     }
   }
-})
+)
 
 // APIリクエストの検証
-ipcMain.handle('validateApiRequest', async (_event, request: unknown, variableResolver?: unknown) => {
-  try {
-    const { ApiServiceV2 } = await import('../services/apiServiceV2')
-    
-    const errors = await ApiServiceV2.validateRequest(
-      request as any, 
-      variableResolver as ((text: string) => string) | undefined
-    )
-    
-    return {
-      success: true,
-      errors
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
-    // エラーメッセージボックスを表示
-    showErrorDialog(
-      'リクエスト検証エラー',
-      'リクエストの検証中にエラーが発生しました',
-      errorMessage
-    )
-    
-    return {
-      success: false,
-      error: errorMessage
+ipcMain.handle(
+  'validateApiRequest',
+  async (_event, request: unknown, variableResolver?: unknown) => {
+    try {
+      const { ApiServiceV2 } = await import('../services/apiServiceV2')
+
+      const errors = await ApiServiceV2.validateRequest(
+        request as any,
+        variableResolver as ((text: string) => string) | undefined
+      )
+
+      return {
+        success: true,
+        errors
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+      // エラーメッセージボックスを表示
+      showErrorDialog(
+        'リクエスト検証エラー',
+        'リクエストの検証中にエラーが発生しました',
+        errorMessage
+      )
+
+      return {
+        success: false,
+        error: errorMessage
+      }
     }
   }
-})
+)
 
 // cURLコマンド生成
 ipcMain.handle('buildCurlCommand', async (_event, request: unknown, variableResolver?: unknown) => {
   try {
     const { ApiServiceV2 } = await import('../services/apiServiceV2')
-    
+
     const curlCommand = ApiServiceV2.buildCurlCommand(
-      request as any, 
+      request as any,
       variableResolver as ((text: string) => string) | undefined
     )
-    
+
     return {
       success: true,
       curlCommand
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
+
     // エラーメッセージボックスを表示
     showErrorDialog(
       'cURLコマンド生成エラー',
       'cURLコマンドの生成中にエラーが発生しました',
       errorMessage
     )
-    
+
     return {
       success: false,
       error: errorMessage
@@ -519,23 +516,23 @@ ipcMain.handle('buildCurlCommand', async (_event, request: unknown, variableReso
 ipcMain.handle('healthCheck', async (_event, url: unknown) => {
   try {
     const { ApiServiceV2 } = await import('../services/apiServiceV2')
-    
+
     const result = await ApiServiceV2.healthCheck(url as string)
-    
+
     return {
       success: true,
       result
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
+
     // エラーメッセージボックスを表示
     showErrorDialog(
       'ヘルスチェックエラー',
       'ヘルスチェックの実行中にエラーが発生しました',
       errorMessage
     )
-    
+
     return {
       success: false,
       error: errorMessage

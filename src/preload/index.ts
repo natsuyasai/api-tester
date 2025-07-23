@@ -34,16 +34,19 @@ if (process.contextIsolated) {
       getCurrentIpAddress: () => ipcRenderer.invoke('getCurrentIpAddress')
     })
     contextBridge.exposeInMainWorld('apiExecutor', {
-      executeRequest: (request: unknown, variableResolver?: unknown, saveToHistory?: boolean) => 
+      executeRequest: (request: unknown, variableResolver?: unknown, saveToHistory?: boolean) =>
         ipcRenderer.invoke('executeApiRequest', request, variableResolver, saveToHistory),
-      executeRequestWithCancel: (request: unknown, variableResolver?: unknown, saveToHistory?: boolean) =>
+      executeRequestWithCancel: (
+        request: unknown,
+        variableResolver?: unknown,
+        saveToHistory?: boolean
+      ) =>
         ipcRenderer.invoke('executeApiRequestWithCancel', request, variableResolver, saveToHistory),
       validateRequest: (request: unknown, variableResolver?: unknown) =>
         ipcRenderer.invoke('validateApiRequest', request, variableResolver),
       buildCurlCommand: (request: unknown, variableResolver?: unknown) =>
         ipcRenderer.invoke('buildCurlCommand', request, variableResolver),
-      healthCheck: (url: string) =>
-        ipcRenderer.invoke('healthCheck', url)
+      healthCheck: (url: string) => ipcRenderer.invoke('healthCheck', url)
     })
   } catch (error) {
     console.error(error)

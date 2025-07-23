@@ -50,8 +50,8 @@ export interface ProxySettings {
 
 export interface ApiExecutor {
   executeRequest: (
-    request: unknown, 
-    variableResolver?: unknown, 
+    request: unknown,
+    variableResolver?: unknown,
     saveToHistory?: boolean
   ) => Promise<{
     success: boolean
@@ -59,8 +59,8 @@ export interface ApiExecutor {
     error?: string
   }>
   executeRequestWithCancel: (
-    request: unknown, 
-    variableResolver?: unknown, 
+    request: unknown,
+    variableResolver?: unknown,
     saveToHistory?: boolean
   ) => Promise<{
     success: boolean
@@ -68,7 +68,7 @@ export interface ApiExecutor {
     error?: string
   }>
   validateRequest: (
-    request: unknown, 
+    request: unknown,
     variableResolver?: unknown
   ) => Promise<{
     success: boolean
@@ -76,7 +76,7 @@ export interface ApiExecutor {
     error?: string
   }>
   buildCurlCommand: (
-    request: unknown, 
+    request: unknown,
     variableResolver?: unknown
   ) => Promise<{
     success: boolean

@@ -169,7 +169,8 @@ describe('useYamlOperations', () => {
         result.current.importYaml(yamlContent)
       }).toThrow('Invalid YAML')
 
-      expect(consoleSpy).toHaveBeenCalledWith('Failed to import YAML:', error)
+      // エラーダイアログに置き換えたため、console.errorは呼ばれない
+      expect(consoleSpy).not.toHaveBeenCalled()
       consoleSpy.mockRestore()
     })
 

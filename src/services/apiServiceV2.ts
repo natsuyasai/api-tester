@@ -94,7 +94,7 @@ export class ApiServiceV2 {
         requestMethod: request.method,
         context: 'executeRequest'
       })
-      ErrorHandler.logError(appError)
+      void ErrorHandler.logError(appError)
       errorMessage = appError.message
 
       // エラーレスポンスを作成
@@ -167,7 +167,7 @@ export class ApiServiceV2 {
         requestMethod: request.method,
         context: 'executeRequestWithCancel'
       })
-      ErrorHandler.logError(appError)
+      void ErrorHandler.logError(appError)
       errorMessage = appError.message
 
       const errorResponse = {
@@ -295,7 +295,7 @@ export class ApiServiceV2 {
         context: 'saveExecutionHistory',
         requestId: request.id
       })
-      ErrorHandler.logError(error)
+      void ErrorHandler.logError(error)
     }
   }
 

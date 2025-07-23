@@ -6,15 +6,24 @@
     "src/preload/**/*",
     "src/preload/index.d.ts",
     "src/logic/**/*",
-    "src/services/**/*",
-    "src/utils/**/*",
+    "src/services/apiService.ts",
+    "src/services/apiServiceV2.ts",
+    "src/services/fileService.ts",
+    "src/services/graphqlService.ts",
+    "src/services/httpClient.ts",
+    "src/services/nodeHttpClient.ts",
+    "src/services/nodeHttpClientDI.ts",
+    "src/services/nodeStorageService.ts",
+    "src/services/requestBuilder.ts",
+    "src/services/responseProcessor.ts",
+    "src/services/yamlService.ts",
+    "src/utils/performanceUtils.ts",
+    "src/utils/storageAdapter.ts",
     "src/types",
     "test/logic/**/*"
   ],
   "exclude": [
-    "src/renderer/**/*",
-    "src/renderer/src/stores/globalSettingsStore.ts",
-    "src/services/ipcApiService.ts"
+    "src/renderer/**/*"
   ],
   "compilerOptions": {
     "composite": true,

@@ -85,7 +85,7 @@ export class HttpClient {
         context: 'applyProxySettings',
         proxyUrl: globalSettings.proxyUrl
       })
-      ErrorHandler.logError(appError)
+      void ErrorHandler.logError(appError)
 
       // プロキシ設定エラーの場合は元のオプションを返す
       return options

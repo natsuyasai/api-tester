@@ -80,7 +80,7 @@ export const useConfigStore = create<ConfigState & ConfigActions>()(
             context: 'importConfig',
             configLength: configJson.length
           })
-          ErrorHandler.logError(appError)
+          void ErrorHandler.logError(appError)
           throw new Error(appError.message)
         }
       },

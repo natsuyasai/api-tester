@@ -1,8 +1,8 @@
 import { useCallback } from 'react'
 import { ApiResponse } from '@/types/types'
 import { useTabStore } from '@renderer/stores/tabStore'
-import { formatJson, getFileExtension, getContentType } from '@renderer/utils/responseUtils'
 import { showErrorDialog } from '@renderer/utils/errorUtils'
+import { formatJson, getFileExtension, getContentType } from '@renderer/utils/responseUtils'
 
 interface UseResponseActionsProps {
   tabId: string

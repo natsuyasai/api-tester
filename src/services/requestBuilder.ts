@@ -143,7 +143,7 @@ export class RequestBuilder {
         const appError = ErrorHandler.handleSystemError(error, {
           context: 'addCookieHeaders'
         })
-        ErrorHandler.logError(appError)
+        void ErrorHandler.logError(appError)
       }
     }
   }

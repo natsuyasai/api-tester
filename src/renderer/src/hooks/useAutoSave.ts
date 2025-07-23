@@ -77,11 +77,7 @@ export const useAutoSave = () => {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      void showErrorDialog(
-        '自動保存エラー',
-        '自動保存中にエラーが発生しました',
-        errorMessage
-      )
+      void showErrorDialog('自動保存エラー', '自動保存中にエラーが発生しました', errorMessage)
     }
   }, [settings.autoSave, settings.debugLogs, saveAllTabs, saveCollections, getAppStateHash])
 

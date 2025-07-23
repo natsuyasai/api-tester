@@ -3,17 +3,13 @@
  * Electronのレンダラープロセスから使用される
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 import { ApiRequest, ApiResponse } from '@/types/types'
 
 // 型ガード関数
 function hasApiExecutor(): boolean {
-  return typeof window !== 'undefined' && 'apiExecutor' in window && window.apiExecutor !== undefined
+  return (
+    typeof window !== 'undefined' && 'apiExecutor' in window && window.apiExecutor !== undefined
+  )
 }
 
 export class IpcApiService {
@@ -27,8 +23,12 @@ export class IpcApiService {
   ): Promise<ApiResponse> {
     // Electronのレンダラープロセスかどうかを確認
     if (hasApiExecutor()) {
-      const result = await window.apiExecutor.executeRequest(request, variableResolver, saveToHistory)
-      
+      const result = await window.apiExecutor.executeRequest(
+        request,
+        variableResolver,
+        saveToHistory
+      )
+
       if (result.success && result.response) {
         return result.response as ApiResponse
       } else {
@@ -52,8 +52,12 @@ export class IpcApiService {
   ): Promise<ApiResponse> {
     // ElectronのIPCではAbortSignalの転送は複雑なため、通常のexecuteRequestを使用
     if (hasApiExecutor()) {
-      const result = await window.apiExecutor.executeRequestWithCancel(request, variableResolver, saveToHistory)
-      
+      const result = await window.apiExecutor.executeRequestWithCancel(
+        request,
+        variableResolver,
+        saveToHistory
+      )
+
       if (result.success && result.response) {
         return result.response as ApiResponse
       } else {
@@ -62,7 +66,12 @@ export class IpcApiService {
     } else {
       // フォールバック: 直接ApiServiceV2を使用
       const { ApiServiceV2 } = await import('./apiServiceV2')
-      return await ApiServiceV2.executeRequestWithCancel(request, cancelToken, variableResolver, saveToHistory)
+      return await ApiServiceV2.executeRequestWithCancel(
+        request,
+        cancelToken,
+        variableResolver,
+        saveToHistory
+      )
     }
   }
 
@@ -75,7 +84,7 @@ export class IpcApiService {
   ): Promise<string[]> {
     if (hasApiExecutor()) {
       const result = await window.apiExecutor.validateRequest(request, variableResolver)
-      
+
       if (result.success && result.errors) {
         return result.errors
       } else {
@@ -97,7 +106,7 @@ export class IpcApiService {
   ): Promise<string> {
     if (hasApiExecutor()) {
       const result = await window.apiExecutor.buildCurlCommand(request, variableResolver)
-      
+
       if (result.success && result.curlCommand) {
         return result.curlCommand
       } else {
@@ -121,7 +130,7 @@ export class IpcApiService {
   }> {
     if (hasApiExecutor()) {
       const result = await window.apiExecutor.healthCheck(url)
-      
+
       if (result.success && result.result) {
         return result.result as {
           isHealthy: boolean
