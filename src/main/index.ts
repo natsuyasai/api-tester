@@ -1,6 +1,7 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { setupApiHandlers } from './handlers/apiHandlers'
+import { setupConfigHandlers } from './handlers/configHandlers'
 import { setupDialogHandlers } from './handlers/dialogHandlers'
 import { setupFileHandlers } from './handlers/fileHandlers'
 import { setupProxyHandlers } from './handlers/proxyHandlers'
@@ -25,6 +26,7 @@ app
     })
 
     // Setup IPC handlers
+    setupConfigHandlers()
     setupDialogHandlers()
     setupFileHandlers()
     setupProxyHandlers()

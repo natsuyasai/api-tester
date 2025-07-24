@@ -5,7 +5,12 @@ import {
   ProxyAgentInterface
 } from '../../services/httpClientInterface'
 import { RequestBuilder } from '../../services/requestBuilder'
-import { getMainProcessConfig } from '../config/defaultConfig'
+import { 
+  MainProcessConfigProvider, 
+  DefaultConfigProvider, 
+  DynamicConfigProvider 
+} from '../config/defaultConfig'
+import { getCurrentMainProcessConfig } from '../handlers/configHandlers'
 
 // クライアント証明書の型定義
 interface ClientCertificate {
@@ -31,7 +36,8 @@ export class NodeHttpClientDI implements HttpClientInterface {
 
   constructor(
     private undiciRequest: UndiciRequestInterface,
-    private ProxyAgentClass?: ProxyAgentInterface
+    private ProxyAgentClass?: ProxyAgentInterface,
+    private configProvider: MainProcessConfigProvider = new DefaultConfigProvider()
   ) {}
 
   /**
@@ -162,7 +168,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
    * Fetch APIのオプションをundici用に変換
    */
   private convertToUndiciOptions(fetchOptions: RequestInit, _url: string) {
-    const globalSettings = getMainProcessConfig()
+    const globalSettings = this.configProvider.getConfig()
 
     const undiciOptions: Record<string, unknown> = {
       method: fetchOptions.method,
@@ -431,14 +437,17 @@ export class NodeHttpClientDI implements HttpClientInterface {
 /**
  * ファクトリー関数：本物のundiciを使用
  */
-export async function createNodeHttpClient(): Promise<NodeHttpClientDI> {
+export async function createNodeHttpClient(
+  configProvider?: MainProcessConfigProvider
+): Promise<NodeHttpClientDI> {
   try {
     // 実際のundiciをインポート
     const { request, ProxyAgent, getGlobalDispatcher, interceptors, Agent } = await import('undici')
     const fs = await import('fs')
 
-    // グローバル設定を取得
-    const globalSettings = getMainProcessConfig()
+    // 設定プロバイダーまたは動的設定を使用
+    const provider = configProvider || new DynamicConfigProvider(getCurrentMainProcessConfig)
+    const globalSettings = provider.getConfig()
 
     // 基本的なdispatcherを作成（redirect interceptor付き）
     const dispatcher = getGlobalDispatcher().compose(
@@ -536,7 +545,7 @@ export async function createNodeHttpClient(): Promise<NodeHttpClientDI> {
       }
     }
 
-    return new NodeHttpClientDI(requestWithRedirect, ProxyAgent as ProxyAgentInterface)
+    return new NodeHttpClientDI(requestWithRedirect, ProxyAgent as ProxyAgentInterface, provider)
   } catch (error) {
     console.error('Failed to import undici:', error)
     throw new Error('Failed to initialize NodeHttpClient: undici is not available')
@@ -548,7 +557,8 @@ export async function createNodeHttpClient(): Promise<NodeHttpClientDI> {
  */
 export function createMockNodeHttpClient(
   mockUndiciRequest: UndiciRequestInterface,
-  MockProxyAgent?: ProxyAgentInterface
+  MockProxyAgent?: ProxyAgentInterface,
+  configProvider?: MainProcessConfigProvider
 ): NodeHttpClientDI {
-  return new NodeHttpClientDI(mockUndiciRequest, MockProxyAgent)
+  return new NodeHttpClientDI(mockUndiciRequest, MockProxyAgent, configProvider)
 }

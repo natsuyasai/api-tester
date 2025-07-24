@@ -53,6 +53,14 @@ if (process.contextIsolated) {
       getCurrentSettings: () => ipcRenderer.invoke('tls-config:get-current'),
       resetSettings: () => ipcRenderer.invoke('tls-config:reset')
     })
+    contextBridge.exposeInMainWorld('configAPI', {
+      getMainProcessConfig: () => ipcRenderer.invoke('getMainProcessConfig'),
+      updateMainProcessConfig: (config: unknown) => ipcRenderer.invoke('updateMainProcessConfig', config),
+      onConfigChange: (callback: (event: unknown, data: unknown) => void) => {
+        ipcRenderer.on('mainProcessConfigChanged', callback)
+        return () => ipcRenderer.off('mainProcessConfigChanged', callback)
+      }
+    })
   } catch (error) {
     console.error(error)
   }

@@ -29,3 +29,30 @@ export const DEFAULT_MAIN_CONFIG: MainProcessConfig = {
 export function getMainProcessConfig(): MainProcessConfig {
   return DEFAULT_MAIN_CONFIG
 }
+
+/**
+ * 動的に設定を取得するためのインターフェース
+ */
+export interface MainProcessConfigProvider {
+  getConfig(): MainProcessConfig
+}
+
+/**
+ * デフォルトの設定プロバイダー
+ */
+export class DefaultConfigProvider implements MainProcessConfigProvider {
+  getConfig(): MainProcessConfig {
+    return DEFAULT_MAIN_CONFIG
+  }
+}
+
+/**
+ * 動的設定プロバイダー（configHandlersから取得）
+ */
+export class DynamicConfigProvider implements MainProcessConfigProvider {
+  constructor(private configGetter: () => MainProcessConfig) {}
+  
+  getConfig(): MainProcessConfig {
+    return this.configGetter()
+  }
+}
