@@ -12,6 +12,7 @@
   display: flex;
   flex-direction: column;
   transition: margin-left 0.3s ease;
+  height: 100%;
 
   &.withSidebar {
     margin-left: 300px;

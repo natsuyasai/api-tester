@@ -10,7 +10,7 @@ export function createWindow(): void {
     minWidth: 800,
     minHeight: 800,
     width: 800,
-    height: 800,
+    height: 720,
     resizable: true,
     show: false,
     autoHideMenuBar: true,
