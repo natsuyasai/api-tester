@@ -4,6 +4,7 @@ import { setupApiHandlers } from './handlers/apiHandlers'
 import { setupDialogHandlers } from './handlers/dialogHandlers'
 import { setupFileHandlers } from './handlers/fileHandlers'
 import { setupProxyHandlers } from './handlers/proxyHandlers'
+import { setupTlsHandlers, cleanupTlsHandlers } from './handlers/tlsHandlers'
 import { showErrorDialog } from './utils/errorUtils'
 import { createWindow } from './window/windowManager'
 
@@ -27,6 +28,7 @@ app
     setupDialogHandlers()
     setupFileHandlers()
     setupProxyHandlers()
+    setupTlsHandlers()
     setupApiHandlers()
 
     // IPC test
@@ -56,4 +58,9 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+// アプリケーション終了時のクリーンアップ
+app.on('before-quit', () => {
+  cleanupTlsHandlers()
 })

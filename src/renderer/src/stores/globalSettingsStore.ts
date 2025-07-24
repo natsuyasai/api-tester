@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { showErrorDialog } from '@renderer/utils/errorUtils'
 
+// preload/index.d.tsで定義されたWindow型を使用
+
 // グローバル設定の型定義
 export interface GlobalSettings {
   // リクエストのデフォルト設定
@@ -36,6 +38,20 @@ export interface GlobalSettings {
   // セキュリティ設定
   allowInsecureConnections: boolean
   certificateValidation: boolean
+  
+  // クライアント証明書設定
+  clientCertificates: {
+    enabled: boolean
+    certificates: Array<{
+      id: string
+      name: string
+      host?: string // 特定のホストに限定する場合
+      certPath: string // 証明書ファイルパス
+      keyPath: string // 秘密鍵ファイルパス
+      passphrase?: string // パスフレーズ
+      enabled: boolean
+    }>
+  }
 
   // アプリケーション設定
   autoSave: boolean
@@ -72,6 +88,12 @@ export const DEFAULT_GLOBAL_SETTINGS: GlobalSettings = {
   // セキュリティ設定
   allowInsecureConnections: false,
   certificateValidation: true,
+  
+  // クライアント証明書設定
+  clientCertificates: {
+    enabled: false,
+    certificates: []
+  },
 
   // アプリケーション設定
   autoSave: true,
@@ -85,6 +107,12 @@ interface GlobalSettingsState {
   resetSettings: () => void
   exportSettings: () => string
   importSettings: (settingsJson: string) => boolean
+  
+  // 証明書管理用のアクション
+  addClientCertificate: (certificate: Omit<GlobalSettings['clientCertificates']['certificates'][0], 'id'>) => void
+  updateClientCertificate: (id: string, updates: Partial<GlobalSettings['clientCertificates']['certificates'][0]>) => void
+  removeClientCertificate: (id: string) => void
+  toggleClientCertificate: (id: string) => void
 }
 
 const STORAGE_KEY = 'api-tester-global-settings'
@@ -163,6 +191,71 @@ export const useGlobalSettingsStore = create<GlobalSettingsState>()(
         )
       }
       return false
+    },
+
+    // 証明書管理アクション
+    addClientCertificate: (certificate) => {
+      set((state) => {
+        const newCertificate = {
+          ...certificate,
+          id: `cert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        }
+        const updatedSettings = {
+          ...state.settings,
+          clientCertificates: {
+            ...state.settings.clientCertificates,
+            certificates: [...state.settings.clientCertificates.certificates, newCertificate]
+          }
+        }
+        saveSettings(updatedSettings)
+        return { settings: updatedSettings }
+      })
+    },
+
+    updateClientCertificate: (id, updates) => {
+      set((state) => {
+        const updatedSettings = {
+          ...state.settings,
+          clientCertificates: {
+            ...state.settings.clientCertificates,
+            certificates: state.settings.clientCertificates.certificates.map((cert) =>
+              cert.id === id ? { ...cert, ...updates } : cert
+            )
+          }
+        }
+        saveSettings(updatedSettings)
+        return { settings: updatedSettings }
+      })
+    },
+
+    removeClientCertificate: (id) => {
+      set((state) => {
+        const updatedSettings = {
+          ...state.settings,
+          clientCertificates: {
+            ...state.settings.clientCertificates,
+            certificates: state.settings.clientCertificates.certificates.filter((cert) => cert.id !== id)
+          }
+        }
+        saveSettings(updatedSettings)
+        return { settings: updatedSettings }
+      })
+    },
+
+    toggleClientCertificate: (id) => {
+      set((state) => {
+        const updatedSettings = {
+          ...state.settings,
+          clientCertificates: {
+            ...state.settings.clientCertificates,
+            certificates: state.settings.clientCertificates.certificates.map((cert) =>
+              cert.id === id ? { ...cert, enabled: !cert.enabled } : cert
+            )
+          }
+        }
+        saveSettings(updatedSettings)
+        return { settings: updatedSettings }
+      })
     }
   }))
 )
@@ -237,6 +330,23 @@ const applyThemeAndFont = (settings: GlobalSettings): void => {
 // const initialSettings = loadSettings()
 // applyThemeAndFont(initialSettings)
 
+// TLS設定をElectronに適用する関数
+const applyTlsSettings = async (settings: GlobalSettings): Promise<void> => {
+  try {
+    if (window.tlsConfigAPI) {
+      const result = await window.tlsConfigAPI.updateSettings(settings)
+      if (result.success) {
+        console.log('TLS settings applied:', result.message)
+      } else {
+        console.error('Failed to apply TLS settings:', result.error)
+      }
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error('TLS settings application error:', errorMessage)
+  }
+}
+
 // 設定変更の監視
 useGlobalSettingsStore.subscribe(
   (state) => state.settings,
@@ -254,6 +364,15 @@ useGlobalSettingsStore.subscribe(
 
     if (proxyChanged) {
       applyProxySettings(settings).catch(console.error)
+    }
+
+    // TLS設定の変更をElectronに適用
+    const tlsChanged =
+      settings.allowInsecureConnections !== prevSettings?.allowInsecureConnections ||
+      settings.certificateValidation !== prevSettings?.certificateValidation
+
+    if (tlsChanged) {
+      applyTlsSettings(settings).catch(console.error)
     }
   }
 )

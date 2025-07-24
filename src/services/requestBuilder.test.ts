@@ -25,6 +25,13 @@ const mockGlobalSettings: GlobalSettings = {
   proxyAuth: undefined,
   allowInsecureConnections: false,
   certificateValidation: true,
+  
+  // クライアント証明書設定
+  clientCertificates: {
+    enabled: false,
+    certificates: []
+  },
+  
   autoSave: false,
   autoSaveInterval: 300,
   checkForUpdates: true

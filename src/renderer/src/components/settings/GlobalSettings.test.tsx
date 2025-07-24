@@ -54,6 +54,13 @@ describe('GlobalSettings', () => {
     proxyEnabled: false,
     allowInsecureConnections: false,
     certificateValidation: true,
+    
+    // クライアント証明書設定
+    clientCertificates: {
+      enabled: false,
+      certificates: []
+    },
+    
     autoSave: true,
     autoSaveInterval: 30,
     checkForUpdates: true

@@ -7,6 +7,22 @@ import {
 import { RequestBuilder } from '../../services/requestBuilder'
 import { getMainProcessConfig } from '../config/defaultConfig'
 
+// クライアント証明書の型定義
+interface ClientCertificate {
+  id: string
+  name: string
+  host?: string
+  certPath: string
+  keyPath: string
+  passphrase?: string
+  enabled: boolean
+}
+
+interface ClientCertificateConfig {
+  enabled: boolean
+  certificates: ClientCertificate[]
+}
+
 /**
  * 依存性注入対応のNode.js環境用HTTP通信クライアント
  */
@@ -421,21 +437,88 @@ export class NodeHttpClientDI implements HttpClientInterface {
 export async function createNodeHttpClient(): Promise<NodeHttpClientDI> {
   try {
     // 実際のundiciをインポート
-    const { request, ProxyAgent, getGlobalDispatcher, interceptors } = await import('undici')
+    const { request, ProxyAgent, getGlobalDispatcher, interceptors, Agent } = await import('undici')
+    const fs = await import('fs')
     
-    // redirect interceptorを設定したdispatcherを作成
+    // グローバル設定を取得
     const globalSettings = getMainProcessConfig()
-    const dispatcherWithRedirect = getGlobalDispatcher().compose(
+    
+    // 基本的なdispatcherを作成（redirect interceptor付き）
+    let dispatcher = getGlobalDispatcher().compose(
       interceptors.redirect({
         maxRedirections: globalSettings.defaultMaxRedirects || 5
       })
     )
     
-    // redirect interceptor付きのリクエスト関数を作成
+    // レンダラープロセスからクライアント証明書設定を取得する関数
+    const getClientCertificateConfig = (): ClientCertificateConfig => {
+      try {
+        // グローバル設定からクライアント証明書を取得
+        // 実際の実装では、レンダラープロセスから設定を取得する方法を実装する必要がある
+        // 今は空の配列を返す
+        return {
+          enabled: false,
+          certificates: []
+        }
+      } catch (error) {
+        console.warn('Failed to get client certificate config:', error)
+        return {
+          enabled: false,
+          certificates: []
+        }
+      }
+    }
+    
+    // クライアント証明書対応のリクエスト関数を作成
     const requestWithRedirect: UndiciRequestInterface = async (url: string, options: any) => {
+      const certConfig = getClientCertificateConfig()
+      let finalDispatcher = dispatcher
+      
+      // クライアント証明書が有効で、URLにマッチする証明書がある場合
+      if (certConfig.enabled && certConfig.certificates.length > 0) {
+        const targetUrl = new URL(url)
+        const matchingCert = certConfig.certificates.find(cert => 
+          cert.enabled && (
+            !cert.host || 
+            cert.host === targetUrl.hostname ||
+            targetUrl.hostname.endsWith('.' + cert.host)
+          )
+        )
+        
+        if (matchingCert) {
+          try {
+            // 証明書ファイルを読み込み
+            const cert = fs.readFileSync(matchingCert.certPath, 'utf8')
+            const key = fs.readFileSync(matchingCert.keyPath, 'utf8')
+            
+            // TLS設定でAgentを作成
+            const tlsAgent = new Agent({
+              connect: {
+                cert,
+                key,
+                passphrase: matchingCert.passphrase || undefined,
+                rejectUnauthorized: !globalSettings.allowInsecureConnections
+              }
+            })
+            
+            // redirect interceptorも適用
+            finalDispatcher = tlsAgent.compose(
+              interceptors.redirect({
+                maxRedirections: globalSettings.defaultMaxRedirects || 5
+              })
+            )
+            
+            console.debug(`Using client certificate: ${matchingCert.name} for ${targetUrl.hostname}`)
+          } catch (error) {
+            console.error(`Failed to load client certificate ${matchingCert.name}:`, error)
+            // 証明書読み込みに失敗した場合は、通常のdispatcherを使用
+          }
+        }
+      }
+      
       const response = await request(url, {
         ...options,
-        dispatcher: dispatcherWithRedirect
+        dispatcher: finalDispatcher
       })
       
       // レスポンス型を統一

@@ -1,0 +1,254 @@
+.container {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background-color: var(--background-color);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.header h3 {
+  margin: 0;
+  color: var(--text-color);
+}
+
+.enableToggle {
+  display: flex;
+  align-items: center;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--text-color);
+}
+
+.checkboxLabel input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.certificateList {
+  margin-bottom: 1rem;
+}
+
+.emptyMessage {
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  padding: 2rem;
+}
+
+.certificateItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius);
+  background-color: var(--secondary-background);
+  
+  &.disabled {
+    opacity: 0.6;
+    background-color: var(--disabled-background);
+  }
+}
+
+.certificateInfo {
+  flex: 1;
+}
+
+.certificateName {
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+  
+  strong {
+    color: var(--text-color);
+  }
+}
+
+.host {
+  color: var(--text-muted);
+  font-size: 0.9em;
+  margin-left: 0.5rem;
+}
+
+.certificatePaths {
+  font-size: 0.9em;
+  color: var(--text-muted);
+  
+  div {
+    margin-bottom: 0.25rem;
+    word-break: break-all;
+  }
+}
+
+.certificateActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.enableCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.9em;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.editButton,
+.deleteButton {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: var(--transition-base);
+  
+  &:hover {
+    background-color: var(--color-button-hover);
+    border-color: var(--border-color-hover);
+  }
+}
+
+.deleteButton {
+  background-color: var(--danger-color);
+  color: white;
+  border-color: var(--danger-color);
+  
+  &:hover {
+    background-color: var(--danger-color-hover);
+    border-color: var(--danger-color-hover);
+  }
+}
+
+.addSection {
+  border-top: 1px solid var(--border-light);
+  padding-top: 1rem;
+}
+
+.addButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition-base);
+  
+  &:hover {
+    background-color: var(--primary-color-hover);
+  }
+}
+
+.addForm {
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  background-color: var(--secondary-background);
+  
+  h4 {
+    margin: 0 0 1rem 0;
+    color: var(--text-color);
+  }
+}
+
+.formRow {
+  margin-bottom: 1rem;
+  
+  label {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--text-color);
+    font-weight: 500;
+  }
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background-color: var(--input-background);
+  color: var(--text-color);
+  transition: var(--transition-base);
+  
+  &:focus {
+    border-color: var(--border-color-hover);
+    outline: none;
+  }
+  
+  &::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+.fileInputGroup {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.fileSelectButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--secondary-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  color: var(--text-color);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-base);
+  
+  &:hover {
+    background-color: var(--color-button-hover);
+    border-color: var(--border-color-hover);
+  }
+}
+
+.formActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.submitButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--success-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition-base);
+  
+  &:hover {
+    background-color: var(--success-color-hover);
+  }
+}
+
+.cancelButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--secondary-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  color: var(--text-color);
+  cursor: pointer;
+  transition: var(--transition-base);
+  
+  &:hover {
+    background-color: var(--color-button-hover);
+    border-color: var(--border-color-hover);
+  }
+}

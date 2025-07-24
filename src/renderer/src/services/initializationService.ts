@@ -1,5 +1,6 @@
 import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { useTabStore } from '@renderer/stores/tabStore'
+import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
 import { TabCollectionManager } from './tabCollectionManager'
 
 /**
@@ -57,6 +58,9 @@ export class InitializationService {
         collectionStore.setActiveCollection(defaultCollection.id)
       }
 
+      // 7. TLS設定の初期化
+      this.initializeTlsSettings()
+
       console.log('アプリケーション初期化完了:', {
         collections: useCollectionStore.getState().collections.length,
         tabs: useTabStore.getState().tabs.length,
@@ -93,6 +97,28 @@ export class InitializationService {
       console.log('フォールバック状態を作成しました')
     } catch (fallbackError) {
       console.error('フォールバック状態の作成に失敗:', fallbackError)
+    }
+  }
+
+  /**
+   * TLS設定の初期化
+   * アプリケーション起動時に現在のグローバル設定に基づいてTLS設定を適用
+   */
+  private static async initializeTlsSettings(): Promise<void> {
+    try {
+      const globalSettings = useGlobalSettingsStore.getState().settings
+      
+      if (window.tlsConfigAPI) {
+        const result = await window.tlsConfigAPI.updateSettings(globalSettings)
+        if (result.success) {
+          console.log('Initial TLS settings applied:', result.message)
+        } else {
+          console.error('Failed to apply initial TLS settings:', result.error)
+        }
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      console.error('TLS settings initialization error:', errorMessage)
     }
   }
 

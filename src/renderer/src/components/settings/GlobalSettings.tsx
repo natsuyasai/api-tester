@@ -3,6 +3,7 @@ import { AutoSaveStatus } from '@renderer/components/ui/AutoSaveStatus'
 import { useAutoSave } from '@renderer/hooks/useAutoSave'
 import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
 import { validateProxyUrl } from '@renderer/utils/proxyUtils'
+import { ClientCertificateManager } from './ClientCertificateManager'
 import styles from './GlobalSettings.module.scss'
 
 export const GlobalSettings = (): JSX.Element => {
@@ -596,6 +597,16 @@ export const GlobalSettings = (): JSX.Element => {
               </label>
             </div>
           </div>
+        </div>
+
+        {/* クライアント証明書管理 */}
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2>クライアント証明書</h2>
+            <p className={styles.sectionDescription}>SSL/TLS認証用のクライアント証明書の管理</p>
+          </div>
+          
+          <ClientCertificateManager />
         </div>
 
         {/* 設定のインポート/エクスポート */}

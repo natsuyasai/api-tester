@@ -90,6 +90,35 @@ export interface ApiExecutor {
   }>
 }
 
+export interface TlsConfigAPI {
+  updateSettings: (settings: unknown) => Promise<{
+    success: boolean
+    message?: string
+    error?: string
+    currentSettings?: {
+      rejectUnauthorized: boolean
+      environmentVariable: string | undefined
+    }
+  }>
+  getCurrentSettings: () => Promise<{
+    success: boolean
+    settings?: {
+      rejectUnauthorized: boolean
+      environmentVariable: string | undefined
+    }
+    error?: string
+  }>
+  resetSettings: () => Promise<{
+    success: boolean
+    message?: string
+    error?: string
+    currentSettings?: {
+      rejectUnauthorized: boolean
+      environmentVariable: string | undefined
+    }
+  }>
+}
+
 declare global {
   interface Window {
     electron: ElectronAPI
@@ -98,6 +127,7 @@ declare global {
     fileAPI: FileAPI
     proxyAPI: ProxyAPI
     apiExecutor: ApiExecutor
+    tlsConfigAPI: TlsConfigAPI
     lizard: Lizard
   }
 }

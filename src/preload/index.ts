@@ -48,6 +48,11 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('buildCurlCommand', request, variableResolver),
       healthCheck: (url: string) => ipcRenderer.invoke('healthCheck', url)
     })
+    contextBridge.exposeInMainWorld('tlsConfigAPI', {
+      updateSettings: (settings: unknown) => ipcRenderer.invoke('tls-config:update', settings),
+      getCurrentSettings: () => ipcRenderer.invoke('tls-config:get-current'),
+      resetSettings: () => ipcRenderer.invoke('tls-config:reset')
+    })
   } catch (error) {
     console.error(error)
   }

@@ -195,12 +195,18 @@ export class TabCollectionManager {
    */
   static importTabsWithMerge(importedTabs: ApiTab[]): void {
     const tabStore = useTabStore.getState()
+    const collectionStore = useCollectionStore.getState()
+
+    // 現在アクティブなコレクションを取得
+    const activeCollectionId = collectionStore.activeCollectionId
 
     // 新しいIDを生成してコンフリクトを回避
     const processedTabs = importedTabs.map((tab) => ({
       ...tab,
       id: uuidv4(),
       isActive: false,
+      // アクティブコレクションがある場合は、そのコレクションに追加
+      collectionId: activeCollectionId || tab.collectionId,
       request: {
         ...tab.request,
         id: uuidv4()
@@ -219,29 +225,67 @@ export class TabCollectionManager {
       firstImportedTab.isActive = true
     }
 
+    // アクティブコレクションがある場合、インポートしたタブをコレクションに追加
+    if (activeCollectionId && processedTabs.length > 0) {
+      processedTabs.forEach((tab) => {
+        collectionStore.addTabToCollection(activeCollectionId, tab.id)
+      })
+      // 最初のタブをアクティブタブに設定
+      collectionStore.setCollectionActiveTab(activeCollectionId, firstImportedTab.id)
+    }
+
     // タブストアを更新
     useTabStore.setState({
       tabs: updatedTabs,
       activeTabId: firstImportedTab?.id || tabStore.activeTabId
     })
 
-    console.log(`Imported ${processedTabs.length} tabs with merge mode`)
+    console.log(
+      `Imported ${processedTabs.length} tabs with merge mode${
+        activeCollectionId ? ` to collection ${activeCollectionId}` : ''
+      }`
+    )
   }
 
   /**
    * タブを置き換えモードでインポート（既存データを削除）
    */
   static importTabsWithReplace(importedTabs: ApiTab[]): void {
+    const collectionStore = useCollectionStore.getState()
+    
+    // 現在アクティブなコレクションを取得
+    const activeCollectionId = collectionStore.activeCollectionId
+
     // 新しいIDを生成
     const processedTabs = importedTabs.map((tab, index) => ({
       ...tab,
       id: uuidv4(),
       isActive: index === 0,
+      // アクティブコレクションがある場合は、そのコレクションに追加
+      collectionId: activeCollectionId || tab.collectionId,
       request: {
         ...tab.request,
         id: uuidv4()
       }
     }))
+
+    // アクティブコレクションがある場合、インポートしたタブをコレクションに追加
+    if (activeCollectionId && processedTabs.length > 0) {
+      // 既存のコレクションタブをクリア
+      const activeCollection = collectionStore.getCollection(activeCollectionId)
+      if (activeCollection && activeCollection.tabs) {
+        activeCollection.tabs.forEach((tabId) => {
+          collectionStore.removeTabFromCollection(activeCollectionId, tabId)
+        })
+      }
+
+      // 新しいタブを追加
+      processedTabs.forEach((tab) => {
+        collectionStore.addTabToCollection(activeCollectionId, tab.id)
+      })
+      // 最初のタブをアクティブタブに設定
+      collectionStore.setCollectionActiveTab(activeCollectionId, processedTabs[0].id)
+    }
 
     // タブストアを更新
     useTabStore.setState({
@@ -249,7 +293,11 @@ export class TabCollectionManager {
       activeTabId: processedTabs[0]?.id || ''
     })
 
-    console.log(`Imported ${processedTabs.length} tabs with replace mode`)
+    console.log(
+      `Imported ${processedTabs.length} tabs with replace mode${
+        activeCollectionId ? ` to collection ${activeCollectionId}` : ''
+      }`
+    )
   }
 
   /**
