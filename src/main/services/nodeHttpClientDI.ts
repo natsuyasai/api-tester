@@ -5,28 +5,21 @@ import {
   ProxyAgentInterface
 } from '../../services/httpClientInterface'
 import { RequestBuilder } from '../../services/requestBuilder'
-import { 
-  MainProcessConfigProvider, 
-  DefaultConfigProvider, 
-  DynamicConfigProvider 
+import {
+  MainProcessConfigProvider,
+  DefaultConfigProvider,
+  DynamicConfigProvider
 } from '../config/defaultConfig'
 import { getCurrentMainProcessConfig } from '../handlers/configHandlers'
-
-// クライアント証明書の型定義
-interface ClientCertificate {
-  id: string
-  name: string
-  host?: string
-  certPath: string
-  keyPath: string
-  passphrase?: string
-  enabled: boolean
-}
-
-interface ClientCertificateConfig {
-  enabled: boolean
-  certificates: ClientCertificate[]
-}
+import {
+  UndiciLibraryInterface,
+  FsInterface,
+  ClientCertificateConfigProvider,
+  ClientCertificateConfig,
+  RealUndiciLibrary,
+  RealFsModule,
+  DefaultClientCertificateProvider
+} from './undiciInterface'
 
 /**
  * 依存性注入対応のNode.js環境用HTTP通信クライアント
@@ -226,57 +219,12 @@ export class NodeHttpClientDI implements HttpClientInterface {
   ): Promise<ApiResponse> {
     try {
       const duration = Date.now() - startTime
-
-      // ヘッダーをRecord形式に変換
-      const headers: Record<string, string> = {}
-      if (response.headers) {
-        for (const [key, value] of Object.entries(response.headers)) {
-          headers[key] = String(value)
-        }
-      }
-
-      // ボディを取得
+      const headers = this.convertHeaders(response.headers)
       const buffer = await response.body.arrayBuffer()
       const bodyText = new TextDecoder().decode(buffer)
-
-      // Content-Typeに基づいてレスポンスデータを処理
       const contentType = headers['content-type'] || ''
-      let responseData: ApiResponseData
 
-      if (contentType.includes('application/json')) {
-        try {
-          const jsonData = JSON.parse(bodyText) as Record<string, unknown> | unknown[]
-          responseData = {
-            type: 'json' as const,
-            data: jsonData,
-            raw: bodyText
-          }
-        } catch {
-          responseData = {
-            type: 'text' as const,
-            data: bodyText
-          }
-        }
-      } else if (
-        contentType.startsWith('image/') ||
-        contentType.startsWith('video/') ||
-        contentType.startsWith('audio/') ||
-        contentType === 'application/pdf'
-      ) {
-        // バイナリデータの処理
-        const base64Data = Buffer.from(buffer).toString('base64')
-        responseData = {
-          type: 'binary' as const,
-          data: `data:${contentType};base64,${base64Data}`,
-          size: buffer.byteLength,
-          mimeType: contentType
-        }
-      } else {
-        responseData = {
-          type: 'text' as const,
-          data: bodyText
-        }
-      }
+      const responseData = this.processResponseBody(bodyText, contentType, buffer)
 
       return {
         status: response.statusCode,
@@ -287,20 +235,106 @@ export class NodeHttpClientDI implements HttpClientInterface {
         timestamp: new Date().toISOString()
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-      console.error('Error processing undici response:', errorMessage)
+      return this.createProcessingErrorResponse(error, startTime)
+    }
+  }
 
-      return {
-        status: 0,
-        statusText: 'Processing Error',
-        headers: {},
-        data: {
-          type: 'error' as const,
-          error: errorMessage
-        },
-        duration: Date.now() - startTime,
-        timestamp: new Date().toISOString()
+  /**
+   * ヘッダーをRecord形式に変換
+   */
+  private convertHeaders(headers: Record<string, string>): Record<string, string> {
+    const convertedHeaders: Record<string, string> = {}
+    if (headers) {
+      for (const [key, value] of Object.entries(headers)) {
+        convertedHeaders[key] = String(value)
       }
+    }
+    return convertedHeaders
+  }
+
+  /**
+   * レスポンスボディを処理してApiResponseDataに変換
+   */
+  private processResponseBody(
+    bodyText: string,
+    contentType: string,
+    buffer: ArrayBuffer
+  ): ApiResponseData {
+    if (contentType.includes('application/json')) {
+      return this.processJsonResponse(bodyText)
+    }
+
+    if (this.isBinaryContentType(contentType)) {
+      return this.processBinaryResponse(buffer, contentType)
+    }
+
+    return {
+      type: 'text' as const,
+      data: bodyText
+    }
+  }
+
+  /**
+   * JSONレスポンスを処理
+   */
+  private processJsonResponse(bodyText: string): ApiResponseData {
+    try {
+      const jsonData = JSON.parse(bodyText) as Record<string, unknown> | unknown[]
+      return {
+        type: 'json' as const,
+        data: jsonData,
+        raw: bodyText
+      }
+    } catch {
+      return {
+        type: 'text' as const,
+        data: bodyText
+      }
+    }
+  }
+
+  /**
+   * バイナリレスポンスを処理
+   */
+  private processBinaryResponse(buffer: ArrayBuffer, contentType: string): ApiResponseData {
+    const base64Data = Buffer.from(buffer).toString('base64')
+    return {
+      type: 'binary' as const,
+      data: `data:${contentType};base64,${base64Data}`,
+      size: buffer.byteLength,
+      mimeType: contentType
+    }
+  }
+
+  /**
+   * バイナリコンテンツタイプかどうかを判定
+   */
+  private isBinaryContentType(contentType: string): boolean {
+    return (
+      contentType.startsWith('image/') ||
+      contentType.startsWith('video/') ||
+      contentType.startsWith('audio/') ||
+      contentType === 'application/pdf'
+    )
+  }
+
+  /**
+   * レスポンス処理エラー時のレスポンスを作成
+   */
+  private createProcessingErrorResponse(error: unknown, startTime: number): ApiResponse {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    console.error('Error processing undici response:', errorMessage)
+
+    return {
+      status: 0,
+      statusText: 'Processing Error',
+      headers: {},
+      data: {
+        type: 'error' as const,
+        error: errorMessage
+      },
+      duration: Date.now() - startTime,
+      timestamp: new Date().toISOString()
     }
   }
 
@@ -339,52 +373,13 @@ export class NodeHttpClientDI implements HttpClientInterface {
    */
   private createNodeErrorResponse(error: unknown, startTime: number): ApiResponse {
     const duration = Date.now() - startTime
-
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
     console.error('Node HTTP client error:', errorMessage)
 
-    const status = 0
-    let statusText = 'Network Error'
-
-    // undiciエラーとAbortErrorの特定の処理
-    if (error && typeof error === 'object') {
-      // AbortError（タイムアウト含む）の処理
-      if ('name' in error && error.name === 'AbortError') {
-        statusText = 'Request Timeout'
-      } else if ('code' in error) {
-        const errorCode = (error as Error & { code?: string }).code
-
-        switch (errorCode) {
-          case 'ECONNREFUSED':
-            statusText = 'Connection Refused'
-            break
-          case 'ENOTFOUND':
-            statusText = 'Host Not Found'
-            break
-          case 'ETIMEDOUT':
-            statusText = 'Connection Timeout'
-            break
-          case 'UND_ERR_CONNECT_TIMEOUT':
-            statusText = 'Connection Timeout'
-            break
-          case 'UND_ERR_HEADERS_TIMEOUT':
-          case 'UND_ERR_BODY_TIMEOUT':
-            statusText = 'Request Timeout'
-            break
-          case 'ECONNRESET':
-            statusText = 'Connection Reset'
-            break
-        }
-      }
-    }
-
-    // エラーメッセージからタイムアウト関連の検出
-    if (errorMessage.includes('timeout') || errorMessage.includes('aborted')) {
-      statusText = 'Request Timeout'
-    }
+    const statusText = this.determineErrorStatusText(error, errorMessage)
 
     return {
-      status,
+      status: 0,
       statusText,
       headers: {},
       data: {
@@ -394,6 +389,72 @@ export class NodeHttpClientDI implements HttpClientInterface {
       duration,
       timestamp: new Date().toISOString()
     }
+  }
+
+  /**
+   * エラーの種類に基づいてステータステキストを決定
+   */
+  private determineErrorStatusText(error: unknown, errorMessage: string): string {
+    if (this.isAbortError(error)) {
+      return 'Request Timeout'
+    }
+
+    const errorCode = this.extractErrorCode(error)
+    if (errorCode) {
+      const statusFromCode = this.getStatusTextFromErrorCode(errorCode)
+      if (statusFromCode) {
+        return statusFromCode
+      }
+    }
+
+    if (this.isTimeoutError(errorMessage)) {
+      return 'Request Timeout'
+    }
+
+    return 'Network Error'
+  }
+
+  /**
+   * AbortErrorかどうかを判定
+   */
+  private isAbortError(error: unknown): boolean {
+    return Boolean(
+      error && typeof error === 'object' && 'name' in error && error.name === 'AbortError'
+    )
+  }
+
+  /**
+   * エラーコードを抽出
+   */
+  private extractErrorCode(error: unknown): string | null {
+    if (error && typeof error === 'object' && 'code' in error) {
+      return (error as Error & { code?: string }).code || null
+    }
+    return null
+  }
+
+  /**
+   * エラーコードからステータステキストを取得
+   */
+  private getStatusTextFromErrorCode(errorCode: string): string | null {
+    const errorCodeMap: Record<string, string> = {
+      ECONNREFUSED: 'Connection Refused',
+      ENOTFOUND: 'Host Not Found',
+      ETIMEDOUT: 'Connection Timeout',
+      UND_ERR_CONNECT_TIMEOUT: 'Connection Timeout',
+      UND_ERR_HEADERS_TIMEOUT: 'Request Timeout',
+      UND_ERR_BODY_TIMEOUT: 'Request Timeout',
+      ECONNRESET: 'Connection Reset'
+    }
+
+    return errorCodeMap[errorCode] || null
+  }
+
+  /**
+   * タイムアウトエラーかどうかを判定
+   */
+  private isTimeoutError(errorMessage: string): boolean {
+    return errorMessage.includes('timeout') || errorMessage.includes('aborted')
   }
 
   /**
@@ -435,121 +496,159 @@ export class NodeHttpClientDI implements HttpClientInterface {
 }
 
 /**
- * ファクトリー関数：本物のundiciを使用
+ * NodeHttpClientの作成を担当するファクトリークラス
  */
-export async function createNodeHttpClient(
-  configProvider?: MainProcessConfigProvider
-): Promise<NodeHttpClientDI> {
-  try {
-    // 実際のundiciをインポート
-    const { request, ProxyAgent, getGlobalDispatcher, interceptors, Agent } = await import('undici')
-    const fs = await import('fs')
+class NodeHttpClientFactory {
+  constructor(
+    private undiciLib: UndiciLibraryInterface,
+    private fsModule: FsInterface,
+    private certProvider: ClientCertificateConfigProvider
+  ) {}
 
-    // 設定プロバイダーまたは動的設定を使用
-    const provider = configProvider || new DynamicConfigProvider(getCurrentMainProcessConfig)
-    const globalSettings = provider.getConfig()
+  /**
+   * リクエスト関数を作成
+   */
+  async createRequestFunction(globalSettings: any): Promise<UndiciRequestInterface> {
+    const dispatcher = this.createDispatcher(globalSettings)
 
-    // 基本的なdispatcherを作成（redirect interceptor付き）
-    const dispatcher = getGlobalDispatcher().compose(
-      interceptors.redirect({
+    return async (url: string, options: Parameters<UndiciRequestInterface>[1]) => {
+      const finalDispatcher = await this.createFinalDispatcher(url, dispatcher, globalSettings)
+
+      const response = await this.undiciLib.request(url, {
+        ...options,
+        dispatcher: finalDispatcher
+      })
+
+      return this.normalizeResponse(response)
+    }
+  }
+
+  /**
+   * 基本ディスパッチャーを作成
+   */
+  private createDispatcher(globalSettings: any): any {
+    return this.undiciLib.getGlobalDispatcher().compose(
+      this.undiciLib.interceptors.redirect({
         maxRedirections: globalSettings.defaultMaxRedirects || 5
       })
     )
-
-    // レンダラープロセスからクライアント証明書設定を取得する関数
-    const getClientCertificateConfig = (): ClientCertificateConfig => {
-      try {
-        // グローバル設定からクライアント証明書を取得
-        // 実際の実装では、レンダラープロセスから設定を取得する方法を実装する必要がある
-        // 今は空の配列を返す
-        return {
-          enabled: false,
-          certificates: []
-        }
-      } catch (error) {
-        console.warn('Failed to get client certificate config:', error)
-        return {
-          enabled: false,
-          certificates: []
-        }
-      }
-    }
-
-    // クライアント証明書対応のリクエスト関数を作成
-    const requestWithRedirect: UndiciRequestInterface = async (
-      url: string,
-      options: Parameters<UndiciRequestInterface>[1]
-    ) => {
-      const certConfig = getClientCertificateConfig()
-      let finalDispatcher = dispatcher
-
-      // クライアント証明書が有効で、URLにマッチする証明書がある場合
-      if (certConfig.enabled && certConfig.certificates.length > 0) {
-        const targetUrl = new URL(url)
-        const matchingCert = certConfig.certificates.find(
-          (cert) =>
-            cert.enabled &&
-            (!cert.host ||
-              cert.host === targetUrl.hostname ||
-              targetUrl.hostname.endsWith('.' + cert.host))
-        )
-
-        if (matchingCert) {
-          try {
-            // 証明書ファイルを読み込み
-            const cert = fs.readFileSync(matchingCert.certPath, 'utf8')
-            const key = fs.readFileSync(matchingCert.keyPath, 'utf8')
-
-            // TLS設定でAgentを作成
-            const tlsAgent = new Agent({
-              connect: {
-                cert,
-                key,
-                passphrase: matchingCert.passphrase || undefined,
-                rejectUnauthorized: !globalSettings.allowInsecureConnections
-              }
-            })
-
-            // redirect interceptorも適用
-            finalDispatcher = tlsAgent.compose(
-              interceptors.redirect({
-                maxRedirections: globalSettings.defaultMaxRedirects || 5
-              })
-            )
-
-            console.debug(
-              `Using client certificate: ${matchingCert.name} for ${targetUrl.hostname}`
-            )
-          } catch (error) {
-            console.error(`Failed to load client certificate ${matchingCert.name}:`, error)
-            // 証明書読み込みに失敗した場合は、通常のdispatcherを使用
-          }
-        }
-      }
-
-      const response = await request(url, {
-        ...options,
-        dispatcher: finalDispatcher
-      } as Parameters<UndiciRequestInterface>[1])
-
-      // レスポンス型を統一
-      return {
-        statusCode: response.statusCode,
-        headers: Object.fromEntries(
-          Object.entries(response.headers).map(([key, value]) => [
-            key,
-            Array.isArray(value) ? value.join(', ') : String(value || '')
-          ])
-        ),
-        body: response.body
-      }
-    }
-
-    return new NodeHttpClientDI(requestWithRedirect, ProxyAgent as ProxyAgentInterface, provider)
-  } catch (error) {
-    console.error('Failed to import undici:', error)
-    throw new Error('Failed to initialize NodeHttpClient: undici is not available')
   }
+
+  /**
+   * 最終的なディスパッチャーを作成（証明書対応含む）
+   */
+  private async createFinalDispatcher(
+    url: string,
+    baseDispatcher: any,
+    globalSettings: any
+  ): Promise<any> {
+    const certConfig = this.certProvider.getConfig()
+
+    if (!certConfig.enabled || certConfig.certificates.length === 0) {
+      return baseDispatcher
+    }
+
+    const matchingCert = this.findMatchingCertificate(url, certConfig)
+    if (!matchingCert) {
+      return baseDispatcher
+    }
+
+    return this.createTlsDispatcher(matchingCert, globalSettings, baseDispatcher)
+  }
+
+  /**
+   * URLに一致する証明書を検索
+   */
+  private findMatchingCertificate(url: string, certConfig: ClientCertificateConfig) {
+    const targetUrl = new URL(url)
+    return certConfig.certificates.find(
+      (cert) =>
+        cert.enabled &&
+        (!cert.host ||
+          cert.host === targetUrl.hostname ||
+          targetUrl.hostname.endsWith('.' + cert.host))
+    )
+  }
+
+  /**
+   * TLS証明書対応のディスパッチャーを作成
+   */
+  private createTlsDispatcher(cert: any, globalSettings: any, baseDispatcher: any): any {
+    try {
+      const certData = this.fsModule.readFileSync(cert.certPath, 'utf8')
+      const keyData = this.fsModule.readFileSync(cert.keyPath, 'utf8')
+
+      const tlsAgent = new this.undiciLib.Agent({
+        connect: {
+          cert: certData,
+          key: keyData,
+          passphrase: cert.passphrase || undefined,
+          rejectUnauthorized: !globalSettings.allowInsecureConnections
+        }
+      })
+
+      const dispatcher = tlsAgent.compose(
+        this.undiciLib.interceptors.redirect({
+          maxRedirections: globalSettings.defaultMaxRedirects || 5
+        })
+      )
+
+      console.debug(`Using client certificate: ${cert.name}`)
+      return dispatcher
+    } catch (error) {
+      console.error(`Failed to load client certificate ${cert.name}:`, error)
+      return baseDispatcher
+    }
+  }
+
+  /**
+   * レスポンスを正規化
+   */
+  private normalizeResponse(response: any) {
+    return {
+      statusCode: response.statusCode,
+      headers: Object.fromEntries(
+        Object.entries(response.headers).map(([key, value]) => [
+          key,
+          Array.isArray(value) ? value.join(', ') : String(value || '')
+        ])
+      ),
+      body: response.body
+    }
+  }
+}
+
+/**
+ * ファクトリー関数：本物のundiciを使用
+ */
+export async function createNodeHttpClient(
+  configProvider?: MainProcessConfigProvider,
+  undiciLib?: UndiciLibraryInterface,
+  fsModule?: FsInterface,
+  certProvider?: ClientCertificateConfigProvider
+): Promise<NodeHttpClientDI> {
+  const realUndici = undiciLib || new RealUndiciLibrary()
+  const realFs = fsModule || new RealFsModule()
+  const realCertProvider = certProvider || new DefaultClientCertificateProvider()
+
+  if (realUndici instanceof RealUndiciLibrary) {
+    await realUndici.initialize()
+  }
+  if (realFs instanceof RealFsModule) {
+    await realFs.initialize()
+  }
+
+  const provider = configProvider || new DynamicConfigProvider(getCurrentMainProcessConfig)
+  const globalSettings = provider.getConfig()
+
+  const factory = new NodeHttpClientFactory(realUndici, realFs, realCertProvider)
+  const requestWithRedirect = await factory.createRequestFunction(globalSettings)
+
+  return new NodeHttpClientDI(
+    requestWithRedirect,
+    realUndici.ProxyAgent as ProxyAgentInterface,
+    provider
+  )
 }
 
 /**
@@ -560,5 +659,6 @@ export function createMockNodeHttpClient(
   MockProxyAgent?: ProxyAgentInterface,
   configProvider?: MainProcessConfigProvider
 ): NodeHttpClientDI {
-  return new NodeHttpClientDI(mockUndiciRequest, MockProxyAgent, configProvider)
+  const provider = configProvider || new DefaultConfigProvider()
+  return new NodeHttpClientDI(mockUndiciRequest, MockProxyAgent, provider)
 }

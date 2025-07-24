@@ -439,105 +439,12 @@ export class ApiServiceV2 {
     const resolveVariables = variableResolver || ((text: string) => text)
 
     try {
-      const url = new URL(resolveVariables(request.url))
-
-      // URL パラメータを追加
-      const enabledParams = request.params.filter((param) => param.enabled && param.key)
-      enabledParams.forEach((param) => {
-        url.searchParams.set(resolveVariables(param.key), resolveVariables(param.value))
-      })
-
+      const url = this.buildCurlUrl(request, resolveVariables)
       let command = `curl -X ${request.method}`
 
-      // ヘッダーの追加
-      const enabledHeaders = request.headers.filter((header) => header.enabled && header.key)
-      enabledHeaders.forEach((header) => {
-        const key = resolveVariables(header.key)
-        const value = resolveVariables(header.value)
-        command += ` -H "${key}: ${value}"`
-      })
-
-      // 認証の追加
-      if (request.auth) {
-        switch (request.auth.type) {
-          case 'basic':
-            if (request.auth.basic) {
-              command += ` -u "${request.auth.basic.username}:${request.auth.basic.password}"`
-            }
-            break
-          case 'bearer':
-            if (request.auth.bearer) {
-              const token = resolveVariables(request.auth.bearer.token)
-              command += ` -H "Authorization: Bearer ${token}"`
-            }
-            break
-          case 'api-key':
-            if (request.auth.apiKey) {
-              const key = resolveVariables(request.auth.apiKey.key)
-              const value = resolveVariables(request.auth.apiKey.value)
-
-              if (request.auth.apiKey.location === 'header') {
-                command += ` -H "${key}: ${value}"`
-              } else if (request.auth.apiKey.location === 'query') {
-                url.searchParams.set(key, value)
-              }
-            }
-            break
-        }
-      }
-
-      // ボディの追加
-      if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
-        if (request.bodyType === 'form-data') {
-          // FormDataの場合、-Fオプションを使用
-          const enabledPairs =
-            request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
-
-          enabledPairs.forEach((pair) => {
-            const key = resolveVariables(pair.key)
-
-            if (pair.isFile && pair.fileName) {
-              // ファイルの場合
-              command += ` -F "${key}=@${pair.fileName}"`
-            } else {
-              // 通常のフィールドの場合
-              const value = resolveVariables(pair.value)
-              command += ` -F "${key}=${value}"`
-            }
-          })
-        } else if (request.bodyType === 'x-www-form-urlencoded') {
-          // URL-encoded formの場合
-          const enabledPairs =
-            request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
-
-          if (enabledPairs.length > 0) {
-            const formData = enabledPairs
-              .map((pair) => {
-                const key = encodeURIComponent(resolveVariables(pair.key))
-                const value = encodeURIComponent(resolveVariables(pair.value))
-                return `${key}=${value}`
-              })
-              .join('&')
-
-            command += ` -d "${formData}"`
-            command += ` -H "Content-Type: application/x-www-form-urlencoded"`
-          }
-        } else if (request.body) {
-          const body = resolveVariables(request.body)
-
-          if (request.bodyType === 'graphql') {
-            const graphqlPayload = {
-              query: body,
-              variables: request.variables || {},
-              operationName: this.extractOperationName(body)
-            }
-            command += ` -d '${JSON.stringify(graphqlPayload)}'`
-          } else {
-            command += ` -d '${body}'`
-          }
-        }
-      }
-
+      command += this.buildCurlHeaders(request, resolveVariables)
+      command += this.buildCurlAuth(request, resolveVariables, url)
+      command += this.buildCurlBody(request, resolveVariables)
       command += ` "${url.toString()}"`
 
       return command
@@ -545,6 +452,201 @@ export class ApiServiceV2 {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
       throw new Error(`Invalid request for cURL generation: ${errorMessage}`)
     }
+  }
+
+  /**
+   * cURL用のURLを構築
+   */
+  private static buildCurlUrl(
+    request: ApiRequest,
+    resolveVariables: (text: string) => string
+  ): URL {
+    const url = new URL(resolveVariables(request.url))
+
+    const enabledParams = request.params.filter((param) => param.enabled && param.key)
+    enabledParams.forEach((param) => {
+      url.searchParams.set(resolveVariables(param.key), resolveVariables(param.value))
+    })
+
+    return url
+  }
+
+  /**
+   * cURL用のヘッダーを構築
+   */
+  private static buildCurlHeaders(
+    request: ApiRequest,
+    resolveVariables: (text: string) => string
+  ): string {
+    const enabledHeaders = request.headers.filter((header) => header.enabled && header.key)
+
+    return enabledHeaders
+      .map((header) => {
+        const key = resolveVariables(header.key)
+        const value = resolveVariables(header.value)
+        return ` -H "${key}: ${value}"`
+      })
+      .join('')
+  }
+
+  /**
+   * cURL用の認証を構築
+   */
+  private static buildCurlAuth(
+    request: ApiRequest,
+    resolveVariables: (text: string) => string,
+    url: URL
+  ): string {
+    if (!request.auth) {
+      return ''
+    }
+
+    switch (request.auth.type) {
+      case 'basic':
+        return this.buildBasicAuth(request.auth.basic)
+      case 'bearer':
+        return this.buildBearerAuth(request.auth.bearer, resolveVariables)
+      case 'api-key':
+        return this.buildApiKeyAuth(request.auth.apiKey, resolveVariables, url)
+      default:
+        return ''
+    }
+  }
+
+  /**
+   * Basic認証のcURL部分を構築
+   */
+  private static buildBasicAuth(basic: any): string {
+    if (!basic) return ''
+    return ` -u "${basic.username}:${basic.password}"`
+  }
+
+  /**
+   * Bearer認証のcURL部分を構築
+   */
+  private static buildBearerAuth(bearer: any, resolveVariables: (text: string) => string): string {
+    if (!bearer) return ''
+    const token = resolveVariables(bearer.token)
+    return ` -H "Authorization: Bearer ${token}"`
+  }
+
+  /**
+   * APIキー認証のcURL部分を構築
+   */
+  private static buildApiKeyAuth(
+    apiKey: any,
+    resolveVariables: (text: string) => string,
+    url: URL
+  ): string {
+    if (!apiKey) return ''
+
+    const key = resolveVariables(apiKey.key)
+    const value = resolveVariables(apiKey.value)
+
+    if (apiKey.location === 'header') {
+      return ` -H "${key}: ${value}"`
+    }
+
+    if (apiKey.location === 'query') {
+      url.searchParams.set(key, value)
+    }
+
+    return ''
+  }
+
+  /**
+   * cURL用のボディを構築
+   */
+  private static buildCurlBody(
+    request: ApiRequest,
+    resolveVariables: (text: string) => string
+  ): string {
+    if (!['POST', 'PUT', 'PATCH'].includes(request.method)) {
+      return ''
+    }
+
+    switch (request.bodyType) {
+      case 'form-data':
+        return this.buildFormDataBody(request, resolveVariables)
+      case 'x-www-form-urlencoded':
+        return this.buildUrlEncodedBody(request, resolveVariables)
+      default:
+        return this.buildRawBody(request, resolveVariables)
+    }
+  }
+
+  /**
+   * FormDataボディを構築
+   */
+  private static buildFormDataBody(
+    request: ApiRequest,
+    resolveVariables: (text: string) => string
+  ): string {
+    const enabledPairs =
+      request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
+
+    return enabledPairs
+      .map((pair) => {
+        const key = resolveVariables(pair.key)
+
+        if (pair.isFile && pair.fileName) {
+          return ` -F "${key}=@${pair.fileName}"`
+        }
+
+        const value = resolveVariables(pair.value)
+        return ` -F "${key}=${value}"`
+      })
+      .join('')
+  }
+
+  /**
+   * URL-encodedボディを構築
+   */
+  private static buildUrlEncodedBody(
+    request: ApiRequest,
+    resolveVariables: (text: string) => string
+  ): string {
+    const enabledPairs =
+      request.bodyKeyValuePairs?.filter((pair) => pair.enabled && pair.key.trim()) || []
+
+    if (enabledPairs.length === 0) {
+      return ''
+    }
+
+    const formData = enabledPairs
+      .map((pair) => {
+        const key = encodeURIComponent(resolveVariables(pair.key))
+        const value = encodeURIComponent(resolveVariables(pair.value))
+        return `${key}=${value}`
+      })
+      .join('&')
+
+    return ` -d "${formData}" -H "Content-Type: application/x-www-form-urlencoded"`
+  }
+
+  /**
+   * 生のボディを構築
+   */
+  private static buildRawBody(
+    request: ApiRequest,
+    resolveVariables: (text: string) => string
+  ): string {
+    if (!request.body) {
+      return ''
+    }
+
+    const body = resolveVariables(request.body)
+
+    if (request.bodyType === 'graphql') {
+      const graphqlPayload = {
+        query: body,
+        variables: request.variables || {},
+        operationName: this.extractOperationName(body)
+      }
+      return ` -d '${JSON.stringify(graphqlPayload)}'`
+    }
+
+    return ` -d '${body}'`
   }
 
   /**

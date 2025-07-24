@@ -36,7 +36,7 @@ function App(): JSX.Element {
         )
       }
     }
-    initializeApp().catch(error => {
+    initializeApp().catch((error) => {
       console.error('アプリケーション初期化で予期しないエラーが発生:', error)
     })
   }, [])

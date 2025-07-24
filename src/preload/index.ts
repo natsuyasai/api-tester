@@ -55,7 +55,8 @@ if (process.contextIsolated) {
     })
     contextBridge.exposeInMainWorld('configAPI', {
       getMainProcessConfig: () => ipcRenderer.invoke('getMainProcessConfig'),
-      updateMainProcessConfig: (config: unknown) => ipcRenderer.invoke('updateMainProcessConfig', config),
+      updateMainProcessConfig: (config: unknown) =>
+        ipcRenderer.invoke('updateMainProcessConfig', config),
       onConfigChange: (callback: (event: unknown, data: unknown) => void) => {
         ipcRenderer.on('mainProcessConfigChanged', callback)
         return () => ipcRenderer.off('mainProcessConfigChanged', callback)

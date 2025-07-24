@@ -199,9 +199,11 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
                     <select
                       value={item.fileEncoding || 'base64'}
                       onChange={(e) => {
-                        handleFileEncodingChange(index, e.target.value as FileEncoding).catch(error => {
-                          console.error('ファイルエンコーディング変更でエラーが発生:', error)
-                        })
+                        handleFileEncodingChange(index, e.target.value as FileEncoding).catch(
+                          (error) => {
+                            console.error('ファイルエンコーディング変更でエラーが発生:', error)
+                          }
+                        )
                       }}
                       className={styles.encodingSelect}
                       disabled={!item.enabled}
@@ -236,7 +238,7 @@ export const KeyValueEditor = ({ tabId, type, items }: KeyValueEditorProps): JSX
                     }}
                     type="file"
                     onChange={(e) => {
-                      handleFileSelect(index, e.target.files).catch(error => {
+                      handleFileSelect(index, e.target.files).catch((error) => {
                         console.error('ファイル選択でエラーが発生:', error)
                       })
                     }}

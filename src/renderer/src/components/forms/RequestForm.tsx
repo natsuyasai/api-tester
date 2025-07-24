@@ -129,7 +129,7 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
         />
         <button
           onClick={() => {
-            handleSendRequest().catch(error => {
+            handleSendRequest().catch((error) => {
               console.error('リクエスト送信でエラーが発生:', error)
             })
           }}

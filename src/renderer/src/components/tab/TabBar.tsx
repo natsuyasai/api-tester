@@ -254,7 +254,7 @@ export const TabBar = ({
         <button
           className={styles.fileButton}
           onClick={() => {
-            handleLoadFile().catch(error => {
+            handleLoadFile().catch((error) => {
               console.error('ファイル読み込みでエラーが発生:', error)
             })
           }}
@@ -267,7 +267,7 @@ export const TabBar = ({
         <button
           className={styles.fileButton}
           onClick={() => {
-            handleSaveFile().catch(error => {
+            handleSaveFile().catch((error) => {
               console.error('ファイル保存でエラーが発生:', error)
             })
           }}

@@ -10,7 +10,7 @@ import { useCookieStore } from './stores/cookieStore'
 // クッキーリゾルバーの設定
 IpcApiService.setCookieResolver((domain: string) => {
   return useCookieStore.getState().formatCookieHeader(domain)
-}).catch(error => {
+}).catch((error) => {
   console.error('Cookie resolver設定でエラーが発生:', error)
 })
 

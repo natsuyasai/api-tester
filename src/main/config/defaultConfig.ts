@@ -51,7 +51,7 @@ export class DefaultConfigProvider implements MainProcessConfigProvider {
  */
 export class DynamicConfigProvider implements MainProcessConfigProvider {
   constructor(private configGetter: () => MainProcessConfig) {}
-  
+
   getConfig(): MainProcessConfig {
     return this.configGetter()
   }

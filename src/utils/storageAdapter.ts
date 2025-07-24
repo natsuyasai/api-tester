@@ -76,7 +76,7 @@ class NodeStorageAdapter implements StorageInterface {
   constructor() {
     if (isNodeEnvironment()) {
       // 動的インポートでNodeStorageServiceを読み込み
-      this.initNodeStorage().catch(error => {
+      this.initNodeStorage().catch((error) => {
         console.error('Node storage初期化でエラーが発生:', error)
       })
     }

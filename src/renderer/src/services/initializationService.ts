@@ -59,7 +59,7 @@ export class InitializationService {
       }
 
       // 7. TLS設定の初期化
-      this.initializeTlsSettings().catch(error => {
+      this.initializeTlsSettings().catch((error) => {
         console.error('TLS設定の初期化でエラーが発生:', error)
       })
 
