@@ -259,8 +259,8 @@ export class RequestBuilder {
       method: this.request.method,
       headers: this.buildHeaders(),
       body: this.buildBody(),
-      redirect: settings.followRedirects ? 'follow' : 'manual',
-      signal: AbortSignal.timeout(settings.timeout)
+      redirect: settings.followRedirects ? 'follow' : 'manual'
+      // undiciが独自のタイムアウト設定を使用するため、AbortSignal.timeoutは使用しない
     }
   }
 

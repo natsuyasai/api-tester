@@ -53,12 +53,29 @@ export class NodeHttpClientDI implements HttpClientInterface {
       // undici用のオプションに変換
       const undiciOptions = this.convertToUndiciOptions(fetchOptions, url.toString())
 
+      // デバッグ情報をログ出力
+      console.debug('NodeHttpClientDI Request:', {
+        url: url.toString(),
+        method: undiciOptions.method,
+        timeout: undiciOptions.headersTimeout,
+        timestamp: new Date().toISOString()
+      })
+
       // リクエスト実行
       const response = await this.undiciRequest(url.toString(), undiciOptions)
 
       // レスポンス処理
       return await this.processUndiciResponse(response, startTime)
     } catch (error) {
+      // エラー詳細をログ出力
+      console.error('NodeHttpClientDI Request failed:', {
+        url: request.url,
+        error: error instanceof Error ? error.message : String(error),
+        code: error && typeof error === 'object' && 'code' in error ? error.code : 'unknown',
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString()
+      })
+      
       // エラーレスポンスを作成
       return this.createNodeErrorResponse(error, startTime)
     }
@@ -97,12 +114,30 @@ export class NodeHttpClientDI implements HttpClientInterface {
       // undici用のオプションに変換
       const undiciOptions = this.convertToUndiciOptions(fetchOptions, url.toString())
 
+      // デバッグ情報をログ出力
+      console.debug('NodeHttpClientDI Request (with cancel):', {
+        url: url.toString(),
+        method: undiciOptions.method,
+        timeout: undiciOptions.headersTimeout,
+        hasSignal: !!undiciOptions.signal,
+        timestamp: new Date().toISOString()
+      })
+
       // リクエスト実行
       const response = await this.undiciRequest(url.toString(), undiciOptions)
 
       // レスポンス処理
       return await this.processUndiciResponse(response, startTime)
     } catch (error) {
+      // エラー詳細をログ出力
+      console.error('NodeHttpClientDI Request (with cancel) failed:', {
+        url: request.url,
+        error: error instanceof Error ? error.message : String(error),
+        code: error && typeof error === 'object' && 'code' in error ? error.code : 'unknown',
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString()
+      })
+      
       return this.createNodeErrorResponse(error, startTime)
     }
   }
@@ -119,39 +154,17 @@ export class NodeHttpClientDI implements HttpClientInterface {
       body: fetchOptions.body
     }
 
-    // タイムアウト設定（undiciでは3つの異なるタイムアウトがある）
+    // undici 7.12.0ではmaxRedirectionsはinterceptorで処理されるため、ここでは設定しない
+
+    // タイムアウト設定（シンプルに統一）
     if (globalSettings.defaultTimeout > 0) {
       const timeoutMs = globalSettings.defaultTimeout * 1000
-      // ヘッダー受信のタイムアウト（通常は短めに設定）
       undiciOptions.headersTimeout = Math.min(timeoutMs, 30000) // 最大30秒
-      // ボディ受信のタイムアウト（ファイルダウンロードなどを考慮して長めに）
       undiciOptions.bodyTimeout = timeoutMs
     }
 
-    // 全体のリクエストタイムアウトはAbortControllerで制御
-    if (globalSettings.defaultTimeout > 0 && !fetchOptions.signal) {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => {
-        controller.abort()
-      }, globalSettings.defaultTimeout * 1000)
-      
-      undiciOptions.signal = controller.signal
-      
-      // リクエスト完了後にタイムアウトをクリア
-      ;(undiciOptions.signal as AbortSignal).addEventListener('abort', () => {
-        clearTimeout(timeoutId)
-      })
-    }
-
     // SSL検証設定
-    if (!globalSettings.allowInsecureConnections) {
-      undiciOptions.rejectUnauthorized = true
-    } else {
-      undiciOptions.rejectUnauthorized = false
-    }
-
-    // リダイレクト設定は削除（undiciでサポートされなくなったため）
-    // undici では自動でリダイレクトが処理される
+    undiciOptions.rejectUnauthorized = !globalSettings.allowInsecureConnections
 
     // プロキシ設定
     if (globalSettings.proxyEnabled && globalSettings.proxyUrl && this.ProxyAgentClass) {
@@ -330,6 +343,8 @@ export class NodeHttpClientDI implements HttpClientInterface {
             statusText = 'Host Not Found'
             break
           case 'ETIMEDOUT':
+            statusText = 'Connection Timeout'
+            break
           case 'UND_ERR_CONNECT_TIMEOUT':
             statusText = 'Connection Timeout'
             break
@@ -406,9 +421,38 @@ export class NodeHttpClientDI implements HttpClientInterface {
 export async function createNodeHttpClient(): Promise<NodeHttpClientDI> {
   try {
     // 実際のundiciをインポート
-    const { request, ProxyAgent } = await import('undici')
+    const { request, ProxyAgent, getGlobalDispatcher, interceptors } = await import('undici')
+    
+    // redirect interceptorを設定したdispatcherを作成
+    const globalSettings = getMainProcessConfig()
+    const dispatcherWithRedirect = getGlobalDispatcher().compose(
+      interceptors.redirect({
+        maxRedirections: globalSettings.defaultMaxRedirects || 5
+      })
+    )
+    
+    // redirect interceptor付きのリクエスト関数を作成
+    const requestWithRedirect: UndiciRequestInterface = async (url: string, options: any) => {
+      const response = await request(url, {
+        ...options,
+        dispatcher: dispatcherWithRedirect
+      })
+      
+      // レスポンス型を統一
+      return {
+        statusCode: response.statusCode,
+        headers: Object.fromEntries(
+          Object.entries(response.headers).map(([key, value]) => [
+            key,
+            Array.isArray(value) ? value.join(', ') : String(value || '')
+          ])
+        ),
+        body: response.body
+      }
+    }
+    
     return new NodeHttpClientDI(
-      request as UndiciRequestInterface,
+      requestWithRedirect,
       ProxyAgent as ProxyAgentInterface
     )
   } catch (error) {

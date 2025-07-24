@@ -662,8 +662,7 @@ describe('NodeHttpClientDI', () => {
       expect(mockUndiciRequest).toHaveBeenCalledWith(
         'https://api.example.com/users?limit=10',
         expect.objectContaining({
-          method: 'GET',
-          maxRedirections: 10
+          method: 'GET'
         })
       )
 
