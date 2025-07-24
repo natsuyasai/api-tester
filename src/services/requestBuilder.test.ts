@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ApiRequest } from '@/types/types'
-import { getGlobalSettings, GlobalSettings } from '@renderer/stores/globalSettingsStore'
+import type { GlobalSettings } from '@/types/types'
+import { getGlobalSettings } from '@renderer/stores/globalSettingsStore'
 import { RequestBuilder } from './requestBuilder'
 
 // モック設定
@@ -25,13 +26,13 @@ const mockGlobalSettings: GlobalSettings = {
   proxyAuth: undefined,
   allowInsecureConnections: false,
   certificateValidation: true,
-  
+
   // クライアント証明書設定
   clientCertificates: {
     enabled: false,
     certificates: []
   },
-  
+
   autoSave: false,
   autoSaveInterval: 300,
   checkForUpdates: true

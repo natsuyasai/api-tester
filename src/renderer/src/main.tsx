@@ -8,8 +8,10 @@ import App from './App'
 import { useCookieStore } from './stores/cookieStore'
 
 // クッキーリゾルバーの設定
-void IpcApiService.setCookieResolver((domain: string) => {
+IpcApiService.setCookieResolver((domain: string) => {
   return useCookieStore.getState().formatCookieHeader(domain)
+}).catch(error => {
+  console.error('Cookie resolver設定でエラーが発生:', error)
 })
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(

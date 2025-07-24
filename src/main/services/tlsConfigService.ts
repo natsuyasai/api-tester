@@ -3,7 +3,7 @@
  * グローバル設定に基づいてNode.jsのTLS設定を動的に変更
  */
 
-import type { GlobalSettings } from '@renderer/stores/globalSettingsStore'
+import type { GlobalSettings } from '@/types/types'
 
 export class TlsConfigService {
   private static originalRejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED
@@ -16,7 +16,7 @@ export class TlsConfigService {
     certificateValidation: boolean
   }): void {
     // 安全でない接続を許可するか、証明書検証を無効にする場合
-    const disableTlsVerification = 
+    const disableTlsVerification =
       settings.allowInsecureConnections || !settings.certificateValidation
 
     if (disableTlsVerification) {

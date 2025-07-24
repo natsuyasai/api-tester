@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { GlobalSettings } from '@renderer/stores/globalSettingsStore'
+import type { GlobalSettings } from '@/types/types'
 import {
   extractProxyConfig,
   validateProxyUrl,

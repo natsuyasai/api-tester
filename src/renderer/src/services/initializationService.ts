@@ -1,6 +1,6 @@
 import { useCollectionStore } from '@renderer/stores/collectionStore'
-import { useTabStore } from '@renderer/stores/tabStore'
 import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
+import { useTabStore } from '@renderer/stores/tabStore'
 import { TabCollectionManager } from './tabCollectionManager'
 
 /**
@@ -59,7 +59,9 @@ export class InitializationService {
       }
 
       // 7. TLS設定の初期化
-      this.initializeTlsSettings()
+      this.initializeTlsSettings().catch(error => {
+        console.error('TLS設定の初期化でエラーが発生:', error)
+      })
 
       console.log('アプリケーション初期化完了:', {
         collections: useCollectionStore.getState().collections.length,
@@ -107,7 +109,7 @@ export class InitializationService {
   private static async initializeTlsSettings(): Promise<void> {
     try {
       const globalSettings = useGlobalSettingsStore.getState().settings
-      
+
       if (window.tlsConfigAPI) {
         const result = await window.tlsConfigAPI.updateSettings(globalSettings)
         if (result.success) {

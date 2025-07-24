@@ -1,6 +1,6 @@
 // プロキシ設定関連のユーティリティ
 
-import { GlobalSettings } from '@renderer/stores/globalSettingsStore'
+import type { GlobalSettings } from '@/types/types'
 import { showErrorDialog } from '@renderer/utils/errorUtils'
 
 export interface ProxyConfig {

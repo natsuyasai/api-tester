@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import type { GlobalSettings as GlobalSettingsType } from '@/types/types'
 import { useGlobalSettingsStore, getGlobalSettings } from '@renderer/stores/globalSettingsStore'
-import { GlobalSettings as GlobalSettingsType } from '@renderer/stores/globalSettingsStore'
 import { GlobalSettings } from './GlobalSettings'
 
 // Zustandストアをモック
@@ -54,13 +54,13 @@ describe('GlobalSettings', () => {
     proxyEnabled: false,
     allowInsecureConnections: false,
     certificateValidation: true,
-    
+
     // クライアント証明書設定
     clientCertificates: {
       enabled: false,
       certificates: []
     },
-    
+
     autoSave: true,
     autoSaveInterval: 30,
     checkForUpdates: true

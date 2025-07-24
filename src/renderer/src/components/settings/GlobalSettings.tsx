@@ -605,7 +605,7 @@ export const GlobalSettings = (): JSX.Element => {
             <h2>クライアント証明書</h2>
             <p className={styles.sectionDescription}>SSL/TLS認証用のクライアント証明書の管理</p>
           </div>
-          
+
           <ClientCertificateManager />
         </div>
 

@@ -253,7 +253,11 @@ export const TabBar = ({
         )}
         <button
           className={styles.fileButton}
-          onClick={() => void handleLoadFile()}
+          onClick={() => {
+            handleLoadFile().catch(error => {
+              console.error('ファイル読み込みでエラーが発生:', error)
+            })
+          }}
           aria-label="Load collection from file"
           type="button"
           title="Load"
@@ -262,7 +266,11 @@ export const TabBar = ({
         </button>
         <button
           className={styles.fileButton}
-          onClick={() => void handleSaveFile()}
+          onClick={() => {
+            handleSaveFile().catch(error => {
+              console.error('ファイル保存でエラーが発生:', error)
+            })
+          }}
           aria-label="Save collection to file"
           type="button"
           title="Save"

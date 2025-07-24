@@ -50,7 +50,7 @@ export const ClientCertificateManager = (): JSX.Element => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.name.trim() || !formData.certPath.trim() || !formData.keyPath.trim()) {
       alert('名前、証明書ファイル、秘密鍵ファイルは必須です')
       return
@@ -74,7 +74,7 @@ export const ClientCertificateManager = (): JSX.Element => {
     resetForm()
   }
 
-  const handleEdit = (certificate: typeof settings.clientCertificates.certificates[0]) => {
+  const handleEdit = (certificate: (typeof settings.clientCertificates.certificates)[0]) => {
     setFormData({
       name: certificate.name,
       host: certificate.host || '',
@@ -104,7 +104,7 @@ export const ClientCertificateManager = (): JSX.Element => {
       })
 
       if (!result.canceled && result.filePaths.length > 0) {
-        setFormData(prev => ({ ...prev, certPath: result.filePaths[0] }))
+        setFormData((prev) => ({ ...prev, certPath: result.filePaths[0] }))
       }
     } catch (error) {
       console.error('Failed to select certificate file:', error)
@@ -124,7 +124,7 @@ export const ClientCertificateManager = (): JSX.Element => {
       })
 
       if (!result.canceled && result.filePaths.length > 0) {
-        setFormData(prev => ({ ...prev, keyPath: result.filePaths[0] }))
+        setFormData((prev) => ({ ...prev, keyPath: result.filePaths[0] }))
       }
     } catch (error) {
       console.error('Failed to select key file:', error)
@@ -141,12 +141,14 @@ export const ClientCertificateManager = (): JSX.Element => {
             <input
               type="checkbox"
               checked={settings.clientCertificates.enabled}
-              onChange={(e) => updateSettings({
-                clientCertificates: {
-                  ...settings.clientCertificates,
-                  enabled: e.target.checked
-                }
-              })}
+              onChange={(e) =>
+                updateSettings({
+                  clientCertificates: {
+                    ...settings.clientCertificates,
+                    enabled: e.target.checked
+                  }
+                })
+              }
             />
             <span>クライアント証明書を使用</span>
           </label>
@@ -160,7 +162,10 @@ export const ClientCertificateManager = (): JSX.Element => {
               <p className={styles.emptyMessage}>証明書が登録されていません</p>
             ) : (
               settings.clientCertificates.certificates.map((cert) => (
-                <div key={cert.id} className={`${styles.certificateItem} ${!cert.enabled ? styles.disabled : ''}`}>
+                <div
+                  key={cert.id}
+                  className={`${styles.certificateItem} ${!cert.enabled ? styles.disabled : ''}`}
+                >
                   <div className={styles.certificateInfo}>
                     <div className={styles.certificateName}>
                       <strong>{cert.name}</strong>
@@ -212,14 +217,14 @@ export const ClientCertificateManager = (): JSX.Element => {
             ) : (
               <form onSubmit={handleSubmit} className={styles.addForm}>
                 <h4>{editingId ? '証明書を編集' : '証明書を追加'}</h4>
-                
+
                 <div className={styles.formRow}>
                   <label htmlFor={nameId}>名前 *</label>
                   <input
                     id={nameId}
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="証明書の名前"
                     required
                     className={styles.input}
@@ -232,7 +237,7 @@ export const ClientCertificateManager = (): JSX.Element => {
                     id={hostId}
                     type="text"
                     value={formData.host}
-                    onChange={(e) => setFormData(prev => ({ ...prev, host: e.target.value }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, host: e.target.value }))}
                     placeholder="example.com (空白で全てのホストに適用)"
                     className={styles.input}
                   />
@@ -245,14 +250,16 @@ export const ClientCertificateManager = (): JSX.Element => {
                       id={certPathId}
                       type="text"
                       value={formData.certPath}
-                      onChange={(e) => setFormData(prev => ({ ...prev, certPath: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, certPath: e.target.value }))
+                      }
                       placeholder="証明書ファイルのパス"
                       required
                       className={styles.input}
                     />
                     <button
                       type="button"
-                      onClick={handleSelectCertFile}
+                      onClick={() => void handleSelectCertFile()}
                       className={styles.fileSelectButton}
                     >
                       選択
@@ -267,14 +274,16 @@ export const ClientCertificateManager = (): JSX.Element => {
                       id={keyPathId}
                       type="text"
                       value={formData.keyPath}
-                      onChange={(e) => setFormData(prev => ({ ...prev, keyPath: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, keyPath: e.target.value }))
+                      }
                       placeholder="秘密鍵ファイルのパス"
                       required
                       className={styles.input}
                     />
                     <button
                       type="button"
-                      onClick={handleSelectKeyFile}
+                      onClick={() => void handleSelectKeyFile()}
                       className={styles.fileSelectButton}
                     >
                       選択
@@ -288,7 +297,9 @@ export const ClientCertificateManager = (): JSX.Element => {
                     id={passphraseId}
                     type="password"
                     value={formData.passphrase}
-                    onChange={(e) => setFormData(prev => ({ ...prev, passphrase: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, passphrase: e.target.value }))
+                    }
                     placeholder="秘密鍵のパスフレーズ"
                     className={styles.input}
                   />
@@ -298,11 +309,7 @@ export const ClientCertificateManager = (): JSX.Element => {
                   <button type="submit" className={styles.submitButton}>
                     {editingId ? '更新' : '追加'}
                   </button>
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className={styles.cancelButton}
-                  >
+                  <button type="button" onClick={resetForm} className={styles.cancelButton}>
                     キャンセル
                   </button>
                 </div>

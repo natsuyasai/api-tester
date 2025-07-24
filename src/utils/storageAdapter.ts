@@ -70,13 +70,15 @@ class BrowserStorageAdapter implements StorageInterface {
  * Node.js用ストレージアダプター
  */
 class NodeStorageAdapter implements StorageInterface {
-  private nodeStorage: any | null = null
+  private nodeStorage: typeof NodeStorageService | null = null
   private localStorageAdapter: StorageInterface | null = null
 
   constructor() {
     if (isNodeEnvironment()) {
       // 動的インポートでNodeStorageServiceを読み込み
-      void this.initNodeStorage()
+      this.initNodeStorage().catch(error => {
+        console.error('Node storage初期化でエラーが発生:', error)
+      })
     }
   }
 

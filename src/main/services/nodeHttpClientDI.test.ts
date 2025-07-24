@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ApiRequest } from '@/types/types'
-import { GlobalSettings } from '@renderer/stores/globalSettingsStore'
+import { GlobalSettings } from '@/types/types'
 import { NodeHttpClientDI, createMockNodeHttpClient } from './nodeHttpClientDI'
 
 // 完全なデフォルトGlobalSettings
@@ -23,6 +23,10 @@ const DEFAULT_SETTINGS: GlobalSettings = {
   proxyAuth: undefined,
   allowInsecureConnections: false,
   certificateValidation: true,
+  clientCertificates: {
+    enabled: false,
+    certificates: []
+  },
   autoSave: false,
   autoSaveInterval: 300,
   checkForUpdates: true
@@ -528,7 +532,7 @@ describe('NodeHttpClientDI', () => {
       const mockGetGlobalSettings = vi.mocked(globalSettingsModule.getGlobalSettings)
       mockGetGlobalSettings.mockReturnValue({
         ...DEFAULT_SETTINGS,
-        defaultTimeout: 60
+        defaultTimeout: 60000
       })
 
       const mockResponse = {
@@ -694,7 +698,7 @@ describe('NodeHttpClientDI', () => {
       const result = await httpClient.executeRequest(mockApiRequest)
 
       expect(result.status).toBe(0)
-      expect(result.statusText).toBe('Connection Timeout')
+      expect(result.statusText).toBe('Request Timeout')
       expect(result.data.type).toBe('error')
     })
 
@@ -720,7 +724,7 @@ describe('NodeHttpClientDI', () => {
       const result = await httpClient.executeRequest(mockApiRequest)
 
       expect(result.status).toBe(0)
-      expect(result.statusText).toBe('Connection Timeout')
+      expect(result.statusText).toBe('Request Timeout')
       expect(result.data.type).toBe('error')
     })
 

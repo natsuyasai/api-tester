@@ -252,7 +252,7 @@ export class TabCollectionManager {
    */
   static importTabsWithReplace(importedTabs: ApiTab[]): void {
     const collectionStore = useCollectionStore.getState()
-    
+
     // 現在アクティブなコレクションを取得
     const activeCollectionId = collectionStore.activeCollectionId
 

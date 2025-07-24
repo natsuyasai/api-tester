@@ -36,7 +36,9 @@ function App(): JSX.Element {
         )
       }
     }
-    void initializeApp()
+    initializeApp().catch(error => {
+      console.error('アプリケーション初期化で予期しないエラーが発生:', error)
+    })
   }, [])
 
   const handleShowSettings = () => {

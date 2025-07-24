@@ -1,63 +1,9 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
+import type { GlobalSettings } from '@/types/types'
 import { showErrorDialog } from '@renderer/utils/errorUtils'
 
 // preload/index.d.tsで定義されたWindow型を使用
-
-// グローバル設定の型定義
-export interface GlobalSettings {
-  // リクエストのデフォルト設定
-  defaultTimeout: number
-  defaultFollowRedirects: boolean
-  defaultMaxRedirects: number
-  defaultValidateSSL: boolean
-  defaultUserAgent: string
-
-  // UIの設定
-  theme: 'light' | 'dark' | 'auto'
-  fontSize: 'small' | 'medium' | 'large'
-
-  // エディタの設定
-  tabSize: number
-  wordWrap: boolean
-  lineNumbers: boolean
-
-  // 開発者向け設定
-  debugLogs: boolean
-  saveHistory: boolean
-  maxHistorySize: number
-
-  // ネットワーク設定
-  proxyEnabled: boolean
-  proxyUrl?: string
-  proxyAuth?: {
-    username: string
-    password: string
-  }
-
-  // セキュリティ設定
-  allowInsecureConnections: boolean
-  certificateValidation: boolean
-  
-  // クライアント証明書設定
-  clientCertificates: {
-    enabled: boolean
-    certificates: Array<{
-      id: string
-      name: string
-      host?: string // 特定のホストに限定する場合
-      certPath: string // 証明書ファイルパス
-      keyPath: string // 秘密鍵ファイルパス
-      passphrase?: string // パスフレーズ
-      enabled: boolean
-    }>
-  }
-
-  // アプリケーション設定
-  autoSave: boolean
-  autoSaveInterval: number // 秒
-  checkForUpdates: boolean
-}
 
 // デフォルト設定
 export const DEFAULT_GLOBAL_SETTINGS: GlobalSettings = {
@@ -88,7 +34,7 @@ export const DEFAULT_GLOBAL_SETTINGS: GlobalSettings = {
   // セキュリティ設定
   allowInsecureConnections: false,
   certificateValidation: true,
-  
+
   // クライアント証明書設定
   clientCertificates: {
     enabled: false,
@@ -107,10 +53,15 @@ interface GlobalSettingsState {
   resetSettings: () => void
   exportSettings: () => string
   importSettings: (settingsJson: string) => boolean
-  
+
   // 証明書管理用のアクション
-  addClientCertificate: (certificate: Omit<GlobalSettings['clientCertificates']['certificates'][0], 'id'>) => void
-  updateClientCertificate: (id: string, updates: Partial<GlobalSettings['clientCertificates']['certificates'][0]>) => void
+  addClientCertificate: (
+    certificate: Omit<GlobalSettings['clientCertificates']['certificates'][0], 'id'>
+  ) => void
+  updateClientCertificate: (
+    id: string,
+    updates: Partial<GlobalSettings['clientCertificates']['certificates'][0]>
+  ) => void
   removeClientCertificate: (id: string) => void
   toggleClientCertificate: (id: string) => void
 }
@@ -234,7 +185,9 @@ export const useGlobalSettingsStore = create<GlobalSettingsState>()(
           ...state.settings,
           clientCertificates: {
             ...state.settings.clientCertificates,
-            certificates: state.settings.clientCertificates.certificates.filter((cert) => cert.id !== id)
+            certificates: state.settings.clientCertificates.certificates.filter(
+              (cert) => cert.id !== id
+            )
           }
         }
         saveSettings(updatedSettings)

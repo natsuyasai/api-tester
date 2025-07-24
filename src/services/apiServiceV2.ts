@@ -279,7 +279,20 @@ export class ApiServiceV2 {
       // レンダラープロセスでのみ実行
       if (typeof window !== 'undefined' && 'useCollectionStore' in window) {
         // 動的にcollectionStoreにアクセス
-        const collectionStore = (window as any).useCollectionStore
+        const windowWithStore = window as Window & {
+          useCollectionStore?: {
+            getState: () => {
+              addExecutionHistory?: (
+                request: ApiRequest,
+                response: ApiResponse,
+                duration: number,
+                executionStatus: string,
+                errorMessage?: string
+              ) => void
+            }
+          }
+        }
+        const collectionStore = windowWithStore.useCollectionStore
         if (collectionStore && typeof collectionStore.getState === 'function') {
           const { addExecutionHistory } = collectionStore.getState()
           if (typeof addExecutionHistory === 'function') {

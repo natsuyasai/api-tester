@@ -128,7 +128,11 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
           className={styles.urlInput}
         />
         <button
-          onClick={() => void handleSendRequest()}
+          onClick={() => {
+            handleSendRequest().catch(error => {
+              console.error('リクエスト送信でエラーが発生:', error)
+            })
+          }}
           disabled={isLoading || !request.url}
           className={styles.sendButton}
           type="button"

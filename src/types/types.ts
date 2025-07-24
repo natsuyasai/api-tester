@@ -1,6 +1,61 @@
 // HTTPメソッドの型定義
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS'
 
+// グローバル設定の型定義
+export interface GlobalSettings {
+  // リクエストのデフォルト設定
+  defaultTimeout: number
+  defaultFollowRedirects: boolean
+  defaultMaxRedirects: number
+  defaultValidateSSL: boolean
+  defaultUserAgent: string
+
+  // UIの設定
+  theme: 'light' | 'dark' | 'auto'
+  fontSize: 'small' | 'medium' | 'large'
+
+  // エディタの設定
+  tabSize: number
+  wordWrap: boolean
+  lineNumbers: boolean
+
+  // 開発者向け設定
+  debugLogs: boolean
+  saveHistory: boolean
+  maxHistorySize: number
+
+  // ネットワーク設定
+  proxyEnabled: boolean
+  proxyUrl?: string
+  proxyAuth?: {
+    username: string
+    password: string
+  }
+
+  // セキュリティ設定
+  allowInsecureConnections: boolean
+  certificateValidation: boolean
+
+  // クライアント証明書設定
+  clientCertificates: {
+    enabled: boolean
+    certificates: Array<{
+      id: string
+      name: string
+      host?: string // 特定のホストに限定する場合
+      certPath: string // 証明書ファイルパス
+      keyPath: string // 秘密鍵ファイルパス
+      passphrase?: string // パスフレーズ
+      enabled: boolean
+    }>
+  }
+
+  // アプリケーション設定
+  autoSave: boolean
+  autoSaveInterval: number // 秒
+  checkForUpdates: boolean
+}
+
 // API種別の型定義
 export type ApiType = 'rest' | 'graphql'
 

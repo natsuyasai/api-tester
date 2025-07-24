@@ -91,7 +91,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
         stack: error instanceof Error ? error.stack : undefined,
         timestamp: new Date().toISOString()
       })
-      
+
       // エラーレスポンスを作成
       return this.createNodeErrorResponse(error, startTime)
     }
@@ -153,7 +153,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
         stack: error instanceof Error ? error.stack : undefined,
         timestamp: new Date().toISOString()
       })
-      
+
       return this.createNodeErrorResponse(error, startTime)
     }
   }
@@ -331,10 +331,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
   /**
    * Node.js環境用エラーレスポンスを作成
    */
-  private createNodeErrorResponse(
-    error: unknown,
-    startTime: number
-  ): ApiResponse {
+  private createNodeErrorResponse(error: unknown, startTime: number): ApiResponse {
     const duration = Date.now() - startTime
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
@@ -439,17 +436,17 @@ export async function createNodeHttpClient(): Promise<NodeHttpClientDI> {
     // 実際のundiciをインポート
     const { request, ProxyAgent, getGlobalDispatcher, interceptors, Agent } = await import('undici')
     const fs = await import('fs')
-    
+
     // グローバル設定を取得
     const globalSettings = getMainProcessConfig()
-    
+
     // 基本的なdispatcherを作成（redirect interceptor付き）
-    let dispatcher = getGlobalDispatcher().compose(
+    const dispatcher = getGlobalDispatcher().compose(
       interceptors.redirect({
         maxRedirections: globalSettings.defaultMaxRedirects || 5
       })
     )
-    
+
     // レンダラープロセスからクライアント証明書設定を取得する関数
     const getClientCertificateConfig = (): ClientCertificateConfig => {
       try {
@@ -468,29 +465,32 @@ export async function createNodeHttpClient(): Promise<NodeHttpClientDI> {
         }
       }
     }
-    
+
     // クライアント証明書対応のリクエスト関数を作成
-    const requestWithRedirect: UndiciRequestInterface = async (url: string, options: any) => {
+    const requestWithRedirect: UndiciRequestInterface = async (
+      url: string,
+      options: Parameters<UndiciRequestInterface>[1]
+    ) => {
       const certConfig = getClientCertificateConfig()
       let finalDispatcher = dispatcher
-      
+
       // クライアント証明書が有効で、URLにマッチする証明書がある場合
       if (certConfig.enabled && certConfig.certificates.length > 0) {
         const targetUrl = new URL(url)
-        const matchingCert = certConfig.certificates.find(cert => 
-          cert.enabled && (
-            !cert.host || 
-            cert.host === targetUrl.hostname ||
-            targetUrl.hostname.endsWith('.' + cert.host)
-          )
+        const matchingCert = certConfig.certificates.find(
+          (cert) =>
+            cert.enabled &&
+            (!cert.host ||
+              cert.host === targetUrl.hostname ||
+              targetUrl.hostname.endsWith('.' + cert.host))
         )
-        
+
         if (matchingCert) {
           try {
             // 証明書ファイルを読み込み
             const cert = fs.readFileSync(matchingCert.certPath, 'utf8')
             const key = fs.readFileSync(matchingCert.keyPath, 'utf8')
-            
+
             // TLS設定でAgentを作成
             const tlsAgent = new Agent({
               connect: {
@@ -500,27 +500,29 @@ export async function createNodeHttpClient(): Promise<NodeHttpClientDI> {
                 rejectUnauthorized: !globalSettings.allowInsecureConnections
               }
             })
-            
+
             // redirect interceptorも適用
             finalDispatcher = tlsAgent.compose(
               interceptors.redirect({
                 maxRedirections: globalSettings.defaultMaxRedirects || 5
               })
             )
-            
-            console.debug(`Using client certificate: ${matchingCert.name} for ${targetUrl.hostname}`)
+
+            console.debug(
+              `Using client certificate: ${matchingCert.name} for ${targetUrl.hostname}`
+            )
           } catch (error) {
             console.error(`Failed to load client certificate ${matchingCert.name}:`, error)
             // 証明書読み込みに失敗した場合は、通常のdispatcherを使用
           }
         }
       }
-      
+
       const response = await request(url, {
         ...options,
         dispatcher: finalDispatcher
-      })
-      
+      } as Parameters<UndiciRequestInterface>[1])
+
       // レスポンス型を統一
       return {
         statusCode: response.statusCode,
@@ -533,11 +535,8 @@ export async function createNodeHttpClient(): Promise<NodeHttpClientDI> {
         body: response.body
       }
     }
-    
-    return new NodeHttpClientDI(
-      requestWithRedirect,
-      ProxyAgent as ProxyAgentInterface
-    )
+
+    return new NodeHttpClientDI(requestWithRedirect, ProxyAgent as ProxyAgentInterface)
   } catch (error) {
     console.error('Failed to import undici:', error)
     throw new Error('Failed to initialize NodeHttpClient: undici is not available')
