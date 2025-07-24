@@ -40,6 +40,26 @@
 
   /* Border colors */
   --color-border: #dee2e6;
+  
+  /* 互換性のための追加変数 */
+  --background-color: var(--color-bg-primary);
+  --secondary-background: var(--color-bg-secondary);
+  --text-color: var(--color-text-primary);
+  --text-muted: var(--color-text-muted);
+  --border-color: var(--color-border-primary);
+  --border-color-hover: var(--color-border-focus);
+  --border-light: var(--color-border-secondary);
+  --input-background: var(--color-input-bg);
+  --code-background: var(--color-bg-tertiary);
+  --disabled-background: var(--color-bg-tertiary);
+  --color-text-disabled: var(--color-text-tertiary);
+  --color-text-accent-hover: var(--color-primary-hover);
+  --danger-color: var(--color-danger);
+  --danger-color-hover: #c82333;
+  --success-color: var(--color-success);
+  --success-color-hover: var(--color-success-hover);
+  --primary-color: var(--color-primary);
+  --primary-color-hover: var(--color-primary-hover);
 
   /* Text colors */
   --color-text-tertiary: #868e96;
@@ -100,6 +120,26 @@
 
   /* Border colors */
   --color-border: #525252;
+  
+  /* 互換性のための追加変数 (ダークテーマ) */
+  --background-color: var(--color-bg-primary);
+  --secondary-background: var(--color-bg-secondary);
+  --text-color: var(--color-text-primary);
+  --text-muted: var(--color-text-muted);
+  --border-color: var(--color-border-primary);
+  --border-color-hover: var(--color-border-focus);
+  --border-light: var(--color-border-secondary);
+  --input-background: var(--color-input-bg);
+  --code-background: var(--color-bg-tertiary);
+  --disabled-background: var(--color-bg-tertiary);
+  --color-text-disabled: var(--color-text-tertiary);
+  --color-text-accent-hover: var(--color-primary-hover);
+  --danger-color: var(--color-danger);
+  --danger-color-hover: #e74c3c;
+  --success-color: var(--color-success);
+  --success-color-hover: var(--color-success-hover);
+  --primary-color: var(--color-primary);
+  --primary-color-hover: var(--color-primary-hover);
 
   /* Text colors */
   --color-text-tertiary: #6c757d;
