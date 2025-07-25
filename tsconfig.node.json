@@ -18,7 +18,6 @@
   "exclude": [
     "src/renderer/**/*",
     "src/main/services/nodeHttpClient.ts",
-    "src/main/services/nodeHttpClientDI.test.ts",
     "src/services/responseProcessor.ts"
   ],
   "compilerOptions": {
