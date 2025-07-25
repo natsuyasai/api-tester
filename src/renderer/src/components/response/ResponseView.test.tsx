@@ -34,6 +34,7 @@ describe('ResponseView', () => {
     id: 'tab-1',
     title: 'Test Tab',
     isActive: true,
+    isCustomTitle: false,
     request: {
       id: 'req-1',
       name: 'Test Request',
@@ -1006,5 +1007,96 @@ describe('ResponseView', () => {
     fireEvent.click(rawTab)
 
     expect(screen.getByText(/GET \/data\?api_key=secret123 HTTP\/1\.1/)).toBeInTheDocument()
+  })
+
+  it('should display executed request content in raw tab when executedRequest is available', () => {
+    const executedRequest = {
+      id: 'req-1',
+      name: 'Executed Request',
+      url: 'https://api.example.com/executed',
+      method: 'POST' as const,
+      headers: [{ key: 'Authorization', value: 'Bearer token123', enabled: true }],
+      params: [],
+      body: '{"executed": true}',
+      bodyType: 'json' as const,
+      type: 'rest' as const
+    }
+
+    const responseWithExecutedRequest = {
+      ...mockResponse,
+      executedRequest
+    }
+
+    const mockTabWithExecutedRequest = {
+      ...mockTab,
+      request: {
+        // 現在のリクエスト内容（変更後）
+        id: 'req-1',
+        name: 'Modified Request',
+        url: 'https://api.example.com/modified',
+        method: 'GET' as const,
+        headers: [],
+        params: [],
+        body: '',
+        bodyType: 'json' as const,
+        type: 'rest' as const
+      },
+      response: responseWithExecutedRequest
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithExecutedRequest],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithExecutedRequest),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithExecutedRequest : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const rawTab = screen.getByRole('button', { name: 'Raw' })
+    fireEvent.click(rawTab)
+
+    // 実行時のリクエスト内容（/executed）が表示され、現在のリクエスト内容（/modified）は表示されない
+    expect(screen.getByText(/POST \/executed HTTP\/1\.1/)).toBeInTheDocument()
+    expect(screen.queryByText(/GET \/modified HTTP\/1\.1/)).not.toBeInTheDocument()
+    expect(screen.getByText(/Authorization: Bearer token123/)).toBeInTheDocument()
+    expect(screen.getByText(/"executed": true/)).toBeInTheDocument()
+  })
+
+  it('should fallback to current request content in raw tab when executedRequest is not available', () => {
+    const responseWithoutExecutedRequest = {
+      ...mockResponse,
+      executedRequest: undefined
+    }
+
+    const mockTabWithoutExecutedRequest = {
+      ...mockTab,
+      response: responseWithoutExecutedRequest
+    }
+
+    mockUseTabStore.mockReturnValue({
+      tabs: [mockTabWithoutExecutedRequest],
+      activeTabId: 'tab-1',
+      addTab: vi.fn(),
+      closeTab: vi.fn(),
+      setActiveTab: vi.fn(),
+      updateTabTitle: vi.fn(),
+      getActiveTab: vi.fn(() => mockTabWithoutExecutedRequest),
+      getTab: vi.fn((id: string) => (id === 'tab-1' ? mockTabWithoutExecutedRequest : undefined)),
+      resetTabs: vi.fn()
+    })
+
+    render(<ResponseView tabId="tab-1" />)
+
+    const rawTab = screen.getByRole('button', { name: 'Raw' })
+    fireEvent.click(rawTab)
+
+    // 現在のリクエスト内容が表示される
+    expect(screen.getByText(/GET \/ HTTP\/1\.1/)).toBeInTheDocument()
   })
 })

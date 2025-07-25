@@ -68,7 +68,12 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
         resolveSessionVariables,
         tab.sessionId
       )
-      setResponse(tabId, response)
+      // 実行時のリクエスト内容を保存
+      const responseWithExecutedRequest = {
+        ...response,
+        executedRequest: { ...request } // リクエストのディープコピーを保存
+      }
+      setResponse(tabId, responseWithExecutedRequest)
     } catch (error) {
       console.error('Request failed:', error)
       // エラーレスポンスを設定
@@ -81,7 +86,8 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
           error: error instanceof Error ? error.message : 'Unknown error'
         },
         duration: 0,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        executedRequest: { ...request } // エラー時も実行時のリクエストを保存
       })
     } finally {
       setLoading(false)

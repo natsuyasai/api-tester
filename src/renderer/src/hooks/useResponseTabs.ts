@@ -38,7 +38,9 @@ export const useResponseTabs = ({ tabId, response }: UseResponseTabsProps) => {
       return formatMetadata(separatedData.metadata)
     } else if (activeTab === 'raw') {
       if (!tab) return ''
-      return generateRawContent(tab.request, response)
+      // 実行時のリクエスト内容が保存されている場合はそれを使用、なければ現在のリクエスト内容を使用
+      const requestToShow = response.executedRequest || tab.request
+      return generateRawContent(requestToShow, response)
     }
     return ''
   }, [activeTab, response, selectedPreviewProperty, tab])

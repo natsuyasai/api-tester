@@ -175,6 +175,7 @@ export interface ApiResponse {
   data: ApiResponseData
   duration: number // レスポンス時間（ミリ秒）
   timestamp: string // ISO文字列
+  executedRequest?: ApiRequest // 実行時のリクエスト内容（RAW表示用）
 }
 
 // タブの型定義
