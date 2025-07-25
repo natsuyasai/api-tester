@@ -3,6 +3,7 @@ import { HttpMethod } from '@/types/types'
 import { IpcApiService } from '@renderer/services/ipcApiService'
 import { useEnvironmentStore } from '@renderer/stores/environmentStore'
 import { useRequestStore } from '@renderer/stores/requestStore'
+import { useSessionStore } from '@renderer/stores/sessionStore'
 import { useTabStore } from '@renderer/stores/tabStore'
 import { AuthEditor } from './AuthEditor'
 import { BodyEditor } from './BodyEditor'
@@ -30,6 +31,7 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
     isLoading
   } = useRequestStore()
   const { resolveVariables } = useEnvironmentStore()
+  const { resolveSessionVariables } = useSessionStore()
 
   const tab = getTab(tabId)
   const [activeSection, setActiveSection] = useState<
@@ -46,7 +48,12 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
     if (!request.url) return
 
     // リクエストのバリデーション
-    const validationErrors = await IpcApiService.validateRequest(request, resolveVariables)
+    const validationErrors = await IpcApiService.validateRequest(
+      request,
+      resolveVariables,
+      resolveSessionVariables,
+      tab.sessionId
+    )
     if (validationErrors.length > 0) {
       alert(`Validation errors:\n${validationErrors.join('\n')}`)
       return
@@ -54,7 +61,13 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
 
     setLoading(true)
     try {
-      const response = await IpcApiService.executeRequest(request, resolveVariables)
+      const response = await IpcApiService.executeRequest(
+        request,
+        resolveVariables,
+        true,
+        resolveSessionVariables,
+        tab.sessionId
+      )
       setResponse(tabId, response)
     } catch (error) {
       console.error('Request failed:', error)

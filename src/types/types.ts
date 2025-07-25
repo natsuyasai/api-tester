@@ -185,6 +185,7 @@ export interface ApiTab {
   response: ApiResponse | null
   isActive: boolean
   collectionId?: string // どのコレクションに属するかを示す
+  sessionId?: string // 使用するセッション情報のID
 }
 
 // アプリケーション全体の設定
@@ -274,6 +275,35 @@ export interface Cookie {
 
 export interface CookieStore {
   cookies: Cookie[]
+}
+
+// セッション情報の定義
+export interface SessionVariable {
+  id: string
+  key: string
+  value: string
+  enabled: boolean
+  source?: 'response' | 'manual' | 'script' // セッション変数の取得元
+  extractPath?: string // レスポンスから値を抽出するJSONPath
+  description?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SessionState {
+  id: string
+  name: string
+  variables: SessionVariable[]
+  cookies: Cookie[] // セッション固有のクッキー
+  createdAt: string
+  updatedAt: string
+  isActive: boolean
+}
+
+export interface SessionStore {
+  sessions: SessionState[]
+  activeSessionId?: string
+  sharedVariables: SessionVariable[] // 全タブで共有される変数
 }
 
 // 実行履歴の型定義

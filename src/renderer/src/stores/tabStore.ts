@@ -4,6 +4,8 @@ import { devtools } from 'zustand/middleware'
 import { ApiTab } from '@/types/types'
 import { showErrorDialog } from '@renderer/utils/errorUtils'
 import { KeyValuePairOperations } from '@renderer/utils/keyValueUtils'
+import { useCollectionStore } from './collectionStore'
+import { useSessionStore } from './sessionStore'
 
 interface TabState {
   tabs: ApiTab[]
@@ -11,14 +13,16 @@ interface TabState {
 }
 
 interface TabActions {
-  addTab: (collectionId?: string) => string
+  addTab: (collectionId?: string, sessionId?: string) => string
   closeTab: (tabId: string) => void
   setActiveTab: (tabId: string) => void
   updateTabTitle: (tabId: string, title: string) => void
   setTabCollection: (tabId: string, collectionId?: string) => void
+  setTabSession: (tabId: string, sessionId?: string) => void
   getActiveTab: () => ApiTab | undefined
   getTab: (tabId: string) => ApiTab | undefined
   getTabsByCollection: (collectionId?: string) => ApiTab[]
+  getTabsBySession: (sessionId?: string) => ApiTab[]
   resetTabs: () => void
   switchToNextTab: () => void
   switchToPreviousTab: () => void
@@ -26,14 +30,16 @@ interface TabActions {
   startEditingActiveTab: () => string | null
   saveAllTabs: () => void
   loadAllTabs: () => void
+  inheritSessionFromTab: (fromTabId: string, toTabId: string) => void
 }
 
-const createInitialTab = (collectionId?: string): ApiTab => ({
+const createInitialTab = (collectionId?: string, sessionId?: string): ApiTab => ({
   id: uuidv4(),
   title: 'New Request',
   isActive: true,
   response: null,
   collectionId,
+  sessionId,
   request: {
     id: uuidv4(),
     name: 'New Request',
@@ -59,8 +65,10 @@ export const useTabStore = create<TabState & TabActions>()(
     (set, get) => ({
       ...initialState,
 
-      addTab: (collectionId?: string) => {
-        const newTab = createInitialTab(collectionId)
+      addTab: (collectionId?: string, sessionId?: string) => {
+        // セッションIDが指定されていない場合、アクティブセッションを使用
+        const finalSessionId = sessionId || useSessionStore.getState().activeSessionId
+        const newTab = createInitialTab(collectionId, finalSessionId)
         set(
           (state) => ({
             tabs: [...state.tabs.map((tab) => ({ ...tab, isActive: false })), newTab],
@@ -82,7 +90,8 @@ export const useTabStore = create<TabState & TabActions>()(
 
         // すべてのタブを閉じた場合は新規タブを生成
         if (newTabs.length === 0) {
-          const newTab = createInitialTab()
+          const activeSessionId = useSessionStore.getState().activeSessionId
+          const newTab = createInitialTab(undefined, activeSessionId)
           set(
             {
               tabs: [newTab],
@@ -149,6 +158,16 @@ export const useTabStore = create<TabState & TabActions>()(
         )
       },
 
+      setTabSession: (tabId: string, sessionId?: string) => {
+        set(
+          (state) => ({
+            tabs: state.tabs.map((tab) => (tab.id === tabId ? { ...tab, sessionId } : tab))
+          }),
+          false,
+          'setTabSession'
+        )
+      },
+
       getActiveTab: () => {
         const state = get()
         return state.tabs.find((tab) => tab.id === state.activeTabId)
@@ -164,8 +183,14 @@ export const useTabStore = create<TabState & TabActions>()(
         return state.tabs.filter((tab) => tab.collectionId === collectionId)
       },
 
+      getTabsBySession: (sessionId?: string) => {
+        const state = get()
+        return state.tabs.filter((tab) => tab.sessionId === sessionId)
+      },
+
       resetTabs: () => {
-        const newTab = createInitialTab()
+        const activeSessionId = useSessionStore.getState().activeSessionId
+        const newTab = createInitialTab(undefined, activeSessionId)
         set(
           {
             tabs: [newTab],
@@ -178,10 +203,20 @@ export const useTabStore = create<TabState & TabActions>()(
 
       switchToNextTab: () => {
         const state = get()
-        const currentIndex = state.tabs.findIndex((tab) => tab.id === state.activeTabId)
+        const collectionStore = useCollectionStore.getState()
+        const activeCollectionId = collectionStore.activeCollectionId
+
+        // アクティブコレクション内のタブのみを取得
+        const collectionTabs = activeCollectionId
+          ? state.tabs.filter((tab) => tab.collectionId === activeCollectionId)
+          : state.tabs.filter((tab) => !tab.collectionId)
+
+        if (collectionTabs.length <= 1) return
+
+        const currentIndex = collectionTabs.findIndex((tab) => tab.id === state.activeTabId)
         if (currentIndex !== -1) {
-          const nextIndex = (currentIndex + 1) % state.tabs.length
-          const nextTab = state.tabs[nextIndex]
+          const nextIndex = (currentIndex + 1) % collectionTabs.length
+          const nextTab = collectionTabs[nextIndex]
           if (nextTab) {
             set(
               (state) => ({
@@ -200,10 +235,20 @@ export const useTabStore = create<TabState & TabActions>()(
 
       switchToPreviousTab: () => {
         const state = get()
-        const currentIndex = state.tabs.findIndex((tab) => tab.id === state.activeTabId)
+        const collectionStore = useCollectionStore.getState()
+        const activeCollectionId = collectionStore.activeCollectionId
+
+        // アクティブコレクション内のタブのみを取得
+        const collectionTabs = activeCollectionId
+          ? state.tabs.filter((tab) => tab.collectionId === activeCollectionId)
+          : state.tabs.filter((tab) => !tab.collectionId)
+
+        if (collectionTabs.length <= 1) return
+
+        const currentIndex = collectionTabs.findIndex((tab) => tab.id === state.activeTabId)
         if (currentIndex !== -1) {
-          const prevIndex = currentIndex === 0 ? state.tabs.length - 1 : currentIndex - 1
-          const prevTab = state.tabs[prevIndex]
+          const prevIndex = currentIndex === 0 ? collectionTabs.length - 1 : currentIndex - 1
+          const prevTab = collectionTabs[prevIndex]
           if (prevTab) {
             set(
               (state) => ({
@@ -280,6 +325,27 @@ export const useTabStore = create<TabState & TabActions>()(
             'タブ読み込みエラー',
             'タブの読み込み中にエラーが発生しました',
             errorMessage
+          )
+        }
+      },
+
+      inheritSessionFromTab: (fromTabId: string, toTabId: string) => {
+        const state = get()
+        const fromTab = state.tabs.find((tab) => tab.id === fromTabId)
+        const toTab = state.tabs.find((tab) => tab.id === toTabId)
+
+        if (fromTab && toTab && fromTab.sessionId) {
+          set(
+            (state) => ({
+              tabs: state.tabs.map((tab) =>
+                tab.id === toTabId ? { ...tab, sessionId: fromTab.sessionId } : tab
+              )
+            }),
+            false,
+            'inheritSessionFromTab'
+          )
+          console.log(
+            `Session inherited from tab ${fromTabId} to tab ${toTabId}: ${fromTab.sessionId}`
           )
         }
       }

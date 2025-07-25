@@ -20,14 +20,22 @@ export class HttpClient {
    */
   async executeRequest(
     request: ApiRequest,
-    variableResolver?: (text: string) => string
+    variableResolver?: (text: string) => string,
+    sessionVariableResolver?: (text: string, sessionId?: string) => string,
+    sessionId?: string
   ): Promise<ApiResponse> {
     const startTime = Date.now()
     const resolveVariables = variableResolver || ((text: string) => text)
 
     try {
       // リクエストビルダーを作成
-      const builder = new RequestBuilder(request, resolveVariables, this.getCookieHeader)
+      const builder = new RequestBuilder(
+        request,
+        resolveVariables,
+        this.getCookieHeader,
+        sessionVariableResolver,
+        sessionId
+      )
 
       // リクエスト検証
       const validationErrors = builder.validate()

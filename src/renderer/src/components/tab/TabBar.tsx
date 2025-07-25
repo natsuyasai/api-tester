@@ -1,6 +1,7 @@
 import { JSX, useState, useRef, useEffect, useCallback } from 'react'
 import { useYamlOperations } from '@renderer/hooks/useYamlOperations'
 import { useCollectionStore } from '@renderer/stores/collectionStore'
+import { useSessionStore } from '@renderer/stores/sessionStore'
 import { useTabStore } from '@renderer/stores/tabStore'
 import { showErrorDialog } from '@renderer/utils/errorUtils'
 import styles from './TabBar.module.scss'
@@ -10,13 +11,15 @@ interface TabBarProps {
   onShowSettings?: () => void
   onToggleCollections?: () => void
   onToggleHistory?: () => void
+  onToggleSessions?: () => void
 }
 
 export const TabBar = ({
   className,
   onShowSettings,
   onToggleCollections,
-  onToggleHistory
+  onToggleHistory,
+  onToggleSessions
 }: TabBarProps): JSX.Element => {
   const {
     tabs,
@@ -28,6 +31,7 @@ export const TabBar = ({
     getTabsByCollection
   } = useTabStore()
   const { activeCollectionId, getActiveCollection } = useCollectionStore()
+  const { getActiveSession } = useSessionStore()
   const { saveToFile, loadFromFile } = useYamlOperations()
   const [editingTabId, setEditingTabId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
@@ -286,6 +290,17 @@ export const TabBar = ({
             title="実行履歴"
           >
             📈
+          </button>
+        )}
+        {onToggleSessions && (
+          <button
+            className={styles.sessionButton}
+            onClick={onToggleSessions}
+            aria-label="Toggle session manager"
+            type="button"
+            title={`セッション管理 ${getActiveSession()?.name ? `(${getActiveSession()?.name})` : ''}`}
+          >
+            🔐
           </button>
         )}
         {onShowSettings && (

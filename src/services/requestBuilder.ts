@@ -7,15 +7,21 @@ export class RequestBuilder {
   private request: ApiRequest
   private variableResolver: (text: string) => string
   private getCookieHeader: ((domain: string) => string) | null = null
+  private sessionVariableResolver: ((text: string, sessionId?: string) => string) | null = null
+  private sessionId?: string
 
   constructor(
     request: ApiRequest,
     variableResolver?: (text: string) => string,
-    getCookieHeader?: ((domain: string) => string) | null
+    getCookieHeader?: ((domain: string) => string) | null,
+    sessionVariableResolver?: ((text: string, sessionId?: string) => string) | null,
+    sessionId?: string
   ) {
     this.request = request
     this.variableResolver = variableResolver || ((text: string) => text)
     this.getCookieHeader = getCookieHeader || null
+    this.sessionVariableResolver = sessionVariableResolver || null
+    this.sessionId = sessionId
   }
 
   /**
@@ -32,16 +38,36 @@ export class RequestBuilder {
   }
 
   /**
+   * 変数を解決するためのヘルパーメソッド
+   */
+  private resolveAllVariables(text: string): string {
+    let resolved = text
+
+    // セッション変数を最初に解決
+    if (this.sessionVariableResolver) {
+      resolved = this.sessionVariableResolver(resolved, this.sessionId)
+    }
+
+    // 次にグローバル変数を解決
+    resolved = this.variableResolver(resolved)
+
+    return resolved
+  }
+
+  /**
    * URLを構築（パラメータ含む）
    */
   buildUrl(): URL {
     try {
-      const url = new URL(this.variableResolver(this.request.url))
+      const url = new URL(this.resolveAllVariables(this.request.url))
 
       // 有効なパラメータを追加
       const enabledParams = this.request.params.filter((param) => param.enabled && param.key.trim())
       enabledParams.forEach((param) => {
-        url.searchParams.set(this.variableResolver(param.key), this.variableResolver(param.value))
+        url.searchParams.set(
+          this.resolveAllVariables(param.key),
+          this.resolveAllVariables(param.value)
+        )
       })
 
       return url
@@ -61,7 +87,7 @@ export class RequestBuilder {
       (header) => header.enabled && header.key.trim()
     )
     enabledHeaders.forEach((header) => {
-      headers.set(this.variableResolver(header.key), this.variableResolver(header.value))
+      headers.set(this.resolveAllVariables(header.key), this.resolveAllVariables(header.value))
     })
 
     // 認証ヘッダーを追加
@@ -102,14 +128,14 @@ export class RequestBuilder {
 
       case 'bearer':
         if (auth.bearer) {
-          headers.set('Authorization', `Bearer ${this.variableResolver(auth.bearer.token)}`)
+          headers.set('Authorization', `Bearer ${this.resolveAllVariables(auth.bearer.token)}`)
         }
         break
 
       case 'api-key':
         if (auth.apiKey) {
-          const key = this.variableResolver(auth.apiKey.key)
-          const value = this.variableResolver(auth.apiKey.value)
+          const key = this.resolveAllVariables(auth.apiKey.key)
+          const value = this.resolveAllVariables(auth.apiKey.value)
 
           if (auth.apiKey.location === 'header') {
             headers.set(key, value)
@@ -126,7 +152,7 @@ export class RequestBuilder {
   private addCookieHeaders(headers: Headers): void {
     if (this.getCookieHeader) {
       try {
-        const url = new URL(this.variableResolver(this.request.url))
+        const url = new URL(this.resolveAllVariables(this.request.url))
         const cookieHeader = this.getCookieHeader(url.hostname)
         if (cookieHeader) {
           headers.set('Cookie', cookieHeader)
@@ -177,7 +203,7 @@ export class RequestBuilder {
       case 'json':
       case 'raw':
       case 'graphql':
-        return this.variableResolver(this.request.body)
+        return this.resolveAllVariables(this.request.body)
 
       case 'x-www-form-urlencoded':
         return this.buildFormUrlEncodedBody()
@@ -201,12 +227,12 @@ export class RequestBuilder {
       const params = new URLSearchParams()
 
       enabledPairs.forEach((pair) => {
-        params.append(this.variableResolver(pair.key), this.variableResolver(pair.value))
+        params.append(this.resolveAllVariables(pair.key), this.resolveAllVariables(pair.value))
       })
 
       return params.toString()
     }
-    return this.variableResolver(this.request.body)
+    return this.resolveAllVariables(this.request.body)
   }
 
   /**
@@ -221,7 +247,7 @@ export class RequestBuilder {
       )
 
       enabledPairs.forEach((pair) => {
-        const key = this.variableResolver(pair.key)
+        const key = this.resolveAllVariables(pair.key)
 
         if (pair.isFile && pair.fileContent) {
           // ファイルの場合
@@ -241,7 +267,7 @@ export class RequestBuilder {
           formData.append(key, blob, pair.fileName || 'file')
         } else {
           // 通常の値
-          formData.append(key, this.variableResolver(pair.value))
+          formData.append(key, this.resolveAllVariables(pair.value))
         }
       })
     }
@@ -269,8 +295,8 @@ export class RequestBuilder {
    */
   adjustUrlForApiKey(url: URL): URL {
     if (this.request.auth?.type === 'api-key' && this.request.auth.apiKey?.location === 'query') {
-      const key = this.variableResolver(this.request.auth.apiKey.key)
-      const value = this.variableResolver(this.request.auth.apiKey.value)
+      const key = this.resolveAllVariables(this.request.auth.apiKey.key)
+      const value = this.resolveAllVariables(this.request.auth.apiKey.value)
       url.searchParams.set(key, value)
     }
 
@@ -288,7 +314,7 @@ export class RequestBuilder {
       errors.push('URLは必須です')
     } else {
       try {
-        new URL(this.variableResolver(this.request.url))
+        new URL(this.resolveAllVariables(this.request.url))
       } catch {
         errors.push('無効なURL形式です')
       }

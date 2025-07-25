@@ -2,6 +2,7 @@ import { JSX, useState, useEffect } from 'react'
 import styles from './App.module.scss'
 import { CollectionPanel } from './components/collection/CollectionPanel'
 import { ExecutionHistory } from './components/collection/ExecutionHistory'
+import { SessionManager } from './components/session/SessionManager'
 import { GlobalSettings } from './components/settings/GlobalSettings'
 import { TabBar } from './components/tab/TabBar'
 import { TabContent } from './components/tab/TabContent'
@@ -15,6 +16,7 @@ function App(): JSX.Element {
   const [showSettings, setShowSettings] = useState(false)
   const [showCollectionPanel, setShowCollectionPanel] = useState(false)
   const [showExecutionHistory, setShowExecutionHistory] = useState(false)
+  const [showSessionManager, setShowSessionManager] = useState(false)
 
   useKeyboardShortcuts()
   useAutoSave() // 自動保存機能を有効化
@@ -82,6 +84,7 @@ function App(): JSX.Element {
             onShowSettings={handleShowSettings}
             onToggleCollections={() => setShowCollectionPanel(!showCollectionPanel)}
             onToggleHistory={() => setShowExecutionHistory(!showExecutionHistory)}
+            onToggleSessions={() => setShowSessionManager(!showSessionManager)}
           />
         </div>
         <div className={styles.contentContainer}>
@@ -92,6 +95,11 @@ function App(): JSX.Element {
       <ExecutionHistory
         isVisible={showExecutionHistory}
         onToggle={() => setShowExecutionHistory(!showExecutionHistory)}
+      />
+
+      <SessionManager
+        isVisible={showSessionManager}
+        onToggle={() => setShowSessionManager(!showSessionManager)}
       />
     </div>
   )

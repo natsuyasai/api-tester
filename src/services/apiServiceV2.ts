@@ -53,7 +53,9 @@ export class ApiServiceV2 {
   static async executeRequest(
     request: ApiRequest,
     variableResolver?: (text: string) => string,
-    saveToHistory: boolean = true
+    saveToHistory: boolean = true,
+    sessionVariableResolver?: (text: string, sessionId?: string) => string,
+    sessionId?: string
   ): Promise<ApiResponse> {
     const startTime = Date.now()
     let executionStatus: 'success' | 'error' = 'success'
@@ -62,7 +64,12 @@ export class ApiServiceV2 {
     try {
       // HTTPリクエストを実行
       const httpClient = await this.getHttpClient()
-      const apiResponse = await httpClient.executeRequest(request, variableResolver)
+      const apiResponse = await httpClient.executeRequest(
+        request,
+        variableResolver,
+        sessionVariableResolver,
+        sessionId
+      )
 
       // ステータスによってエラー判定
       if (apiResponse.status >= 400) {

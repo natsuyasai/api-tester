@@ -7,20 +7,31 @@ import { ApiRequest, ApiResponse } from '@/types/types'
 export interface HttpClientInterface {
   executeRequest(
     request: ApiRequest,
-    variableResolver?: (text: string) => string
+    variableResolver?: (text: string) => string,
+    sessionVariableResolver?: (text: string, sessionId?: string) => string,
+    sessionId?: string
   ): Promise<ApiResponse>
 
   executeRequestWithCancel(
     request: ApiRequest,
     variableResolver?: (text: string) => string,
-    cancelToken?: AbortSignal
+    cancelToken?: AbortSignal,
+    sessionVariableResolver?: (text: string, sessionId?: string) => string,
+    sessionId?: string
   ): Promise<ApiResponse>
 
-  validateRequest(request: ApiRequest, variableResolver?: (text: string) => string): string[]
+  validateRequest(
+    request: ApiRequest,
+    variableResolver?: (text: string) => string,
+    sessionVariableResolver?: (text: string, sessionId?: string) => string,
+    sessionId?: string
+  ): string[]
 
   getRequestDetails(
     request: ApiRequest,
-    variableResolver?: (text: string) => string
+    variableResolver?: (text: string) => string,
+    sessionVariableResolver?: (text: string, sessionId?: string) => string,
+    sessionId?: string
   ):
     | {
         url: string

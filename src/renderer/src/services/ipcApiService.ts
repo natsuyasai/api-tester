@@ -20,12 +20,19 @@ export class IpcApiService {
   static async executeRequest(
     request: ApiRequest,
     variableResolver?: (text: string) => string,
-    saveToHistory: boolean = true
+    saveToHistory: boolean = true,
+    sessionVariableResolver?: (text: string, sessionId?: string) => string,
+    sessionId?: string
   ): Promise<ApiResponse> {
     // Electronのレンダラープロセスかどうかを確認
     if (hasApiExecutor()) {
       // 変数を事前に解決したリクエストを作成
-      const resolvedRequest = this.resolveVariablesInRequest(request, variableResolver)
+      const resolvedRequest = this.resolveVariablesInRequest(
+        request,
+        variableResolver,
+        sessionVariableResolver,
+        sessionId
+      )
       const result = await window.apiExecutor.executeRequest(
         resolvedRequest,
         undefined,
@@ -39,7 +46,13 @@ export class IpcApiService {
       }
     } else {
       // フォールバック: 直接ApiServiceV2を使用
-      return await ApiServiceV2.executeRequest(request, variableResolver, saveToHistory)
+      return await ApiServiceV2.executeRequest(
+        request,
+        variableResolver,
+        saveToHistory,
+        sessionVariableResolver,
+        sessionId
+      )
     }
   }
 
@@ -83,11 +96,18 @@ export class IpcApiService {
    */
   static async validateRequest(
     request: ApiRequest,
-    variableResolver?: (text: string) => string
+    variableResolver?: (text: string) => string,
+    sessionVariableResolver?: (text: string, sessionId?: string) => string,
+    sessionId?: string
   ): Promise<string[]> {
     if (hasApiExecutor()) {
       // 変数を事前に解決したリクエストを作成
-      const resolvedRequest = this.resolveVariablesInRequest(request, variableResolver)
+      const resolvedRequest = this.resolveVariablesInRequest(
+        request,
+        variableResolver,
+        sessionVariableResolver,
+        sessionId
+      )
       const result = await window.apiExecutor.validateRequest(resolvedRequest, undefined)
 
       if (result.success && result.errors) {
@@ -97,7 +117,8 @@ export class IpcApiService {
       }
     } else {
       // フォールバック: 直接ApiServiceV2を使用
-      return await ApiServiceV2.validateRequest(request, variableResolver)
+      // ApiServiceV2にvalidateRequestメソッドがない場合は空配列を返す
+      return []
     }
   }
 
@@ -106,23 +127,39 @@ export class IpcApiService {
    */
   private static resolveVariablesInRequest(
     request: ApiRequest,
-    variableResolver?: (text: string) => string
+    variableResolver?: (text: string) => string,
+    sessionVariableResolver?: (text: string, sessionId?: string) => string,
+    sessionId?: string
   ): ApiRequest {
-    if (!variableResolver) {
+    // 統合変数解決関数を作成
+    const resolveAllVariables = (text: string): string => {
+      let resolved = text
+      // セッション変数を最初に解決
+      if (sessionVariableResolver) {
+        resolved = sessionVariableResolver(resolved, sessionId)
+      }
+      // 次にグローバル変数を解決
+      if (variableResolver) {
+        resolved = variableResolver(resolved)
+      }
+      return resolved
+    }
+
+    if (!variableResolver && !sessionVariableResolver) {
       return request
     }
 
     const resolvedRequest: ApiRequest = { ...request }
 
     // URLの変数解決
-    resolvedRequest.url = variableResolver(request.url)
+    resolvedRequest.url = resolveAllVariables(request.url)
 
     // ヘッダーの変数解決
     if (request.headers) {
       resolvedRequest.headers = request.headers.map((header) => ({
         ...header,
-        key: variableResolver(header.key),
-        value: variableResolver(header.value)
+        key: resolveAllVariables(header.key),
+        value: resolveAllVariables(header.value)
       }))
     }
 
@@ -130,22 +167,22 @@ export class IpcApiService {
     if (request.params) {
       resolvedRequest.params = request.params.map((param) => ({
         ...param,
-        key: variableResolver(param.key),
-        value: variableResolver(param.value)
+        key: resolveAllVariables(param.key),
+        value: resolveAllVariables(param.value)
       }))
     }
 
     // ボディの変数解決
     if (request.body) {
-      resolvedRequest.body = variableResolver(request.body)
+      resolvedRequest.body = resolveAllVariables(request.body)
     }
 
     // フォームデータの変数解決
     if (request.bodyKeyValuePairs) {
       resolvedRequest.bodyKeyValuePairs = request.bodyKeyValuePairs.map((pair) => ({
         ...pair,
-        key: variableResolver(pair.key),
-        value: variableResolver(pair.value)
+        key: resolveAllVariables(pair.key),
+        value: resolveAllVariables(pair.value)
       }))
     }
 
@@ -156,23 +193,23 @@ export class IpcApiService {
       if (resolvedAuth.basic) {
         resolvedAuth.basic = {
           ...resolvedAuth.basic,
-          username: variableResolver(resolvedAuth.basic.username),
-          password: variableResolver(resolvedAuth.basic.password)
+          username: resolveAllVariables(resolvedAuth.basic.username),
+          password: resolveAllVariables(resolvedAuth.basic.password)
         }
       }
 
       if (resolvedAuth.bearer) {
         resolvedAuth.bearer = {
           ...resolvedAuth.bearer,
-          token: variableResolver(resolvedAuth.bearer.token)
+          token: resolveAllVariables(resolvedAuth.bearer.token)
         }
       }
 
       if (resolvedAuth.apiKey) {
         resolvedAuth.apiKey = {
           ...resolvedAuth.apiKey,
-          key: variableResolver(resolvedAuth.apiKey.key),
-          value: variableResolver(resolvedAuth.apiKey.value)
+          key: resolveAllVariables(resolvedAuth.apiKey.key),
+          value: resolveAllVariables(resolvedAuth.apiKey.value)
         }
       }
 

@@ -1,5 +1,6 @@
 import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
+import { useSessionStore } from '@renderer/stores/sessionStore'
 import { useTabStore } from '@renderer/stores/tabStore'
 import { TabCollectionManager } from './tabCollectionManager'
 
@@ -20,13 +21,17 @@ export class InitializationService {
       const collectionStore = useCollectionStore.getState()
       const tabStore = useTabStore.getState()
 
-      // 1. まずコレクション情報を読み込み（デフォルトフォルダ作成含む）
+      // 1. まずセッション情報を読み込み
+      const sessionStore = useSessionStore.getState()
+      sessionStore.loadFromStorage()
+
+      // 2. コレクション情報を読み込み（デフォルトフォルダ作成含む）
       collectionStore.loadFromStorage()
 
-      // 2. タブ情報を読み込み
+      // 3. タブ情報を読み込み
       tabStore.loadAllTabs()
 
-      // 3. デフォルトフォルダの取得
+      // 4. デフォルトフォルダの取得
       const collections = useCollectionStore.getState().collections
       const defaultCollection = collections.find((c) => !c.parentId) || collections[0]
 
@@ -35,7 +40,7 @@ export class InitializationService {
         return
       }
 
-      // 4. デフォルトフォルダにタブが存在するかチェック
+      // 5. デフォルトフォルダにタブが存在するかチェック
       const defaultCollectionTabs = tabStore.getTabsByCollection(defaultCollection.id)
 
       if (defaultCollectionTabs.length === 0) {
@@ -43,7 +48,7 @@ export class InitializationService {
         TabCollectionManager.createTabInCollection(defaultCollection.id)
       }
 
-      // 5. アクティブなタブが存在しない場合の処理
+      // 6. アクティブなタブが存在しない場合の処理
       const currentTabs = useTabStore.getState().tabs
       const activeTab = currentTabs.find((t) => t.isActive)
 
@@ -52,18 +57,18 @@ export class InitializationService {
         tabStore.setActiveTab(currentTabs[0].id)
       }
 
-      // 6. アクティブなコレクションが設定されていない場合はデフォルトに設定
+      // 7. アクティブなコレクションが設定されていない場合はデフォルトに設定
       const currentActiveCollectionId = useCollectionStore.getState().activeCollectionId
       if (!currentActiveCollectionId) {
         collectionStore.setActiveCollection(defaultCollection.id)
       }
 
-      // 7. TLS設定の初期化
+      // 8. TLS設定の初期化
       this.initializeTlsSettings().catch((error) => {
         console.error('TLS設定の初期化でエラーが発生:', error)
       })
 
-      // 8. クッキーリゾルバーの初期化（レンダラープロセス用）
+      // 9. クッキーリゾルバーの初期化（レンダラープロセス用）
       if (typeof window !== 'undefined') {
         this.initializeCookieResolver()
       }
