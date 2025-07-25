@@ -28,7 +28,8 @@ export const TabBar = ({
     setActiveTab,
     updateTabTitle,
     startEditingActiveTab,
-    getTabsByCollection
+    getTabsByCollection,
+    canCloseTab
   } = useTabStore()
   const { activeCollectionId, getActiveCollection } = useCollectionStore()
   const { getActiveSession } = useSessionStore()
@@ -224,7 +225,7 @@ export const TabBar = ({
                 </span>
               </button>
             )}
-            {tabs.length > 1 && (
+            {canCloseTab(tab.id) && (
               <button
                 className={styles.closeButton}
                 onClick={(e) => handleCloseTab(e, tab.id)}

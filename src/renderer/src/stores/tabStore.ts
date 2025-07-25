@@ -22,6 +22,7 @@ interface TabActions {
   getTab: (tabId: string) => ApiTab | undefined
   getTabsByCollection: (collectionId?: string) => ApiTab[]
   getTabsBySession: (sessionId?: string) => ApiTab[]
+  canCloseTab: (tabId: string) => boolean
   resetTabs: () => void
   switchToNextTab: () => void
   switchToPreviousTab: () => void
@@ -79,8 +80,33 @@ export const useTabStore = create<TabState & TabActions>()(
         return newTab.id
       },
 
+      canCloseTab: (tabId: string) => {
+        const state = get()
+        const tab = state.tabs.find((t) => t.id === tabId)
+        if (!tab) return false
+
+        // 全体で1つのタブしかない場合は閉じられない
+        if (state.tabs.length <= 1) return false
+
+        // フォルダが選択されている場合のみ、フォルダ内のタブ数をチェック
+        if (tab.collectionId) {
+          const collectionTabs = state.tabs.filter((t) => t.collectionId === tab.collectionId)
+          
+          // フォルダ内に1つしかタブがない場合は閉じられない
+          if (collectionTabs.length <= 1) return false
+        }
+
+        return true
+      },
+
       closeTab: (tabId: string) => {
         const state = get()
+
+        // 閉じることができるかチェック
+        if (!state.canCloseTab(tabId)) {
+          return
+        }
+
         const tabIndex = state.tabs.findIndex((tab) => tab.id === tabId)
         if (tabIndex === -1) return
 

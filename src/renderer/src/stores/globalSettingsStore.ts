@@ -18,6 +18,11 @@ export const DEFAULT_GLOBAL_SETTINGS: GlobalSettings = {
   theme: 'auto',
   fontSize: 'medium',
 
+  // エディタの設定
+  tabSize: 2,
+  wordWrap: true,
+  lineNumbers: true,
+
   // 開発者向け設定
   debugLogs: false,
   saveHistory: true,

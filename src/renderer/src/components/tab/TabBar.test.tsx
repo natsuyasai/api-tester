@@ -59,7 +59,10 @@ describe('TabBar', () => {
     updateTabTitle: vi.fn(),
     getActiveTab: vi.fn(),
     getTab: vi.fn(),
-    resetTabs: vi.fn()
+    resetTabs: vi.fn(),
+    startEditingActiveTab: vi.fn(),
+    getTabsByCollection: vi.fn(() => mockTabs),
+    canCloseTab: vi.fn(() => true)
   }
 
   const mockYamlOperations = {
@@ -137,7 +140,8 @@ describe('TabBar', () => {
   it('should not render close buttons when only one tab exists', () => {
     const singleTabStore = {
       ...mockTabStore,
-      tabs: [mockTabs[0]]
+      tabs: [mockTabs[0]],
+      canCloseTab: vi.fn(() => false)
     }
     mockUseTabStore.mockReturnValue(singleTabStore)
 

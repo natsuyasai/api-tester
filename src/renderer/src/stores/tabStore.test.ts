@@ -50,9 +50,10 @@ describe('TabStore', () => {
       expect(state.activeTabId).toBe(state.tabs[1].id)
     })
 
-    it('should close a tab when multiple tabs exist', () => {
+    it('should close a tab when multiple tabs exist in same collection', () => {
       const { addTab, closeTab } = useTabStore.getState()
-      addTab('test-collection-id')
+      // 同じコレクション（undefined）にタブを追加
+      addTab()
 
       const initialState = useTabStore.getState()
       const firstTabId = initialState.tabs[0].id
@@ -66,7 +67,7 @@ describe('TabStore', () => {
       expect(state.activeTabId).toBe(secondTabId)
     })
 
-    it('should create new tab when closing the last remaining tab', () => {
+    it('should not close tab when it is the only tab in collection', () => {
       const { closeTab } = useTabStore.getState()
       const initialState = useTabStore.getState()
       const tabId = initialState.tabs[0].id
@@ -75,8 +76,8 @@ describe('TabStore', () => {
 
       const state = useTabStore.getState()
       expect(state.tabs).toHaveLength(1)
-      expect(state.tabs[0].id).not.toBe(tabId) // 新しいタブが生成されるため、IDが変わる
-      expect(state.tabs[0].title).toBe('New Request') // 新しいタブのデフォルトタイトル
+      expect(state.tabs[0].id).toBe(tabId) // タブは閉じられない
+      expect(state.tabs[0].title).toBe('Test Tab') // 元のタブが残る
     })
 
     it('should set active tab', () => {
@@ -148,9 +149,10 @@ describe('TabStore', () => {
 
   describe('Tab Closing Logic', () => {
     it('should activate next tab when closing active tab', () => {
-      const { addTab, addTab: addSecondTab, closeTab } = useTabStore.getState()
-      addTab('test-collection-id')
-      addSecondTab()
+      const { addTab, closeTab } = useTabStore.getState()
+      // 同じコレクション（undefined）にタブを追加して閉じることができるようにする
+      addTab()
+      addTab()
 
       const state = useTabStore.getState()
       const activeTabId = state.activeTabId
@@ -167,7 +169,8 @@ describe('TabStore', () => {
 
     it('should activate previous tab when closing last tab', () => {
       const { addTab, closeTab, setActiveTab } = useTabStore.getState()
-      addTab('test-collection-id')
+      // 同じコレクション（undefined）にタブを追加
+      addTab()
 
       const state = useTabStore.getState()
       const firstTabId = state.tabs[0].id
@@ -179,6 +182,53 @@ describe('TabStore', () => {
       const updatedState = useTabStore.getState()
       expect(updatedState.activeTabId).toBe(firstTabId)
       expect(updatedState.tabs[0].isActive).toBe(true)
+    })
+  })
+
+  describe('canCloseTab', () => {
+    it('should return false when only one tab exists globally', () => {
+      const { canCloseTab } = useTabStore.getState()
+      const state = useTabStore.getState()
+      const tabId = state.tabs[0].id
+
+      expect(canCloseTab(tabId)).toBe(false)
+    })
+
+    it('should return false when only one tab exists in collection', () => {
+      const { addTab, canCloseTab } = useTabStore.getState()
+      addTab('collection-1')
+
+      const state = useTabStore.getState()
+      const tab = state.tabs.find((t) => t.collectionId === 'collection-1')
+
+      expect(canCloseTab(tab!.id)).toBe(false)
+    })
+
+    it('should return true when multiple tabs exist in collection', () => {
+      const { addTab, canCloseTab } = useTabStore.getState()
+      addTab('collection-1') // 同じコレクションに追加
+      addTab('collection-1') // もう1つ同じコレクションに追加
+
+      const state = useTabStore.getState()
+      const collectionTab = state.tabs.find(t => t.collectionId === 'collection-1')
+
+      expect(canCloseTab(collectionTab!.id)).toBe(true)
+    })
+
+    it('should return true when multiple tabs exist without collection', () => {
+      const { addTab, canCloseTab } = useTabStore.getState()
+      addTab() // フォルダ未選択のタブを追加
+
+      const state = useTabStore.getState()
+      const firstTabId = state.tabs[0].id
+
+      expect(canCloseTab(firstTabId)).toBe(true)
+    })
+
+    it('should return false for non-existent tab', () => {
+      const { canCloseTab } = useTabStore.getState()
+
+      expect(canCloseTab('non-existent')).toBe(false)
     })
   })
 
@@ -253,7 +303,8 @@ describe('TabStore', () => {
 
     it('should close active tab via keyboard shortcut', () => {
       const { addTab, closeActiveTab } = useTabStore.getState()
-      addTab('test-collection-id')
+      // 同じコレクションIDでタブを追加し、閉じることができるようにする
+      addTab()
 
       const state = useTabStore.getState()
       expect(state.tabs).toHaveLength(2)
@@ -266,7 +317,7 @@ describe('TabStore', () => {
       expect(updatedState.tabs.find((tab) => tab.id === activeTabId)).toBeUndefined()
     })
 
-    it('should create new tab when closing the last tab via keyboard shortcut', () => {
+    it('should not close tab when only one tab exists in collection', () => {
       const { closeActiveTab } = useTabStore.getState()
       const state = useTabStore.getState()
       const tabId = state.tabs[0].id
@@ -275,8 +326,7 @@ describe('TabStore', () => {
 
       const updatedState = useTabStore.getState()
       expect(updatedState.tabs).toHaveLength(1)
-      expect(updatedState.tabs[0].id).not.toBe(tabId) // 新しいタブが生成されるため、IDが変わる
-      expect(updatedState.tabs[0].title).toBe('New Request') // 新しいタブのデフォルトタイトル
+      expect(updatedState.tabs[0].id).toBe(tabId) // タブは閉じられない
     })
 
     it('should return active tab id for editing', () => {
