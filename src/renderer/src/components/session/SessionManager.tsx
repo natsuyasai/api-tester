@@ -1,7 +1,7 @@
 import { JSX, useState } from 'react'
-import styles from './SessionManager.module.scss'
 import { useSessionStore } from '@renderer/stores/sessionStore'
 import { useTabStore } from '@renderer/stores/tabStore'
+import styles from './SessionManager.module.scss'
 
 interface SessionManagerProps {
   isVisible: boolean
@@ -26,7 +26,6 @@ export function SessionManager({ isVisible, onToggle }: SessionManagerProps): JS
 
   const { tabs, getActiveTab, inheritSessionFromTab } = useTabStore()
 
-
   const activeSession = getActiveSession()
   const activeTab = getActiveTab()
 
@@ -39,7 +38,7 @@ export function SessionManager({ isVisible, onToggle }: SessionManagerProps): JS
   }
 
   const handleDuplicateSession = (sessionId: string) => {
-    const session = sessions.find(s => s.id === sessionId)
+    const session = sessions.find((s) => s.id === sessionId)
     if (session) {
       const newName = `${session.name} - コピー`
       duplicateSession(sessionId, newName)
@@ -71,11 +70,7 @@ export function SessionManager({ isVisible, onToggle }: SessionManagerProps): JS
           >
             新規作成
           </button>
-          <button
-            type="button"
-            className={styles.actionButton}
-            onClick={onToggle}
-          >
+          <button type="button" className={styles.actionButton} onClick={onToggle}>
             閉じる
           </button>
         </div>
@@ -172,18 +167,19 @@ export function SessionManager({ isVisible, onToggle }: SessionManagerProps): JS
       {/* セッション継承 */}
       {activeTab && tabs.length > 1 && (
         <div className={styles.sessionSelector}>
-          <label>他のタブからセッションを継承:</label>
+          <label htmlFor="inherit-session-select">他のタブからセッションを継承:</label>
           <div className={styles.sessionSelectWrapper}>
             <select
+              id="inherit-session-select"
               value={selectedTabForInherit}
               onChange={(e) => setSelectedTabForInherit(e.target.value)}
               className={styles.sessionSelect}
             >
               <option value="">継承元のタブを選択</option>
               {tabs
-                .filter(tab => tab.id !== activeTab.id && tab.sessionId)
+                .filter((tab) => tab.id !== activeTab.id && tab.sessionId)
                 .map((tab) => {
-                  const session = sessions.find(s => s.id === tab.sessionId)
+                  const session = sessions.find((s) => s.id === tab.sessionId)
                   return (
                     <option key={tab.id} value={tab.id}>
                       {tab.title} ({session?.name || 'セッション名不明'})
@@ -236,16 +232,17 @@ export function SessionManager({ isVisible, onToggle }: SessionManagerProps): JS
                   <span className={styles.variableKey}>{`{{${variable.key}}}`}</span>
                   <span className={styles.variableValue}>{variable.value}</span>
                   <span className={styles.variableSource}>
-                    {variable.source === 'response' ? 'レスポンス' : 
-                     variable.source === 'script' ? 'スクリプト' : '手動'}
+                    {variable.source === 'response'
+                      ? 'レスポンス'
+                      : variable.source === 'script'
+                        ? 'スクリプト'
+                        : '手動'}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className={styles.emptyState}>
-              このセッションには変数がありません
-            </div>
+            <div className={styles.emptyState}>このセッションには変数がありません</div>
           )}
         </div>
       )}

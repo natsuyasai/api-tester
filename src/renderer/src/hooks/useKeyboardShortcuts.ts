@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { useTabStore } from '@renderer/stores/tabStore'
 
 interface UseKeyboardShortcutsProps {
@@ -7,6 +8,7 @@ interface UseKeyboardShortcutsProps {
 
 export const useKeyboardShortcuts = (props?: UseKeyboardShortcutsProps) => {
   const { addTab, switchToNextTab, switchToPreviousTab, closeActiveTab } = useTabStore()
+  const { activeCollectionId } = useCollectionStore()
   const { onEditActiveTab } = props || {}
 
   useEffect(() => {
@@ -15,7 +17,7 @@ export const useKeyboardShortcuts = (props?: UseKeyboardShortcutsProps) => {
         switch (event.key) {
           case 't':
             event.preventDefault()
-            addTab()
+            addTab(activeCollectionId)
             break
           case 'w':
             event.preventDefault()
@@ -47,5 +49,12 @@ export const useKeyboardShortcuts = (props?: UseKeyboardShortcutsProps) => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [addTab, switchToNextTab, switchToPreviousTab, closeActiveTab, onEditActiveTab])
+  }, [
+    addTab,
+    switchToNextTab,
+    switchToPreviousTab,
+    closeActiveTab,
+    onEditActiveTab,
+    activeCollectionId
+  ])
 }

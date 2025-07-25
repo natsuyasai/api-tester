@@ -40,7 +40,7 @@ describe('TabStore', () => {
 
     it('should add a new tab', () => {
       const { addTab } = useTabStore.getState()
-      addTab()
+      addTab('test-collection-id')
 
       const state = useTabStore.getState()
       expect(state.tabs).toHaveLength(2)
@@ -52,7 +52,7 @@ describe('TabStore', () => {
 
     it('should close a tab when multiple tabs exist', () => {
       const { addTab, closeTab } = useTabStore.getState()
-      addTab()
+      addTab('test-collection-id')
 
       const initialState = useTabStore.getState()
       const firstTabId = initialState.tabs[0].id
@@ -81,7 +81,7 @@ describe('TabStore', () => {
 
     it('should set active tab', () => {
       const { addTab, setActiveTab } = useTabStore.getState()
-      addTab()
+      addTab('test-collection-id')
 
       const state = useTabStore.getState()
       const firstTabId = state.tabs[0].id
@@ -132,8 +132,8 @@ describe('TabStore', () => {
 
     it('should reset tabs', () => {
       const { addTab, resetTabs } = useTabStore.getState()
-      addTab()
-      addTab()
+      addTab('test-collection-id')
+      addTab('test-collection-id')
 
       expect(useTabStore.getState().tabs).toHaveLength(3)
 
@@ -149,7 +149,7 @@ describe('TabStore', () => {
   describe('Tab Closing Logic', () => {
     it('should activate next tab when closing active tab', () => {
       const { addTab, addTab: addSecondTab, closeTab } = useTabStore.getState()
-      addTab()
+      addTab('test-collection-id')
       addSecondTab()
 
       const state = useTabStore.getState()
@@ -167,7 +167,7 @@ describe('TabStore', () => {
 
     it('should activate previous tab when closing last tab', () => {
       const { addTab, closeTab, setActiveTab } = useTabStore.getState()
-      addTab()
+      addTab('test-collection-id')
 
       const state = useTabStore.getState()
       const firstTabId = state.tabs[0].id
@@ -185,7 +185,7 @@ describe('TabStore', () => {
   describe('Keyboard Navigation', () => {
     it('should switch to next tab', () => {
       const { addTab, switchToNextTab } = useTabStore.getState()
-      addTab()
+      addTab('test-collection-id')
 
       const state = useTabStore.getState()
       const firstTabId = state.tabs[0].id
@@ -203,7 +203,7 @@ describe('TabStore', () => {
 
     it('should switch to previous tab', () => {
       const { addTab, switchToPreviousTab } = useTabStore.getState()
-      addTab()
+      addTab('test-collection-id')
 
       const state = useTabStore.getState()
       const firstTabId = state.tabs[0].id
@@ -221,7 +221,7 @@ describe('TabStore', () => {
 
     it('should wrap around when switching to next tab at end', () => {
       const { addTab, setActiveTab, switchToNextTab } = useTabStore.getState()
-      addTab()
+      addTab('test-collection-id')
 
       const state = useTabStore.getState()
       const firstTabId = state.tabs[0].id
@@ -236,7 +236,7 @@ describe('TabStore', () => {
 
     it('should wrap around when switching to previous tab at beginning', () => {
       const { addTab, setActiveTab, switchToPreviousTab } = useTabStore.getState()
-      addTab()
+      addTab('test-collection-id')
 
       const state = useTabStore.getState()
       const firstTabId = state.tabs[0].id
@@ -251,7 +251,7 @@ describe('TabStore', () => {
 
     it('should close active tab via keyboard shortcut', () => {
       const { addTab, closeActiveTab } = useTabStore.getState()
-      addTab()
+      addTab('test-collection-id')
 
       const state = useTabStore.getState()
       expect(state.tabs).toHaveLength(2)
