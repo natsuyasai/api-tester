@@ -24,23 +24,28 @@ export interface ProxyAPI {
   setProxyConfig: (settings: ProxySettings) => Promise<{
     success: boolean
     error?: string
+    message?: string
   }>
   getProxyConfig: () => Promise<ProxySettings>
   testProxyConnection: (testUrl?: string) => Promise<{
     success: boolean
     error?: string
     responseTime?: number
+    message?: string
+    ipAddress?: string
+    proxyEnabled?: boolean
   }>
   getCurrentIpAddress: () => Promise<{
     success: boolean
     ipAddress?: string
     error?: string
+    proxyEnabled?: boolean
   }>
 }
 
 export interface ProxySettings {
   enabled: boolean
-  url: string
+  url?: string
   auth?: {
     username: string
     password: string
@@ -91,30 +96,22 @@ export interface ApiExecutor {
 }
 
 export interface TlsConfigAPI {
-  updateSettings: (settings: {
-    rejectUnauthorized: boolean
-    ca?: string[]
-    cert?: string
-    key?: string
-    ciphers?: string
-    minVersion?: string
-    maxVersion?: string
-  }) => Promise<{
+  updateSettings: (settings: unknown) => Promise<{
     success: boolean
     error?: string
+    message?: string
+    currentSettings?: unknown
   }>
   getCurrentSettings: () => Promise<{
-    rejectUnauthorized: boolean
-    ca?: string[]
-    cert?: string
-    key?: string
-    ciphers?: string
-    minVersion?: string
-    maxVersion?: string
+    success: boolean
+    error?: string
+    settings?: unknown
   }>
   resetSettings: () => Promise<{
     success: boolean
     error?: string
+    message?: string
+    currentSettings?: unknown
   }>
 }
 

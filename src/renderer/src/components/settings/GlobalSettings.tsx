@@ -14,7 +14,7 @@ export const GlobalSettings = (): JSX.Element => {
   const [showImportPreview, setShowImportPreview] = useState(false)
   const [proxyTestResult, setProxyTestResult] = useState<{
     testing: boolean
-    result?: { success: boolean; message: string; responseTime?: number; ipAddress?: string }
+    result?: { success: boolean; message?: string; responseTime?: number; ipAddress?: string }
   }>({ testing: false })
 
   // IDの生成

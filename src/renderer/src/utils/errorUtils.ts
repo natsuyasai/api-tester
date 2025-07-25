@@ -2,7 +2,7 @@
  * アプリケーション全体で使用する統一エラーハンドリングユーティリティ
  */
 
-// preload/index.d.tsで定義されたWindow型を使用
+// Window型はpreload/index.d.tsで定義されているため、ここでは定義不要
 
 /**
  * unknownの値を安全に文字列に変換する
@@ -40,7 +40,8 @@ export async function showErrorDialog(
         title,
         message,
         detail,
-        buttons: ['OK']
+        buttons: ['OK'],
+        defaultId: 0
       })
     } catch (error) {
       console.error('Failed to show error dialog:', error as Error)

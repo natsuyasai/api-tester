@@ -3,7 +3,7 @@ import { subscribeWithSelector } from 'zustand/middleware'
 import type { GlobalSettings } from '@/types/types'
 import { showErrorDialog } from '@renderer/utils/errorUtils'
 
-// preload/index.d.tsで定義されたWindow型を使用
+// Window型はpreload/index.d.tsで定義されているため、ここでは定義不要
 
 // デフォルト設定
 export const DEFAULT_GLOBAL_SETTINGS: GlobalSettings = {

@@ -165,7 +165,7 @@ describe('useYamlOperations', () => {
 
   describe('importYaml', () => {
     it('should import YAML and call TabCollectionManager', async () => {
-      const yamlContent = 'tabs:\n  - title: Imported Tab'
+      // const yamlContent = 'tabs:\n  - title: Imported Tab'
       const importedTabs = [
         {
           id: 'imported-1',
@@ -194,7 +194,9 @@ describe('useYamlOperations', () => {
             id: 'col-1',
             name: 'Imported Collection',
             description: '',
-            requests: []
+            requests: [],
+            created: new Date().toISOString(),
+            updated: new Date().toISOString()
           }
         ],
         tabs: importedTabs
@@ -324,7 +326,9 @@ describe('useYamlOperations', () => {
           id: 'loaded-col-1',
           name: 'Loaded Collection',
           description: '',
-          requests: []
+          requests: [],
+          created: new Date().toISOString(),
+          updated: new Date().toISOString()
         }
       ]
       const importedTabs = [

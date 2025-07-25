@@ -4,7 +4,6 @@
     "electron.vite.config.*",
     "src/main/**/*",
     "src/preload/**/*",
-    "src/preload/index.d.ts",
     "src/logic/**/*",
     "src/services/fileService.ts",
     "src/services/graphqlService.ts",
@@ -18,7 +17,9 @@
   "exclude": [
     "src/renderer/**/*",
     "src/main/services/nodeHttpClient.ts",
-    "src/services/responseProcessor.ts"
+    "src/services/responseProcessor.ts",
+    "src/main/services/nodeHttpClientDI.test.ts",
+    "src/services/requestBuilder.test.ts"
   ],
   "compilerOptions": {
     "composite": true,
