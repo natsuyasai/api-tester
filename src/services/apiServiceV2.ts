@@ -1,5 +1,4 @@
 import { ApiRequest, ApiResponse } from '@/types/types'
-import { createNodeHttpClient } from '../main/services/nodeHttpClientDI'
 import { HttpClient } from './httpClient'
 import { HttpClientInterface } from './httpClientInterface'
 
@@ -31,6 +30,8 @@ export class ApiServiceV2 {
       (process.versions.node || process.versions.electron) &&
       typeof window === 'undefined'
     ) {
+      // メインプロセスでのみnodeHttpClientを作成
+      const { createNodeHttpClient } = await import('../main/services/nodeHttpClientDI')
       return await createNodeHttpClient()
     }
 

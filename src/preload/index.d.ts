@@ -119,6 +119,12 @@ export interface TlsConfigAPI {
   }>
 }
 
+export interface ConfigAPI {
+  getMainProcessConfig: () => Promise<unknown>
+  updateMainProcessConfig: (config: unknown) => Promise<unknown>
+  onConfigChange: (callback: (event: unknown, data: unknown) => void) => () => void
+}
+
 declare global {
   interface Window {
     electron: ElectronAPI
@@ -128,6 +134,7 @@ declare global {
     proxyAPI: ProxyAPI
     apiExecutor: ApiExecutor
     tlsConfigAPI: TlsConfigAPI
+    configAPI: ConfigAPI
     lizard: Lizard
   }
 }

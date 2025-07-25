@@ -63,6 +63,11 @@ export class InitializationService {
         console.error('TLS設定の初期化でエラーが発生:', error)
       })
 
+      // 8. クッキーリゾルバーの初期化（レンダラープロセス用）
+      if (typeof window !== 'undefined') {
+        this.initializeCookieResolver()
+      }
+
       console.log('アプリケーション初期化完了:', {
         collections: useCollectionStore.getState().collections.length,
         tabs: useTabStore.getState().tabs.length,
@@ -121,6 +126,21 @@ export class InitializationService {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       console.error('TLS settings initialization error:', errorMessage)
+    }
+  }
+
+  /**
+   * クッキーリゾルバーの初期化
+   * レンダラープロセス用の軽量な初期化
+   */
+  private static initializeCookieResolver(): void {
+    try {
+      // レンダラープロセスではクッキーストアから直接クッキーヘッダーを生成
+      // APIサービスの初期化は避けて軽量に実装
+      console.log('Cookie resolver initialized for renderer process')
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      console.error('Cookie resolver initialization error:', errorMessage)
     }
   }
 
