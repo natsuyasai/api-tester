@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import { SessionStore, SessionState, SessionVariable, Cookie } from '@/types/types'
+import { SessionStore, SessionState, SessionVariable, Cookie, ApiResponse } from '@/types/types'
 import { showErrorDialog } from '@renderer/utils/errorUtils'
 
 interface SessionActions {
@@ -43,7 +43,7 @@ interface SessionActions {
   // レスポンスからの値抽出
   extractFromResponse: (
     sessionId: string,
-    response: any,
+    response: ApiResponse,
     extractRules: Array<{ key: string; path: string }>
   ) => void
 
@@ -421,24 +421,39 @@ export const useSessionStore = create<SessionStore & SessionActions>()(
       // レスポンスからの値抽出（JSON Path）
       extractFromResponse: (
         sessionId: string,
-        response: any,
+        response: ApiResponse,
         extractRules: Array<{ key: string; path: string }>
       ) => {
         const actions = get()
 
         extractRules.forEach((rule) => {
           try {
-            let value: any
+            let value: unknown
 
             // 簡単なJSON Path実装（$.field, $.field.subfield をサポート）
             if (rule.path.startsWith('$.')) {
               const pathParts = rule.path.substring(2).split('.')
-              value = pathParts.reduce(
-                (obj, key) => obj?.[key],
-                response.data?.data || response.data
-              )
+              if (response.data.type === 'json') {
+                const jsonData = response.data.data
+                value = pathParts.reduce((obj: unknown, key: string) => {
+                  if (obj && typeof obj === 'object' && key in obj) {
+                    return (obj as Record<string, unknown>)[key]
+                  }
+                  return undefined
+                }, jsonData)
+              }
             } else {
-              value = response.data?.[rule.path] || response[rule.path]
+              if (response.data.type === 'json') {
+                const jsonData = response.data.data
+                if (jsonData && typeof jsonData === 'object' && rule.path in jsonData) {
+                  value = (jsonData as Record<string, unknown>)[rule.path]
+                }
+              } else if (response.data.type === 'text') {
+                const textData = response.data.data
+                if (rule.path === 'data') {
+                  value = textData
+                }
+              }
             }
 
             if (value !== undefined) {

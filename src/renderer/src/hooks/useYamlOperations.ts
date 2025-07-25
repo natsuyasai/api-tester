@@ -149,7 +149,7 @@ export const useYamlOperations = () => {
       if (!result.canceled && result.filePath) {
         const writeResult = await window.fileAPI.writeFile(result.filePath, yamlContent)
         if (!writeResult.success) {
-          throw new Error(writeResult.error || 'Failed to save file')
+          throw new Error(writeResult.error ?? 'Failed to save file')
         }
       }
     } catch (error) {

@@ -1,6 +1,8 @@
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 // import { YamlService } from '@renderer/services/yamlService' // モックで使用するため不要
+import { TabCollectionManager } from '@renderer/services/tabCollectionManager'
+import { YamlService } from '@renderer/services/yamlService'
 import { useTabStore } from '@renderer/stores/tabStore'
 import { useYamlOperations } from './useYamlOperations'
 
@@ -46,27 +48,15 @@ vi.mock('@renderer/stores/collectionStore', () => ({
   }
 }))
 
-const mockYamlServiceMethods = {
-  exportToYaml: vi.fn(),
-  importFromYaml: vi.fn(),
-  importCollectionsFromYaml: vi.fn()
-}
+vi.mock('@renderer/services/yamlService')
 
-vi.mock('@/services/yamlService', () => ({
-  YamlService: mockYamlServiceMethods
-}))
+// YamlServiceのモック参照を取得
+const mockYamlService = vi.mocked(YamlService)
 
-// TabCollectionManagerのモック
-const mockTabCollectionManager = {
-  importTabsWithMerge: vi.fn(),
-  importTabsWithReplace: vi.fn(),
-  importCollectionsWithMerge: vi.fn(),
-  importCollectionsWithReplace: vi.fn()
-}
+vi.mock('@renderer/services/tabCollectionManager')
 
-vi.mock('@renderer/services/tabCollectionManager', () => ({
-  TabCollectionManager: mockTabCollectionManager
-}))
+// TabCollectionManagerのモック参照を取得
+const mockTabCollectionManager = vi.mocked(TabCollectionManager)
 
 // グローバルのwindowオブジェクトをモック
 const mockShowSaveDialog = vi.fn()
@@ -82,6 +72,9 @@ Object.defineProperty(window, 'dialogAPI', {
     showModalMessageBox: mockShowModalMessageBox
   }
 })
+
+// showModalMessageBoxのデフォルトレスポンスを設定
+mockShowModalMessageBox.mockResolvedValue({ response: 2 }) // デフォルトで「置き換え」を選択
 
 Object.defineProperty(window, 'fileAPI', {
   value: {
@@ -128,14 +121,27 @@ describe('useYamlOperations', () => {
     mockUseTabStoreWithSetState.getState.mockReturnValue(mockStore)
 
     // YamlServiceのモックをリセット
-    mockYamlServiceMethods.exportToYaml.mockReset()
-    mockYamlServiceMethods.importFromYaml.mockReset()
+    mockYamlService.exportToYaml.mockReset()
+    mockYamlService.importFromYaml.mockReset()
+    mockYamlService.importCollectionsFromYaml.mockReset()
 
-    // TabCollectionManagerのモックをリセット
-    Object.values(mockTabCollectionManager).forEach((mock) => mock.mockReset())
+    // 個別にモックをリセット（vi.mocked()の場合はmockClear()を使用）
+    if (mockTabCollectionManager.importTabsWithMerge) {
+      mockTabCollectionManager.importTabsWithMerge.mockClear()
+    }
+    if (mockTabCollectionManager.importTabsWithReplace) {
+      mockTabCollectionManager.importTabsWithReplace.mockClear()
+    }
+    if (mockTabCollectionManager.importCollectionsWithMerge) {
+      mockTabCollectionManager.importCollectionsWithMerge.mockClear()
+    }
+    if (mockTabCollectionManager.importCollectionsWithReplace) {
+      mockTabCollectionManager.importCollectionsWithReplace.mockClear()
+    }
 
-    // dialogAPIのモックをリセット
+    // dialogAPIのモックをリセットして、デフォルトレスポンスを再設定
     mockShowModalMessageBox.mockReset()
+    mockShowModalMessageBox.mockResolvedValue({ response: 2 }) // デフォルトで「置き換え」を選択
     mockShowSaveDialog.mockReset()
     mockShowOpenDialog.mockReset()
     mockWriteFile.mockReset()
@@ -145,14 +151,14 @@ describe('useYamlOperations', () => {
   describe('exportYaml', () => {
     it('should export tabs to YAML', () => {
       const mockYamlOutput =
-        'tabs:\n  - title: Test Tab\n    request:\n      url: https://api.example.com'
-      mockYamlServiceMethods.exportToYaml.mockReturnValue(mockYamlOutput)
+        'version: "1.0"\ncollections:\n  - name: API Collection\n    description: Exported collection with 1 requests\n    requests:\n      - name: Test Tab\n        method: GET\n        url: https://api.example.com'
+      mockYamlService.exportToYaml.mockReturnValue(mockYamlOutput)
 
       const { result } = renderHook(() => useYamlOperations())
 
       const yamlOutput = result.current.exportYaml()
 
-      expect(mockYamlServiceMethods.exportToYaml).toHaveBeenCalledWith(mockTabs)
+      expect(mockYamlService.exportToYaml).toHaveBeenCalledWith(mockTabs)
       expect(yamlOutput).toBe(mockYamlOutput)
     })
   })
@@ -180,23 +186,35 @@ describe('useYamlOperations', () => {
         }
       ]
 
-      mockYamlServiceMethods.importFromYaml.mockReturnValue(importedTabs)
+      // v2形式のYAMLをモック
+      const yamlV2Content = 'version: "2.0"\ncollections:\n  - name: Imported Collection'
+      mockYamlService.importCollectionsFromYaml.mockReturnValue({
+        collections: [
+          {
+            id: 'col-1',
+            name: 'Imported Collection',
+            description: '',
+            requests: []
+          }
+        ],
+        tabs: importedTabs
+      })
 
       const { result } = renderHook(() => useYamlOperations())
 
       await act(async () => {
-        await result.current.importYaml(yamlContent)
+        await result.current.importYaml(yamlV2Content)
       })
 
-      expect(mockYamlServiceMethods.importFromYaml).toHaveBeenCalledWith(yamlContent)
-      expect(mockTabCollectionManager.importTabsWithReplace).toHaveBeenCalledWith(importedTabs)
+      expect(mockYamlService.importCollectionsFromYaml).toHaveBeenCalledWith(yamlV2Content)
+      expect(mockTabCollectionManager.importCollectionsWithReplace).toHaveBeenCalled()
     })
 
     it('should handle import errors', async () => {
       const yamlContent = 'invalid yaml content'
       const error = new Error('Invalid YAML')
 
-      mockYamlServiceMethods.importFromYaml.mockImplementation(() => {
+      mockYamlService.importFromYaml.mockImplementation(() => {
         throw error
       })
 
@@ -210,26 +228,29 @@ describe('useYamlOperations', () => {
     })
 
     it('should handle empty imported tabs', async () => {
-      const yamlContent = 'tabs: []'
-
-      mockYamlServiceMethods.importFromYaml.mockReturnValue([])
+      // v2形式のYAMLで空のコレクション
+      const yamlV2Content = 'version: "2.0"\ncollections: []'
+      mockYamlService.importCollectionsFromYaml.mockReturnValue({
+        collections: [],
+        tabs: []
+      })
 
       const { result } = renderHook(() => useYamlOperations())
 
       await act(async () => {
-        await result.current.importYaml(yamlContent)
+        await result.current.importYaml(yamlV2Content)
       })
 
-      // 空のタブの場合は何も処理されない（エラーダイアログが表示される）
-      expect(mockTabCollectionManager.importTabsWithReplace).not.toHaveBeenCalled()
+      // 空のコレクションの場合は何も処理されない（エラーダイアログが表示される）
+      expect(mockTabCollectionManager.importCollectionsWithReplace).not.toHaveBeenCalled()
     })
   })
 
   describe('saveToFile', () => {
     it('should save YAML to file', async () => {
       const mockYamlOutput =
-        'version: "1.0"\ncollections:\n  - name: API Collection\n    requests:\n      - name: Test Tab'
-      mockYamlServiceMethods.exportToYaml.mockReturnValue(mockYamlOutput)
+        "version: '1.0'\ncollections:\n  - name: API Collection\n    description: Exported collection with 1 requests\n    requests:\n      - name: Test Tab\n        method: GET\n        url: https://api.example.com"
+      mockYamlService.exportToYaml.mockReturnValue(mockYamlOutput)
       mockShowSaveDialog.mockResolvedValue({
         canceled: false,
         filePath: '/path/to/file.yaml'
@@ -269,8 +290,8 @@ describe('useYamlOperations', () => {
     })
 
     it('should handle file write errors', async () => {
-      const mockYamlOutput = 'version: "1.0"\ncollections:\n  - name: API Collection'
-      mockYamlServiceMethods.exportToYaml.mockReturnValue(mockYamlOutput)
+      const mockYamlOutput = "version: '1.0'\ncollections:\n  - name: API Collection"
+      mockYamlService.exportToYaml.mockReturnValue(mockYamlOutput)
       mockShowSaveDialog.mockResolvedValue({
         canceled: false,
         filePath: '/path/to/file.yaml'
@@ -296,7 +317,16 @@ describe('useYamlOperations', () => {
 
   describe('loadFromFile', () => {
     it('should load YAML from file', async () => {
-      const yamlContent = 'tabs:\n  - title: Loaded Tab'
+      // v2形式のYAMLとレスポンス
+      const yamlContent = 'version: "2.0"\ncollections:\n  - name: Loaded Collection'
+      const importedCollections = [
+        {
+          id: 'loaded-col-1',
+          name: 'Loaded Collection',
+          description: '',
+          requests: []
+        }
+      ]
       const importedTabs = [
         {
           id: 'loaded-1',
@@ -325,7 +355,10 @@ describe('useYamlOperations', () => {
         success: true,
         data: yamlContent
       })
-      mockYamlServiceMethods.importFromYaml.mockReturnValue(importedTabs)
+      mockYamlService.importCollectionsFromYaml.mockReturnValue({
+        collections: importedCollections,
+        tabs: importedTabs
+      })
 
       const { result } = renderHook(() => useYamlOperations())
 
@@ -342,8 +375,8 @@ describe('useYamlOperations', () => {
         properties: ['openFile']
       })
       expect(mockReadFile).toHaveBeenCalledWith('/path/to/file.yaml')
-      expect(mockYamlServiceMethods.importFromYaml).toHaveBeenCalledWith(yamlContent)
-      expect(mockTabCollectionManager.importTabsWithReplace).toHaveBeenCalledWith(importedTabs)
+      expect(mockYamlService.importCollectionsFromYaml).toHaveBeenCalledWith(yamlContent)
+      expect(mockTabCollectionManager.importCollectionsWithReplace).toHaveBeenCalled()
     })
 
     it('should handle load dialog cancellation', async () => {
@@ -400,7 +433,8 @@ describe('useYamlOperations', () => {
         await result.current.loadFromFile()
       })
 
-      expect(mockYamlServiceMethods.importFromYaml).not.toHaveBeenCalled()
+      expect(mockYamlService.importFromYaml).not.toHaveBeenCalled()
+      expect(mockYamlService.importCollectionsFromYaml).not.toHaveBeenCalled()
     })
   })
 })

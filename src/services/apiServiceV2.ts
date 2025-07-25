@@ -1,4 +1,4 @@
-import { ApiRequest, ApiResponse } from '@/types/types'
+import { ApiRequest, ApiResponse, AuthConfig } from '@/types/types'
 import { HttpClient } from './httpClient'
 import { HttpClientInterface } from './httpClientInterface'
 
@@ -524,7 +524,7 @@ export class ApiServiceV2 {
   /**
    * Basic認証のcURL部分を構築
    */
-  private static buildBasicAuth(basic: any): string {
+  private static buildBasicAuth(basic: AuthConfig['basic']): string {
     if (!basic) return ''
     return ` -u "${basic.username}:${basic.password}"`
   }
@@ -532,7 +532,10 @@ export class ApiServiceV2 {
   /**
    * Bearer認証のcURL部分を構築
    */
-  private static buildBearerAuth(bearer: any, resolveVariables: (text: string) => string): string {
+  private static buildBearerAuth(
+    bearer: AuthConfig['bearer'],
+    resolveVariables: (text: string) => string
+  ): string {
     if (!bearer) return ''
     const token = resolveVariables(bearer.token)
     return ` -H "Authorization: Bearer ${token}"`
@@ -542,7 +545,7 @@ export class ApiServiceV2 {
    * APIキー認証のcURL部分を構築
    */
   private static buildApiKeyAuth(
-    apiKey: any,
+    apiKey: AuthConfig['apiKey'],
     resolveVariables: (text: string) => string,
     url: URL
   ): string {

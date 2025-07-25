@@ -12,6 +12,10 @@ export interface FileAPI {
   writeFile: (filePath: string, data: string) => Promise<{ success: boolean; error?: string }>
 }
 
+export interface LizardParameter {
+  [key: string]: unknown
+}
+
 export interface Lizard {
   execute: (parameter: LizardParameter) => Promise<boolean>
 }
@@ -19,28 +23,24 @@ export interface Lizard {
 export interface ProxyAPI {
   setProxyConfig: (settings: ProxySettings) => Promise<{
     success: boolean
-    message: string
     error?: string
   }>
   getProxyConfig: () => Promise<ProxySettings>
   testProxyConnection: (testUrl?: string) => Promise<{
     success: boolean
-    message: string
+    error?: string
     responseTime?: number
-    ipAddress?: string
-    proxyEnabled: boolean
   }>
   getCurrentIpAddress: () => Promise<{
     success: boolean
     ipAddress?: string
     error?: string
-    proxyEnabled: boolean
   }>
 }
 
 export interface ProxySettings {
   enabled: boolean
-  url?: string
+  url: string
   auth?: {
     username: string
     password: string
@@ -91,31 +91,30 @@ export interface ApiExecutor {
 }
 
 export interface TlsConfigAPI {
-  updateSettings: (settings: unknown) => Promise<{
+  updateSettings: (settings: {
+    rejectUnauthorized: boolean
+    ca?: string[]
+    cert?: string
+    key?: string
+    ciphers?: string
+    minVersion?: string
+    maxVersion?: string
+  }) => Promise<{
     success: boolean
-    message?: string
     error?: string
-    currentSettings?: {
-      rejectUnauthorized: boolean
-      environmentVariable: string | undefined
-    }
   }>
   getCurrentSettings: () => Promise<{
-    success: boolean
-    settings?: {
-      rejectUnauthorized: boolean
-      environmentVariable: string | undefined
-    }
-    error?: string
+    rejectUnauthorized: boolean
+    ca?: string[]
+    cert?: string
+    key?: string
+    ciphers?: string
+    minVersion?: string
+    maxVersion?: string
   }>
   resetSettings: () => Promise<{
     success: boolean
-    message?: string
     error?: string
-    currentSettings?: {
-      rejectUnauthorized: boolean
-      environmentVariable: string | undefined
-    }
   }>
 }
 

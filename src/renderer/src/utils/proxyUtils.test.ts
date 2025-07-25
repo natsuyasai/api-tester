@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import type { GlobalSettings } from '@/types/types'
 import {
   extractProxyConfig,
@@ -6,6 +6,11 @@ import {
   formatProxyForElectron,
   formatBypassList
 } from './proxyUtils'
+
+// errorUtilsのモック
+vi.mock('@renderer/utils/errorUtils', () => ({
+  showErrorDialog: vi.fn().mockResolvedValue(undefined)
+}))
 
 describe('proxyUtils', () => {
   describe('extractProxyConfig', () => {

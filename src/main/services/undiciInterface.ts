@@ -1,14 +1,49 @@
 /**
  * Undiciライブラリへの依存を抽象化するインターフェース
  */
-export interface UndiciLibraryInterface {
-  request: (url: string, options: any) => Promise<any>
-  ProxyAgent: new (options: any) => any
-  getGlobalDispatcher: () => any
-  interceptors: {
-    redirect: (options: { maxRedirections: number }) => any
+interface UndiciRequest {
+  (url: string, options: Record<string, unknown>): Promise<UndiciResponse>
+}
+
+interface UndiciResponse {
+  statusCode: number
+  headers: Record<string, string | string[]>
+  body: {
+    arrayBuffer(): Promise<ArrayBuffer>
   }
-  Agent: new (options: any) => any
+}
+
+interface UndiciAgent {
+  dispatch: (opts: unknown, handler: unknown) => boolean
+  close: () => Promise<void>
+  compose: (interceptor: unknown) => UndiciAgent
+}
+
+interface UndiciProxyAgent {
+  dispatch: (opts: unknown, handler: unknown) => boolean
+  close: () => Promise<void>
+}
+
+interface UndiciDispatcher {
+  dispatch: (opts: unknown, handler: unknown) => boolean
+  close: () => Promise<void>
+  compose: (interceptor: unknown) => UndiciDispatcher
+}
+
+interface UndiciRedirectInterceptor {
+  (options: { maxRedirections: number }): unknown
+}
+
+interface UndiciInterceptors {
+  redirect: UndiciRedirectInterceptor
+}
+
+export interface UndiciLibraryInterface {
+  request: UndiciRequest
+  ProxyAgent: new (options: { uri: string; auth?: string } | string) => UndiciProxyAgent
+  getGlobalDispatcher: () => UndiciDispatcher
+  interceptors: UndiciInterceptors
+  Agent: new (options: Record<string, unknown>) => UndiciAgent
 }
 
 /**
@@ -21,50 +56,62 @@ export interface FsInterface {
 /**
  * 実際のUndiciライブラリを使用する実装
  */
+interface UndiciModule {
+  request: UndiciRequest
+  ProxyAgent: new (options: { uri: string; auth?: string } | string) => UndiciProxyAgent
+  getGlobalDispatcher: () => UndiciDispatcher
+  interceptors: UndiciInterceptors
+  Agent: new (options: Record<string, unknown>) => UndiciAgent
+}
+
 export class RealUndiciLibrary implements UndiciLibraryInterface {
-  private undiciModule: any = null
+  private undiciModule: UndiciModule | null = null
 
   async initialize(): Promise<void> {
     if (!this.undiciModule) {
-      this.undiciModule = await import('undici')
+      this.undiciModule = (await import('undici')) as unknown as UndiciModule
     }
   }
 
-  get request() {
-    return this.undiciModule.request
+  get request(): UndiciRequest {
+    return this.undiciModule!.request
   }
 
-  get ProxyAgent() {
-    return this.undiciModule.ProxyAgent
+  get ProxyAgent(): new (options: { uri: string; auth?: string } | string) => UndiciProxyAgent {
+    return this.undiciModule!.ProxyAgent
   }
 
-  get getGlobalDispatcher() {
-    return this.undiciModule.getGlobalDispatcher
+  get getGlobalDispatcher(): () => UndiciDispatcher {
+    return this.undiciModule!.getGlobalDispatcher
   }
 
-  get interceptors() {
-    return this.undiciModule.interceptors
+  get interceptors(): UndiciInterceptors {
+    return this.undiciModule!.interceptors
   }
 
-  get Agent() {
-    return this.undiciModule.Agent
+  get Agent(): new (options: Record<string, unknown>) => UndiciAgent {
+    return this.undiciModule!.Agent
   }
 }
 
 /**
  * 実際のNode.js fsモジュールを使用する実装
  */
+interface FsModule {
+  readFileSync: (path: string, encoding: string) => string
+}
+
 export class RealFsModule implements FsInterface {
-  private fsModule: any = null
+  private fsModule: FsModule | null = null
 
   async initialize(): Promise<void> {
     if (!this.fsModule) {
-      this.fsModule = await import('fs')
+      this.fsModule = (await import('fs')) as FsModule
     }
   }
 
   readFileSync(path: string, encoding: string): string {
-    return this.fsModule.readFileSync(path, encoding)
+    return this.fsModule!.readFileSync(path, encoding)
   }
 }
 

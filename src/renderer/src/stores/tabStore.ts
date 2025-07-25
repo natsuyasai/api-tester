@@ -3,7 +3,6 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { ApiTab } from '@/types/types'
 import { showErrorDialog } from '@renderer/utils/errorUtils'
-import { KeyValuePairOperations } from '@renderer/utils/keyValueUtils'
 import { useCollectionStore } from './collectionStore'
 import { useSessionStore } from './sessionStore'
 

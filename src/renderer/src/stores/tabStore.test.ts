@@ -185,7 +185,8 @@ describe('TabStore', () => {
   describe('Keyboard Navigation', () => {
     it('should switch to next tab', () => {
       const { addTab, switchToNextTab } = useTabStore.getState()
-      addTab('test-collection-id')
+      // コレクションIDを設定しないでタブを追加（同じフィルターリングを受ける）
+      addTab()
 
       const state = useTabStore.getState()
       const firstTabId = state.tabs[0].id
@@ -203,7 +204,8 @@ describe('TabStore', () => {
 
     it('should switch to previous tab', () => {
       const { addTab, switchToPreviousTab } = useTabStore.getState()
-      addTab('test-collection-id')
+      // コレクションIDを設定しないでタブを追加（同じフィルターリングを受ける）
+      addTab()
 
       const state = useTabStore.getState()
       const firstTabId = state.tabs[0].id
@@ -221,7 +223,7 @@ describe('TabStore', () => {
 
     it('should wrap around when switching to next tab at end', () => {
       const { addTab, setActiveTab, switchToNextTab } = useTabStore.getState()
-      addTab('test-collection-id')
+      addTab()
 
       const state = useTabStore.getState()
       const firstTabId = state.tabs[0].id
@@ -236,7 +238,7 @@ describe('TabStore', () => {
 
     it('should wrap around when switching to previous tab at beginning', () => {
       const { addTab, setActiveTab, switchToPreviousTab } = useTabStore.getState()
-      addTab('test-collection-id')
+      addTab()
 
       const state = useTabStore.getState()
       const firstTabId = state.tabs[0].id

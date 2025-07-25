@@ -67,7 +67,7 @@ export const useResponseActions = ({
       if (!result.canceled && result.filePath) {
         const writeResult = await window.fileAPI.writeFile(result.filePath, jsonContent)
         if (!writeResult.success) {
-          throw new Error(writeResult.error || 'Failed to export file')
+          throw new Error(writeResult.error ?? 'Failed to export file')
         }
       }
     } catch (error) {
@@ -100,7 +100,7 @@ export const useResponseActions = ({
       if (!result.canceled && result.filePath) {
         const writeResult = await window.fileAPI.writeFile(result.filePath, content)
         if (!writeResult.success) {
-          throw new Error(writeResult.error || 'Failed to download file')
+          throw new Error(writeResult.error ?? 'Failed to download file')
         }
       }
     } catch (error) {

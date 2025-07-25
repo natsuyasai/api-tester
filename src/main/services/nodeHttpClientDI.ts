@@ -8,7 +8,8 @@ import { RequestBuilder } from '../../services/requestBuilder'
 import {
   MainProcessConfigProvider,
   DefaultConfigProvider,
-  DynamicConfigProvider
+  DynamicConfigProvider,
+  MainProcessConfig
 } from '../config/defaultConfig'
 import { getCurrentMainProcessConfig } from '../handlers/configHandlers'
 import {
@@ -16,6 +17,7 @@ import {
   FsInterface,
   ClientCertificateConfigProvider,
   ClientCertificateConfig,
+  ClientCertificate,
   RealUndiciLibrary,
   RealFsModule,
   DefaultClientCertificateProvider
@@ -508,11 +510,11 @@ class NodeHttpClientFactory {
   /**
    * リクエスト関数を作成
    */
-  async createRequestFunction(globalSettings: any): Promise<UndiciRequestInterface> {
+  createRequestFunction(globalSettings: MainProcessConfig): UndiciRequestInterface {
     const dispatcher = this.createDispatcher(globalSettings)
 
     return async (url: string, options: Parameters<UndiciRequestInterface>[1]) => {
-      const finalDispatcher = await this.createFinalDispatcher(url, dispatcher, globalSettings)
+      const finalDispatcher = this.createFinalDispatcher(url, dispatcher, globalSettings)
 
       const response = await this.undiciLib.request(url, {
         ...options,
@@ -526,7 +528,7 @@ class NodeHttpClientFactory {
   /**
    * 基本ディスパッチャーを作成
    */
-  private createDispatcher(globalSettings: any): any {
+  private createDispatcher(globalSettings: MainProcessConfig): unknown {
     return this.undiciLib.getGlobalDispatcher().compose(
       this.undiciLib.interceptors.redirect({
         maxRedirections: globalSettings.defaultMaxRedirects || 5
@@ -537,11 +539,11 @@ class NodeHttpClientFactory {
   /**
    * 最終的なディスパッチャーを作成（証明書対応含む）
    */
-  private async createFinalDispatcher(
+  private createFinalDispatcher(
     url: string,
-    baseDispatcher: any,
-    globalSettings: any
-  ): Promise<any> {
+    baseDispatcher: unknown,
+    globalSettings: MainProcessConfig
+  ): unknown {
     const certConfig = this.certProvider.getConfig()
 
     if (!certConfig.enabled || certConfig.certificates.length === 0) {
@@ -573,7 +575,11 @@ class NodeHttpClientFactory {
   /**
    * TLS証明書対応のディスパッチャーを作成
    */
-  private createTlsDispatcher(cert: any, globalSettings: any, baseDispatcher: any): any {
+  private createTlsDispatcher(
+    cert: ClientCertificate,
+    globalSettings: MainProcessConfig,
+    baseDispatcher: unknown
+  ): unknown {
     try {
       const certData = this.fsModule.readFileSync(cert.certPath, 'utf8')
       const keyData = this.fsModule.readFileSync(cert.keyPath, 'utf8')
@@ -604,7 +610,11 @@ class NodeHttpClientFactory {
   /**
    * レスポンスを正規化
    */
-  private normalizeResponse(response: any) {
+  private normalizeResponse(response: {
+    statusCode: number
+    headers: Record<string, string | string[]>
+    body: { arrayBuffer(): Promise<ArrayBuffer> }
+  }) {
     return {
       statusCode: response.statusCode,
       headers: Object.fromEntries(
@@ -642,7 +652,7 @@ export async function createNodeHttpClient(
   const globalSettings = provider.getConfig()
 
   const factory = new NodeHttpClientFactory(realUndici, realFs, realCertProvider)
-  const requestWithRedirect = await factory.createRequestFunction(globalSettings)
+  const requestWithRedirect = factory.createRequestFunction(globalSettings)
 
   return new NodeHttpClientDI(
     requestWithRedirect,
