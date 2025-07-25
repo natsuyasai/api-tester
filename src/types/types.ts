@@ -186,6 +186,7 @@ export interface ApiTab {
   isActive: boolean
   collectionId?: string // どのコレクションに属するかを示す
   sessionId?: string // 使用するセッション情報のID
+  isCustomTitle?: boolean // ユーザーが手動でタイトルを変更したかどうか
 }
 
 // アプリケーション全体の設定

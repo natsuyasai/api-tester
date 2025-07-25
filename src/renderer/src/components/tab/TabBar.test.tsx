@@ -18,6 +18,7 @@ describe('TabBar', () => {
       id: 'tab-1',
       title: 'Tab 1',
       isActive: true,
+      isCustomTitle: false,
       request: {
         id: 'req-1',
         name: 'Request 1',
@@ -35,6 +36,7 @@ describe('TabBar', () => {
       id: 'tab-2',
       title: 'Tab 2',
       isActive: false,
+      isCustomTitle: false,
       request: {
         id: 'req-2',
         name: 'Request 2',

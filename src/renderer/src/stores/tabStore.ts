@@ -40,6 +40,7 @@ const createInitialTab = (collectionId?: string, sessionId?: string): ApiTab => 
   response: null,
   collectionId,
   sessionId,
+  isCustomTitle: false,
   request: {
     id: uuidv4(),
     name: 'New Request',
@@ -91,7 +92,7 @@ export const useTabStore = create<TabState & TabActions>()(
         // フォルダが選択されている場合のみ、フォルダ内のタブ数をチェック
         if (tab.collectionId) {
           const collectionTabs = state.tabs.filter((t) => t.collectionId === tab.collectionId)
-          
+
           // フォルダ内に1つしかタブがない場合は閉じられない
           if (collectionTabs.length <= 1) return false
         }
@@ -166,7 +167,9 @@ export const useTabStore = create<TabState & TabActions>()(
       updateTabTitle: (tabId: string, title: string) => {
         set(
           (state) => ({
-            tabs: state.tabs.map((tab) => (tab.id === tabId ? { ...tab, title } : tab))
+            tabs: state.tabs.map((tab) =>
+              tab.id === tabId ? { ...tab, title, isCustomTitle: true } : tab
+            )
           }),
           false,
           'updateTabTitle'

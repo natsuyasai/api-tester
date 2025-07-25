@@ -10,6 +10,7 @@ describe('TabStore', () => {
           title: 'Test Tab',
           isActive: true,
           response: null,
+          isCustomTitle: false,
           request: {
             id: 'req-1',
             name: 'Test Request',
@@ -104,6 +105,21 @@ describe('TabStore', () => {
 
       const updatedState = useTabStore.getState()
       expect(updatedState.tabs[0].title).toBe('Updated Title')
+    })
+
+    it('should set isCustomTitle to true when updating tab title', () => {
+      const { updateTabTitle } = useTabStore.getState()
+      const state = useTabStore.getState()
+      const tabId = state.tabs[0].id
+
+      // 初期状態ではisCustomTitleはfalse
+      expect(state.tabs[0].isCustomTitle).toBe(false)
+
+      updateTabTitle(tabId, 'Custom Title')
+
+      const updatedState = useTabStore.getState()
+      expect(updatedState.tabs[0].title).toBe('Custom Title')
+      expect(updatedState.tabs[0].isCustomTitle).toBe(true)
     })
 
     it('should get active tab', () => {
@@ -210,7 +226,7 @@ describe('TabStore', () => {
       addTab('collection-1') // もう1つ同じコレクションに追加
 
       const state = useTabStore.getState()
-      const collectionTab = state.tabs.find(t => t.collectionId === 'collection-1')
+      const collectionTab = state.tabs.find((t) => t.collectionId === 'collection-1')
 
       expect(canCloseTab(collectionTab!.id)).toBe(true)
     })

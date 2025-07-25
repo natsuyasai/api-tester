@@ -90,8 +90,8 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
 
   const handleUrlChange = (url: string) => {
     updateUrl(tabId, url)
-    // URLからタブタイトルを自動生成
-    if (url) {
+    // 手動でタイトルが変更されていない場合のみ自動生成
+    if (url && !tab.isCustomTitle) {
       try {
         const urlObj = new URL(url)
         const title = `${request.method} ${urlObj.pathname}`
@@ -105,8 +105,8 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
 
   const handleMethodChange = (method: HttpMethod) => {
     updateMethod(tabId, method)
-    // メソッド変更時もタイトルを更新
-    if (request.url) {
+    // 手動でタイトルが変更されていない場合のみ更新
+    if (request.url && !tab.isCustomTitle) {
       try {
         const urlObj = new URL(request.url)
         const title = `${method} ${urlObj.pathname}`
