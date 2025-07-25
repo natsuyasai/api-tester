@@ -45,9 +45,6 @@ describe('GlobalSettings', () => {
     defaultUserAgent: 'API Tester 1.0',
     theme: 'auto' as const,
     fontSize: 'medium' as const,
-    tabSize: 2,
-    wordWrap: true,
-    lineNumbers: true,
     debugLogs: false,
     saveHistory: true,
     maxHistorySize: 100,
@@ -97,7 +94,6 @@ describe('GlobalSettings', () => {
     expect(screen.getByText('グローバル設定')).toBeInTheDocument()
     expect(screen.getByText('デフォルトリクエスト設定')).toBeInTheDocument()
     expect(screen.getByText('UI設定')).toBeInTheDocument()
-    expect(screen.getByText('エディタ設定')).toBeInTheDocument()
     expect(screen.getByText('アプリケーション設定')).toBeInTheDocument()
     expect(screen.getByText('プロキシ設定')).toBeInTheDocument()
     expect(screen.getByText('開発者設定')).toBeInTheDocument()
@@ -150,17 +146,6 @@ describe('GlobalSettings', () => {
 
     expect(mockStoreActions.updateSettings).toHaveBeenCalledWith({
       defaultFollowRedirects: false
-    })
-  })
-
-  it('should update range settings', () => {
-    render(<GlobalSettings />)
-
-    const tabSizeRange = screen.getByDisplayValue('2')
-    fireEvent.change(tabSizeRange, { target: { value: '4' } })
-
-    expect(mockStoreActions.updateSettings).toHaveBeenCalledWith({
-      tabSize: 4
     })
   })
 

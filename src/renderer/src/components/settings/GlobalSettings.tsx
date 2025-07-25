@@ -21,7 +21,6 @@ export const GlobalSettings = (): JSX.Element => {
   const timeoutId = useId()
   const maxRedirectsId = useId()
   const userAgentId = useId()
-  const tabSizeId = useId()
   const maxHistoryId = useId()
   const autoSaveIntervalId = useId()
   const proxyUrlId = useId()
@@ -314,55 +313,6 @@ export const GlobalSettings = (): JSX.Element => {
           </div>
         </div>
 
-        {/* エディタ設定 */}
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <h2>エディタ設定</h2>
-            <p className={styles.sectionDescription}>JSONエディタやコード表示の設定</p>
-          </div>
-
-          <div className={styles.settingsGrid}>
-            <div className={styles.rangeGroup}>
-              <label htmlFor={tabSizeId}>タブサイズ:</label>
-              <div className={styles.rangeContainer}>
-                <input
-                  id={tabSizeId}
-                  type="range"
-                  min="2"
-                  max="8"
-                  step="2"
-                  value={settings.tabSize}
-                  onChange={(e) => updateSettings({ tabSize: parseInt(e.target.value, 10) })}
-                  className={styles.rangeInput}
-                />
-                <span className={styles.rangeValue}>{settings.tabSize}</span>
-              </div>
-            </div>
-
-            <div className={styles.checkboxGroup}>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  checked={settings.wordWrap}
-                  onChange={(e) => updateSettings({ wordWrap: e.target.checked })}
-                />
-                <span>自動改行</span>
-              </label>
-            </div>
-
-            <div className={styles.checkboxGroup}>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  checked={settings.lineNumbers}
-                  onChange={(e) => updateSettings({ lineNumbers: e.target.checked })}
-                />
-                <span>行番号を表示</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
         {/* アプリケーション設定 */}
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
@@ -434,17 +384,6 @@ export const GlobalSettings = (): JSX.Element => {
                 disabled={!settings.saveHistory}
                 className={styles.input}
               />
-            </div>
-
-            <div className={styles.checkboxGroup}>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  checked={settings.checkForUpdates}
-                  onChange={(e) => updateSettings({ checkForUpdates: e.target.checked })}
-                />
-                <span>アップデートを自動チェック</span>
-              </label>
             </div>
           </div>
         </div>

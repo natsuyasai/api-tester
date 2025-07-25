@@ -202,3 +202,121 @@ body {
   background-color: var(--color-bg-accent);
   color: var(--color-text-inverse);
 }
+
+/* フォントサイズのクラス */
+.font-size-small {
+  font-size: 12px;
+
+  .input,
+  .textarea,
+  .select {
+    font-size: 12px;
+  }
+
+  .code,
+  pre {
+    font-size: 11px;
+  }
+
+  .button {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+  h2 {
+    font-size: 16px;
+  }
+  h3 {
+    font-size: 14px;
+  }
+  h4 {
+    font-size: 13px;
+  }
+  h5 {
+    font-size: 12px;
+  }
+  h6 {
+    font-size: 11px;
+  }
+}
+
+.font-size-medium {
+  font-size: 14px;
+
+  .input,
+  .textarea,
+  .select {
+    font-size: 14px;
+  }
+
+  .code,
+  pre {
+    font-size: 13px;
+  }
+
+  .button {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+  h2 {
+    font-size: 20px;
+  }
+  h3 {
+    font-size: 16px;
+  }
+  h4 {
+    font-size: 15px;
+  }
+  h5 {
+    font-size: 14px;
+  }
+  h6 {
+    font-size: 13px;
+  }
+}
+
+.font-size-large {
+  font-size: 16px;
+
+  .input,
+  .textarea,
+  .select {
+    font-size: 16px;
+  }
+
+  .code,
+  pre {
+    font-size: 15px;
+  }
+
+  .button {
+    font-size: 16px;
+    padding: 8px 16px;
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+  h2 {
+    font-size: 24px;
+  }
+  h3 {
+    font-size: 20px;
+  }
+  h4 {
+    font-size: 18px;
+  }
+  h5 {
+    font-size: 16px;
+  }
+  h6 {
+    font-size: 15px;
+  }
+}

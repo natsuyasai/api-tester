@@ -18,11 +18,6 @@ export const DEFAULT_GLOBAL_SETTINGS: GlobalSettings = {
   theme: 'auto',
   fontSize: 'medium',
 
-  // エディタの設定
-  tabSize: 2,
-  wordWrap: true,
-  lineNumbers: true,
-
   // 開発者向け設定
   debugLogs: false,
   saveHistory: true,
@@ -110,6 +105,26 @@ export const useGlobalSettingsStore = create<GlobalSettingsState>()(
       set((state) => {
         const updatedSettings = { ...state.settings, ...newSettings }
         saveSettings(updatedSettings)
+
+        // テーマが変更された場合は即座に適用
+        if ('theme' in newSettings && newSettings.theme) {
+          applyTheme(newSettings.theme)
+        }
+
+        // フォントサイズが変更された場合は即座に適用
+        if ('fontSize' in newSettings && newSettings.fontSize) {
+          applyFontSize(newSettings.fontSize)
+        }
+
+        // プロキシ設定が変更された場合は適用（非同期）
+        if (
+          'proxyEnabled' in newSettings ||
+          'proxyUrl' in newSettings ||
+          'proxyAuth' in newSettings
+        ) {
+          void applyProxySettings(updatedSettings)
+        }
+
         return { settings: updatedSettings }
       })
     },
@@ -117,6 +132,11 @@ export const useGlobalSettingsStore = create<GlobalSettingsState>()(
     resetSettings: () => {
       set({ settings: DEFAULT_GLOBAL_SETTINGS })
       saveSettings(DEFAULT_GLOBAL_SETTINGS)
+
+      // リセット時にデフォルトのテーマとフォントサイズを適用
+      applyTheme(DEFAULT_GLOBAL_SETTINGS.theme)
+      applyFontSize(DEFAULT_GLOBAL_SETTINGS.fontSize)
+      void applyProxySettings(DEFAULT_GLOBAL_SETTINGS)
     },
 
     exportSettings: () => {
@@ -131,6 +151,12 @@ export const useGlobalSettingsStore = create<GlobalSettingsState>()(
           const newSettings = { ...DEFAULT_GLOBAL_SETTINGS, ...parsed } as GlobalSettings
           set({ settings: newSettings })
           saveSettings(newSettings)
+
+          // インポート時にテーマとフォントサイズを適用
+          applyTheme(newSettings.theme)
+          applyFontSize(newSettings.fontSize)
+          void applyProxySettings(newSettings)
+
           return true
         }
       } catch (error) {
@@ -218,6 +244,42 @@ export const getGlobalSettings = (): GlobalSettings => {
   return useGlobalSettingsStore.getState().settings
 }
 
+// テーマを適用する関数
+const applyTheme = (theme: 'light' | 'dark' | 'auto'): void => {
+  const root = document.documentElement
+
+  if (theme === 'auto') {
+    // システムのダークモード設定を検出
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    root.setAttribute('data-theme', isDarkMode ? 'dark' : 'light')
+
+    // システム設定変更の監視（重複登録を避けるため一度削除）
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+      const currentSettings = useGlobalSettingsStore.getState().settings
+      if (currentSettings.theme === 'auto') {
+        root.setAttribute('data-theme', e.matches ? 'dark' : 'light')
+      }
+    }
+
+    mediaQuery.removeEventListener('change', handleSystemThemeChange)
+    mediaQuery.addEventListener('change', handleSystemThemeChange)
+  } else {
+    root.setAttribute('data-theme', theme)
+  }
+}
+
+// フォントサイズを適用する関数
+const applyFontSize = (fontSize: 'small' | 'medium' | 'large'): void => {
+  const root = document.documentElement
+
+  // 既存のフォントサイズクラスを削除
+  root.classList.remove('font-size-small', 'font-size-medium', 'font-size-large')
+
+  // 新しいフォントサイズクラスを追加
+  root.classList.add(`font-size-${fontSize}`)
+}
+
 // プロキシ設定をElectronに適用する関数
 const applyProxySettings = async (settings: GlobalSettings): Promise<void> => {
   try {
@@ -250,38 +312,10 @@ const applyProxySettings = async (settings: GlobalSettings): Promise<void> => {
   }
 }
 
-// テーマとフォントサイズを適用する関数
-const applyThemeAndFont = (settings: GlobalSettings): void => {
-  // テーマの適用
-  if (settings.theme === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark')
-  } else if (settings.theme === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light')
-  } else {
-    // autoの場合はシステム設定に従う
-    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-    document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light')
-
-    // システム設定変更の監視
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleSystemThemeChange = (e: MediaQueryListEvent) => {
-      if (useGlobalSettingsStore.getState().settings.theme === 'auto') {
-        document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light')
-      }
-    }
-
-    // 既存のリスナーを削除してから新しいリスナーを追加
-    mediaQuery.removeEventListener('change', handleSystemThemeChange)
-    mediaQuery.addEventListener('change', handleSystemThemeChange)
-  }
-
-  // フォントサイズの適用
-  document.documentElement.setAttribute('data-font-size', settings.fontSize)
-}
-
 // 起動時にテーマとフォントを適用
-// const initialSettings = loadSettings()
-// applyThemeAndFont(initialSettings)
+const initialSettings = loadSettings()
+applyTheme(initialSettings.theme)
+applyFontSize(initialSettings.fontSize)
 
 // TLS設定をElectronに適用する関数
 const applyTlsSettings = async (settings: GlobalSettings): Promise<void> => {
@@ -304,9 +338,14 @@ const applyTlsSettings = async (settings: GlobalSettings): Promise<void> => {
 useGlobalSettingsStore.subscribe(
   (state) => state.settings,
   (settings, prevSettings) => {
-    // テーマまたはフォントサイズが変更された場合に適用
-    if (settings.theme !== prevSettings?.theme || settings.fontSize !== prevSettings?.fontSize) {
-      applyThemeAndFont(settings)
+    // テーマが変更された場合に適用
+    if (settings.theme !== prevSettings?.theme) {
+      applyTheme(settings.theme)
+    }
+
+    // フォントサイズが変更された場合に適用
+    if (settings.fontSize !== prevSettings?.fontSize) {
+      applyFontSize(settings.fontSize)
     }
 
     // プロキシ設定の変更をElectronに適用

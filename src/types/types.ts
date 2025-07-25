@@ -14,11 +14,6 @@ export interface GlobalSettings {
   theme: 'light' | 'dark' | 'auto'
   fontSize: 'small' | 'medium' | 'large'
 
-  // エディタの設定
-  tabSize: number
-  wordWrap: boolean
-  lineNumbers: boolean
-
   // 開発者向け設定
   debugLogs: boolean
   saveHistory: boolean
