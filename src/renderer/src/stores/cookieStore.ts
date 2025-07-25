@@ -16,33 +16,8 @@ interface CookieState extends CookieStore {
 
 const generateId = () => Math.random().toString(36).substr(2, 9)
 
-const createDefaultCookies = (): Cookie[] => [
-  {
-    id: 'session-example',
-    name: 'session_id',
-    value: 'abc123def456',
-    domain: 'example.com',
-    path: '/',
-    enabled: true,
-    httpOnly: true,
-    secure: true,
-    sameSite: 'Lax'
-  },
-  {
-    id: 'auth-token',
-    name: 'auth_token',
-    value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-    domain: 'api.example.com',
-    path: '/api',
-    enabled: true,
-    httpOnly: true,
-    secure: true,
-    sameSite: 'Strict'
-  }
-]
-
 const initialState: CookieStore = {
-  cookies: createDefaultCookies()
+  cookies: []
 }
 
 export const useCookieStore = create<CookieState>()(

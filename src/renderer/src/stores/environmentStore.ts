@@ -22,36 +22,9 @@ interface EnvironmentState extends EnvironmentConfig {
 
 const generateId = () => Math.random().toString(36).substr(2, 9)
 
-const createDefaultEnvironments = (): Environment[] => [
-  {
-    id: 'development',
-    name: '開発環境',
-    variables: [
-      { key: 'baseUrl', value: 'http://localhost:3000', enabled: true },
-      { key: 'apiKey', value: 'dev-api-key-123', enabled: true }
-    ]
-  },
-  {
-    id: 'staging',
-    name: 'ステージング環境',
-    variables: [
-      { key: 'baseUrl', value: 'https://staging-api.example.com', enabled: true },
-      { key: 'apiKey', value: 'staging-api-key-456', enabled: true }
-    ]
-  },
-  {
-    id: 'production',
-    name: '本番環境',
-    variables: [
-      { key: 'baseUrl', value: 'https://api.example.com', enabled: true },
-      { key: 'apiKey', value: 'prod-api-key-789', enabled: true }
-    ]
-  }
-]
-
 const initialState: EnvironmentConfig = {
-  environments: createDefaultEnvironments(),
-  activeEnvironmentId: 'development'
+  environments: [],
+  activeEnvironmentId: null
 }
 
 export const useEnvironmentStore = create<EnvironmentState>()(

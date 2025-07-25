@@ -45,11 +45,11 @@ const createInitialTab = (collectionId?: string, sessionId?: string): ApiTab => 
     name: 'New Request',
     url: '',
     method: 'GET',
-    headers: KeyValuePairOperations.add([]),
-    params: KeyValuePairOperations.add([]),
+    headers: [],
+    params: [],
     body: '',
     bodyType: 'json',
-    bodyKeyValuePairs: KeyValuePairOperations.add([]),
+    bodyKeyValuePairs: [],
     type: 'rest'
   }
 })

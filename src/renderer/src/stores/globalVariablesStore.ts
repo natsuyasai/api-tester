@@ -16,32 +16,8 @@ interface GlobalVariablesState extends GlobalVariablesConfig {
 
 const generateId = () => Math.random().toString(36).substr(2, 9)
 
-const createDefaultGlobalVariables = (): GlobalVariable[] => [
-  {
-    id: 'global-1',
-    key: 'baseUrl',
-    value: 'https://api.example.com',
-    enabled: true,
-    description: 'API のベース URL'
-  },
-  {
-    id: 'global-2',
-    key: 'version',
-    value: 'v1',
-    enabled: true,
-    description: 'API バージョン'
-  },
-  {
-    id: 'global-3',
-    key: 'apiKey',
-    value: 'your-api-key-here',
-    enabled: false,
-    description: '共通 API キー'
-  }
-]
-
 const initialState: GlobalVariablesConfig = {
-  variables: createDefaultGlobalVariables()
+  variables: []
 }
 
 export const useGlobalVariablesStore = create<GlobalVariablesState>()(
