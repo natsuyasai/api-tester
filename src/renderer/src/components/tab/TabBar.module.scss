@@ -57,6 +57,27 @@
   &.editing {
     overflow: hidden;
   }
+
+  &.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+    z-index: 1000;
+    cursor: grabbing;
+  }
+
+  &.dragOver {
+    border-left: 3px solid var(--color-border-accent);
+    border-right: 3px solid var(--color-border-accent);
+    background-color: var(--color-bg-hover);
+  }
+
+  &[draggable='true'] {
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
 }
 
 .tabButton {

@@ -27,7 +27,8 @@ export const TabBar = ({
     updateTabTitle,
     startEditingActiveTab,
     getTabsByCollection,
-    canCloseTab
+    canCloseTab,
+    reorderTabs
   } = useTabStore()
   const { activeCollectionId, getActiveCollection } = useCollectionStore()
   const { getActiveSession } = useSessionStore()
@@ -38,6 +39,8 @@ export const TabBar = ({
   const tabListRef = useRef<HTMLDivElement>(null)
   const [showLeftScroll, setShowLeftScroll] = useState(false)
   const [showRightScroll, setShowRightScroll] = useState(false)
+  const [draggedTabId, setDraggedTabId] = useState<string | null>(null)
+  const [dragOverTabId, setDragOverTabId] = useState<string | null>(null)
 
   const handleTabClick = (tabId: string) => {
     setActiveTab(tabId)
@@ -57,6 +60,61 @@ export const TabBar = ({
         closeTab(tabId)
       }
     }
+  }
+
+  const handleDragStart = (e: React.DragEvent, tabId: string) => {
+    setDraggedTabId(tabId)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', tabId)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedTabId(null)
+    setDragOverTabId(null)
+  }
+
+  const handleDragOver = (e: React.DragEvent, tabId: string) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+
+    if (draggedTabId && draggedTabId !== tabId) {
+      setDragOverTabId(tabId)
+    }
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // タブ要素の外に出た場合のみクリア
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX
+    const y = e.clientY
+
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      setDragOverTabId(null)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent, targetTabId: string) => {
+    e.preventDefault()
+
+    const draggedTabIdFromData = e.dataTransfer.getData('text/plain')
+    if (!draggedTabIdFromData || draggedTabIdFromData === targetTabId) {
+      return
+    }
+
+    // 現在表示されているタブのリストを取得
+    const visibleTabs = activeCollectionId
+      ? getTabsByCollection(activeCollectionId)
+      : tabs.filter((tab) => !tab.collectionId)
+
+    const dragIndex = visibleTabs.findIndex((tab) => tab.id === draggedTabIdFromData)
+    const hoverIndex = visibleTabs.findIndex((tab) => tab.id === targetTabId)
+
+    if (dragIndex !== -1 && hoverIndex !== -1 && dragIndex !== hoverIndex) {
+      reorderTabs(dragIndex, hoverIndex)
+    }
+
+    setDraggedTabId(null)
+    setDragOverTabId(null)
   }
 
   const handleAddTab = () => {
@@ -209,7 +267,16 @@ export const TabBar = ({
         {(activeCollectionId ? getTabsByCollection(activeCollectionId) : tabs).map((tab) => (
           <div
             key={tab.id}
-            className={`${styles.tab} ${tab.isActive ? styles.active : ''} ${editingTabId === tab.id ? styles.editing : ''}`}
+            className={`${styles.tab} ${tab.isActive ? styles.active : ''} ${editingTabId === tab.id ? styles.editing : ''} ${draggedTabId === tab.id ? styles.dragging : ''} ${dragOverTabId === tab.id ? styles.dragOver : ''}`}
+            draggable={editingTabId !== tab.id}
+            onDragStart={(e) => handleDragStart(e, tab.id)}
+            onDragEnd={handleDragEnd}
+            onDragOver={(e) => handleDragOver(e, tab.id)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, tab.id)}
+            role="tab"
+            tabIndex={-1}
+            aria-selected={tab.isActive}
           >
             {editingTabId === tab.id ? (
               <input

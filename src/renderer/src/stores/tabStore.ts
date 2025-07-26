@@ -31,6 +31,7 @@ interface TabActions {
   saveAllTabs: () => void
   loadAllTabs: () => void
   inheritSessionFromTab: (fromTabId: string, toTabId: string) => void
+  reorderTabs: (dragIndex: number, hoverIndex: number) => void
 }
 
 const createInitialTab = (collectionId?: string, sessionId?: string): ApiTab => ({
@@ -376,6 +377,58 @@ export const useTabStore = create<TabState & TabActions>()(
             `Session inherited from tab ${fromTabId} to tab ${toTabId}: ${fromTab.sessionId}`
           )
         }
+      },
+
+      reorderTabs: (dragIndex: number, hoverIndex: number) => {
+        const state = get()
+        const collectionStore = useCollectionStore.getState()
+        const activeCollectionId = collectionStore.activeCollectionId
+
+        // 現在のコレクションに応じたタブを取得
+        const visibleTabs = activeCollectionId
+          ? state.tabs.filter((tab) => tab.collectionId === activeCollectionId)
+          : state.tabs.filter((tab) => !tab.collectionId)
+
+        if (
+          dragIndex < 0 ||
+          hoverIndex < 0 ||
+          dragIndex >= visibleTabs.length ||
+          hoverIndex >= visibleTabs.length
+        ) {
+          return
+        }
+
+        // ドラッグ対象のタブを取得
+        const dragTab = visibleTabs[dragIndex]
+        if (!dragTab) return
+
+        // 新しい順序でタブを並び替え
+        const reorderedVisibleTabs = [...visibleTabs]
+        reorderedVisibleTabs.splice(dragIndex, 1)
+        reorderedVisibleTabs.splice(hoverIndex, 0, dragTab)
+
+        // 他のコレクションのタブと結合
+        const otherTabs = activeCollectionId
+          ? state.tabs.filter((tab) => tab.collectionId !== activeCollectionId)
+          : state.tabs.filter((tab) => tab.collectionId)
+
+        // 最終的なタブ配列を構築
+        let newTabs: ApiTab[]
+        if (activeCollectionId) {
+          // アクティブコレクションがある場合は、そのコレクションのタブを並び替え
+          newTabs = [...otherTabs, ...reorderedVisibleTabs]
+        } else {
+          // ルートレベルの場合は、ルートタブを並び替え
+          newTabs = [...reorderedVisibleTabs, ...otherTabs]
+        }
+
+        set(
+          {
+            tabs: newTabs
+          },
+          false,
+          'reorderTabs'
+        )
       }
     }),
     {

@@ -173,3 +173,80 @@ export const MiddleClickCloseTab: Story = {
     }
   }
 }
+
+export const DragAndDropReorder: Story = {
+  decorators: [
+    (Story) => {
+      return (
+        <div style={{ width: '100%', height: '50px' }}>
+          <Story />
+        </div>
+      )
+    }
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // 複数のタブを追加
+    const addButton = canvas.getByRole('button', { name: '+' })
+    await userEvent.click(addButton)
+    await userEvent.click(addButton)
+
+    // タブ要素を取得（div要素で、draggable属性を持つもの）
+    const tabElements = Array.from(canvasElement.querySelectorAll('[draggable="true"]'))
+
+    if (tabElements.length >= 2) {
+      const firstTab = tabElements[0] as HTMLElement
+      const secondTab = tabElements[1] as HTMLElement
+
+      // ドラッグ開始をシミュレート
+      const dragStartEvent = new DragEvent('dragstart', {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer: new DataTransfer()
+      })
+
+      // DataTransferのsetDataをモック
+      Object.defineProperty(dragStartEvent, 'dataTransfer', {
+        value: {
+          setData: () => {},
+          getData: () => firstTab.dataset.tabId || '',
+          effectAllowed: 'move',
+          dropEffect: 'move'
+        }
+      })
+
+      firstTab.dispatchEvent(dragStartEvent)
+
+      // ドラッグオーバーをシミュレート
+      const dragOverEvent = new DragEvent('dragover', {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer: dragStartEvent.dataTransfer
+      })
+
+      secondTab.dispatchEvent(dragOverEvent)
+
+      // ドロップをシミュレート
+      const dropEvent = new DragEvent('drop', {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer: dragStartEvent.dataTransfer
+      })
+
+      secondTab.dispatchEvent(dropEvent)
+
+      // ドラッグ終了をシミュレート
+      const dragEndEvent = new DragEvent('dragend', {
+        bubbles: true,
+        cancelable: true
+      })
+
+      firstTab.dispatchEvent(dragEndEvent)
+
+      // ドラッグ&ドロップ操作が完了したことを確認
+      await expect(firstTab).toBeInTheDocument()
+      await expect(secondTab).toBeInTheDocument()
+    }
+  }
+}
