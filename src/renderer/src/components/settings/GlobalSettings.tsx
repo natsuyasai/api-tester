@@ -98,6 +98,32 @@ export const GlobalSettings = (): JSX.Element => {
     }
   }
 
+  const handleClearLocalStorage = () => {
+    const message =
+      'すべての保存データ（タブ、コレクション、セッション、履歴など）を削除しますか？\n' +
+      'この操作は元に戻せません。\n\n' +
+      '削除されるデータ：\n' +
+      '• 開いているタブとリクエスト\n' +
+      '• コレクション\n' +
+      '• セッション\n' +
+      '• グローバル設定\n' +
+      '• その他の保存データ'
+
+    if (confirm(message)) {
+      try {
+        // すべてのlocalstorageをクリア
+        localStorage.clear()
+        alert('すべての保存データを削除しました。\nアプリケーションをリロードしてください。')
+
+        // アプリケーションをリロード
+        window.location.reload()
+      } catch (error) {
+        console.error('Failed to clear localStorage:', error)
+        alert('データの削除に失敗しました')
+      }
+    }
+  }
+
   const handleProxyTest = async () => {
     setProxyTestResult({ testing: true })
 
@@ -614,6 +640,10 @@ export const GlobalSettings = (): JSX.Element => {
 
         <button type="button" onClick={handleReset} className={styles.dangerButton}>
           設定をリセット
+        </button>
+
+        <button type="button" onClick={handleClearLocalStorage} className={styles.dangerButton}>
+          すべてのデータを削除
         </button>
       </div>
     </div>

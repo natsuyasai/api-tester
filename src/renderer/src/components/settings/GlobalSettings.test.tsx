@@ -36,6 +36,22 @@ Object.defineProperty(window, 'fileAPI', {
 global.alert = vi.fn()
 global.confirm = vi.fn()
 
+// localStorage をモック
+const mockLocalStorage = {
+  clear: vi.fn()
+}
+Object.defineProperty(window, 'localStorage', {
+  value: mockLocalStorage,
+  writable: true
+})
+
+// window.location.reload をモック
+const mockReload = vi.fn()
+Object.defineProperty(window, 'location', {
+  value: { reload: mockReload },
+  writable: true
+})
+
 describe('GlobalSettings', () => {
   const mockSettings: GlobalSettingsType = {
     defaultTimeout: 30000,
@@ -89,6 +105,10 @@ describe('GlobalSettings', () => {
     })
 
     mockGetGlobalSettings.mockReturnValue(mockSettings)
+
+    // モックをリセット
+    mockLocalStorage.clear.mockClear()
+    mockReload.mockClear()
   })
 
   it('should render global settings form', () => {
@@ -310,5 +330,52 @@ describe('GlobalSettings', () => {
         password: ''
       }
     })
+  })
+
+  it('should handle clear localStorage', () => {
+    global.confirm = vi.fn().mockReturnValue(true)
+
+    render(<GlobalSettings />)
+
+    const clearButton = screen.getByText('すべてのデータを削除')
+    fireEvent.click(clearButton)
+
+    expect(global.confirm).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'すべての保存データ（タブ、コレクション、セッション、履歴など）を削除しますか？'
+      )
+    )
+    expect(mockLocalStorage.clear).toHaveBeenCalled()
+    expect(global.alert).toHaveBeenCalledWith(
+      'すべての保存データを削除しました。\nアプリケーションをリロードしてください。'
+    )
+    expect(mockReload).toHaveBeenCalled()
+  })
+
+  it('should not clear localStorage when confirmation is cancelled', () => {
+    global.confirm = vi.fn().mockReturnValue(false)
+
+    render(<GlobalSettings />)
+
+    const clearButton = screen.getByText('すべてのデータを削除')
+    fireEvent.click(clearButton)
+
+    expect(mockLocalStorage.clear).not.toHaveBeenCalled()
+    expect(mockReload).not.toHaveBeenCalled()
+  })
+
+  it('should handle localStorage clear error', () => {
+    global.confirm = vi.fn().mockReturnValue(true)
+    mockLocalStorage.clear.mockImplementation(() => {
+      throw new Error('Clear failed')
+    })
+
+    render(<GlobalSettings />)
+
+    const clearButton = screen.getByText('すべてのデータを削除')
+    fireEvent.click(clearButton)
+
+    expect(global.alert).toHaveBeenCalledWith('データの削除に失敗しました')
+    expect(mockReload).not.toHaveBeenCalled()
   })
 })
