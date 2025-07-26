@@ -401,3 +401,90 @@ export const ErrorHandling: Story = {
     await expect(textarea).toBeInTheDocument()
   }
 }
+
+export const TabKeyInput: Story = {
+  args: {
+    tabId: 'tab-1',
+    body: '{\n  "name": "test"\n}',
+    bodyType: 'json',
+    onBodyChange: () => {},
+    onBodyTypeChange: () => {}
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // テキストエリアを取得
+    const textarea = canvas.getByDisplayValue(/"name": "test"/) as HTMLTextAreaElement
+    await expect(textarea).toBeInTheDocument()
+
+    // テキストエリアにフォーカス
+    await userEvent.click(textarea)
+
+    // カーソルを適切な位置に移動（"test"の後）
+    textarea.setSelectionRange(15, 15)
+
+    // タブキーを押下
+    await userEvent.keyboard('{Tab}')
+
+    // タブ文字が挿入されることを確認
+    await expect(textarea.value).toContain('\t')
+  }
+}
+
+export const EscapeKeyBlur: Story = {
+  args: {
+    tabId: 'tab-1',
+    body: 'test content',
+    bodyType: 'raw',
+    onBodyChange: () => {},
+    onBodyTypeChange: () => {}
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // テキストエリアを取得
+    const textarea = canvas.getByDisplayValue('test content')
+    await expect(textarea).toBeInTheDocument()
+
+    // テキストエリアにフォーカス
+    await userEvent.click(textarea)
+
+    // フォーカスが当たっていることを確認
+    await expect(textarea).toHaveFocus()
+
+    // Escapeキーを押下
+    await userEvent.keyboard('{Escape}')
+
+    // フォーカスが外れることを確認
+    await expect(textarea).not.toHaveFocus()
+  }
+}
+
+export const GraphQLTabKeyInput: Story = {
+  args: {
+    tabId: 'tab-1',
+    body: 'query {\n  users {\n    id\n  }\n}',
+    bodyType: 'graphql',
+    onBodyChange: () => {},
+    onBodyTypeChange: () => {}
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // GraphQLクエリテキストエリアを取得
+    const textarea = canvas.getByDisplayValue(/query \{/) as HTMLTextAreaElement
+    await expect(textarea).toBeInTheDocument()
+
+    // テキストエリアにフォーカス
+    await userEvent.click(textarea)
+
+    // カーソルを適切な位置に移動
+    textarea.setSelectionRange(10, 10)
+
+    // タブキーを押下
+    await userEvent.keyboard('{Tab}')
+
+    // タブ文字が挿入されることを確認
+    await expect(textarea.value).toContain('\t')
+  }
+}

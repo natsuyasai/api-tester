@@ -1,4 +1,4 @@
-import { JSX, useId, useState } from 'react'
+import { JSX, useId, useState, useRef } from 'react'
 import { BodyType, KeyValuePair } from '@/types/types'
 import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
 import { useRequestStore } from '@renderer/stores/requestStore'
@@ -29,6 +29,8 @@ export const BodyEditor = ({
 }: BodyEditorProps): JSX.Element => {
   const [inputMode, setInputMode] = useState<'text' | 'keyvalue'>('text')
   const queryTextareaId = useId()
+  const graphqlTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const bodyTextareaRef = useRef<HTMLTextAreaElement>(null)
 
   const { getTab } = useTabStore()
   const { addBodyKeyValue, updateBodyKeyValue, removeBodyKeyValue } = useRequestStore()
@@ -210,6 +212,31 @@ export const BodyEditor = ({
     onBodyChange(serializedData)
   }
 
+  // textareaのキーイベント処理
+  const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      const textarea = e.currentTarget
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const value = textarea.value
+      const newValue = value.substring(0, start) + '\t' + value.substring(end)
+
+      if (textarea === graphqlTextareaRef.current) {
+        onBodyChange(newValue)
+      } else {
+        onBodyChange(newValue)
+      }
+
+      // カーソル位置を調整
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + 1
+      }, 0)
+    } else if (e.key === 'Escape') {
+      e.currentTarget.blur()
+    }
+  }
+
   // bodyTypeが変更された時の処理
   const handleBodyTypeChange = (newBodyType: BodyType) => {
     onBodyTypeChange(newBodyType)
@@ -296,9 +323,11 @@ export const BodyEditor = ({
                 </label>
               </div>
               <textarea
+                ref={graphqlTextareaRef}
                 id={`graphql-query-textarea-${queryTextareaId}`}
                 value={body}
                 onChange={(e) => onBodyChange(e.target.value)}
+                onKeyDown={handleTextareaKeyDown}
                 placeholder="query {\n  users {\n    id\n    name\n    email\n  }\n}"
                 className={styles.textarea}
                 spellCheck={false}
@@ -333,8 +362,10 @@ export const BodyEditor = ({
           </div>
         ) : (
           <textarea
+            ref={bodyTextareaRef}
             value={body}
             onChange={(e) => onBodyChange(e.target.value)}
+            onKeyDown={handleTextareaKeyDown}
             placeholder={
               bodyType === 'json'
                 ? 'Enter JSON body...\n\n{\n  "key": "value"\n}'
