@@ -258,6 +258,14 @@ export const TabBar = ({
           ›
         </button>
       )}
+      <button
+        className={styles.addButton}
+        onClick={handleAddTab}
+        aria-label="Add new tab"
+        type="button"
+      >
+        +
+      </button>
       <div className={styles.controls}>
         {activeCollectionId && (
           <div className={styles.collectionIndicator}>
@@ -314,14 +322,6 @@ export const TabBar = ({
             ⚙️
           </button>
         )}
-        <button
-          className={styles.addButton}
-          onClick={handleAddTab}
-          aria-label="Add new tab"
-          type="button"
-        >
-          +
-        </button>
       </div>
     </div>
   )
