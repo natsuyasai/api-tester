@@ -16,7 +16,7 @@
   border: 1px solid var(--color-border-secondary);
   border-radius: var(--border-radius);
   background-color: var(--color-bg-primary);
-  font-size: 14px;
+  font-size: var(--font-size-base);
   color: var(--color-text-primary);
 
   &:focus {
@@ -31,7 +31,7 @@
   padding: 8px 12px;
   border: 1px solid var(--color-border-secondary);
   border-radius: var(--border-radius);
-  font-size: 14px;
+  font-size: var(--font-size-base);
   color: var(--color-text-primary);
   background-color: var(--color-bg-primary);
 
@@ -48,12 +48,12 @@
 
 .sendButton {
   min-width: 80px;
-  padding: 8px 16px;
+  padding: var(--button-padding);
   background-color: var(--color-bg-accent);
   color: var(--color-text-inverse);
   border: none;
   border-radius: var(--border-radius);
-  font-size: 14px;
+  font-size: var(--font-size-button);
   font-weight: 500;
   cursor: pointer;
   transition: var(--transition-base);
@@ -89,7 +89,7 @@
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   color: var(--color-text-primary);
   cursor: pointer;
   transition: var(--transition-base);

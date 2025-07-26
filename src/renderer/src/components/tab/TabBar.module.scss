@@ -82,7 +82,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   color: var(--color-text-primary);
   font-weight: 500;
   min-width: 0; /* flexアイテムが縮まることを許可 */
@@ -95,7 +95,7 @@
   margin: 0 8px;
   border: 2px solid var(--color-border-accent);
   border-radius: 4px;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   color: var(--color-text-primary);
   font-weight: 500;
   background-color: var(--color-bg-primary);
@@ -121,7 +121,7 @@
   background: transparent;
   border: none;
   border-radius: 3px;
-  font-size: 16px;
+  font-size: var(--font-size-large);
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: var(--transition-base);
@@ -171,7 +171,7 @@
   height: 32px;
   background: transparent;
   border: none;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   cursor: pointer;
   transition: var(--transition-base);
   border-radius: var(--border-radius);

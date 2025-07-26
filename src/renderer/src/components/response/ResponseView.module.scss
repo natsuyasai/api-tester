@@ -26,7 +26,7 @@
 
   p {
     margin: 0;
-    font-size: 14px;
+    font-size: var(--font-size-base);
   }
 }
 
@@ -47,7 +47,7 @@
   padding: 4px 8px;
   border-radius: 4px;
   font-weight: 500;
-  font-size: 14px;
+  font-size: var(--font-size-base);
 
   &.success {
     background-color: rgba(34, 197, 94, 0.1);
@@ -71,17 +71,17 @@
 }
 
 .time {
-  font-size: 13px;
+  font-size: var(--font-size-code);
   color: var(--color-text-secondary);
 }
 
 .size {
-  font-size: 13px;
+  font-size: var(--font-size-code);
   color: var(--color-text-secondary);
 }
 
 .timestamp {
-  font-size: 13px;
+  font-size: var(--font-size-code);
   color: var(--color-text-secondary);
 }
 
@@ -99,7 +99,7 @@
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   border-radius: 4px;
-  font-size: 13px;
+  font-size: var(--font-size-code);
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -127,7 +127,7 @@
   border: none;
   background-color: var(--color-bg-primary);
   color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: var(--font-size-base);
   cursor: pointer;
   transition: all 0.2s ease;
   flex: 1;
@@ -166,7 +166,7 @@
 .responseBody {
   margin: 0;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 13px;
+  font-size: var(--font-size-code);
   line-height: 1.5;
   color: var(--color-text-primary);
   background-color: var(--color-bg-primary);
@@ -184,7 +184,7 @@
   display: flex;
   margin-bottom: 8px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 13px;
+  font-size: var(--font-size-code);
 }
 
 .headerKey {
@@ -232,7 +232,7 @@
   margin: 0;
   padding: 16px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 13px;
+  font-size: var(--font-size-code);
   line-height: 1.5;
   color: var(--color-text-primary);
   background-color: var(--color-bg-primary);
@@ -309,7 +309,7 @@
 }
 
 .selectorLabel {
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-text-primary);
   margin-bottom: 0;
@@ -322,7 +322,7 @@
   border-radius: 4px;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: var(--font-size-code);
   max-width: 300px;
 
   &:focus {
@@ -337,7 +337,7 @@
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   border-radius: 4px;
-  font-size: 13px;
+  font-size: var(--font-size-code);
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -360,7 +360,7 @@
 
   h3 {
     margin: 0 0 8px 0;
-    font-size: 14px;
+    font-size: var(--font-size-base);
     color: var(--color-text-primary);
   }
 }
@@ -396,7 +396,7 @@
 
 .propertyPath {
   flex: 1;
-  font-size: 13px;
+  font-size: var(--font-size-code);
   font-weight: 500;
   color: var(--color-text-primary);
   word-break: break-all;
@@ -413,7 +413,7 @@
 
 .previewBadge {
   margin-left: 8px;
-  font-size: 12px;
+  font-size: var(--font-size-small);
 }
 
 .previewDisplay {
@@ -425,7 +425,7 @@
   margin: 0;
   padding: 16px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 13px;
+  font-size: var(--font-size-code);
   line-height: 1.5;
   color: var(--color-text-primary);
   background-color: var(--color-bg-primary);
@@ -446,7 +446,7 @@
   margin: 0;
   padding: 16px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 13px;
+  font-size: var(--font-size-code);
   line-height: 1.5;
   color: var(--color-text-primary);
   background-color: var(--color-bg-secondary);
@@ -477,21 +477,21 @@
 
 .sectionTitle {
   margin: 0 0 8px 0;
-  font-size: 16px;
+  font-size: var(--font-size-large);
   font-weight: 600;
   color: var(--color-text-primary);
 }
 
 .sectionDescription {
   margin: 0 0 16px 0;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   line-height: 1.5;
 }
 
 .subSectionTitle {
   margin: 0 0 8px 0;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-text-primary);
 }
@@ -500,7 +500,7 @@
   margin: 0;
   padding: 12px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 12px;
+  font-size: var(--font-size-small);
   line-height: 1.5;
   color: var(--color-text-primary);
   background-color: var(--color-bg-primary);
@@ -531,7 +531,7 @@
 
 .infoText {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-code);
   color: var(--color-text-secondary);
   line-height: 1.4;
 }

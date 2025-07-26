@@ -28,7 +28,7 @@
 }
 
 .sessionTitle {
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -45,7 +45,7 @@
   border: 1px solid var(--border-primary);
   border-radius: 4px;
   color: var(--text-primary);
-  font-size: 12px;
+  font-size: var(--font-size-small);
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -83,7 +83,7 @@
   border: 1px solid var(--border-primary);
   border-radius: 4px;
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: var(--font-size-code);
 
   &:focus {
     outline: none;
@@ -92,7 +92,7 @@
 }
 
 .sessionInfo {
-  font-size: 12px;
+  font-size: var(--font-size-small);
   color: var(--text-secondary);
   margin-top: 4px;
 }
@@ -111,7 +111,7 @@
   justify-content: space-between;
   padding: 8px 12px;
   border-bottom: 1px solid var(--border-secondary);
-  font-size: 12px;
+  font-size: var(--font-size-small);
 
   &:last-child {
     border-bottom: none;
@@ -152,7 +152,7 @@
   padding: 20px;
   text-align: center;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: var(--font-size-small);
 }
 
 .sessionTabs {
@@ -198,7 +198,7 @@
   border: 1px solid var(--border-primary);
   border-radius: 4px;
   color: var(--text-primary);
-  font-size: 12px;
+  font-size: var(--font-size-small);
 
   &:focus {
     outline: none;

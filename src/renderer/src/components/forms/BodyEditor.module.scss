@@ -19,7 +19,7 @@
   border: 1px solid var(--color-border-secondary);
   border-radius: var(--border-radius);
   background-color: var(--color-bg-primary);
-  font-size: 14px;
+  font-size: var(--font-size-base);
   color: var(--color-text-primary);
 
   &:focus {
@@ -46,7 +46,7 @@
   padding: 6px 12px;
   background-color: var(--color-bg-primary);
   border: none;
-  font-size: 12px;
+  font-size: var(--font-size-small);
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: var(--transition-base);
@@ -83,7 +83,7 @@
   padding: 6px 12px;
   background-color: var(--color-bg-secondary);
   border: none;
-  font-size: 12px;
+  font-size: var(--font-size-small);
   color: var(--color-text-primary);
   cursor: pointer;
   transition: var(--transition-base);
@@ -109,7 +109,7 @@
   color: var(--color-text-inverse);
   border: none;
   border-radius: var(--border-radius);
-  font-size: 12px;
+  font-size: var(--font-size-small);
   cursor: pointer;
   transition: var(--transition-base);
 
@@ -136,7 +136,7 @@
   border: 1px solid var(--color-border-secondary);
   border-radius: var(--border-radius);
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 13px;
+  font-size: var(--font-size-code);
   line-height: 1.5;
   color: var(--color-text-primary);
   background-color: var(--color-bg-primary);
@@ -198,7 +198,7 @@
 }
 
 .sectionLabel {
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-text-primary);
   margin: 0;

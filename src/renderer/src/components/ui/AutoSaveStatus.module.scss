@@ -7,7 +7,7 @@
   background-color: var(--color-bg-secondary);
   border: 1px solid var(--color-border-secondary);
   border-radius: 4px;
-  font-size: 12px;
+  font-size: var(--font-size-small);
   color: var(--color-text-secondary);
   min-width: 200px;
 }
@@ -51,6 +51,6 @@
 
 [data-font-size='large'] {
   .autoSaveStatus {
-    font-size: 13px;
+    font-size: var(--font-size-code);
   }
 }

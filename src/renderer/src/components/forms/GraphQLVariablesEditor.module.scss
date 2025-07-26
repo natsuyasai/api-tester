@@ -14,7 +14,7 @@
 }
 
 .label {
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-text-primary);
   margin: 0;
@@ -22,7 +22,7 @@
 
 .formatButton {
   padding: 4px 12px;
-  font-size: 12px;
+  font-size: var(--font-size-small);
   font-weight: 500;
   color: var(--color-text-accent);
   background: transparent;
@@ -61,7 +61,7 @@
   border: none;
   resize: none;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 13px;
+  font-size: var(--font-size-code);
   line-height: 1.5;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
@@ -91,6 +91,6 @@
   color: var(--color-text-inverse);
   border: 1px solid var(--color-error);
   border-radius: var(--border-radius);
-  font-size: 12px;
+  font-size: var(--font-size-small);
   font-weight: 500;
 }
