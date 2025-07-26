@@ -187,7 +187,7 @@ export const TabBar = ({
       )}
       {showLeftScroll && (
         <button
-          className={styles.scrollButton}
+          className={`${styles.scrollButton} ${styles.left}`}
           onClick={scrollLeft}
           aria-label="Scroll tabs left"
           type="button"
@@ -240,7 +240,7 @@ export const TabBar = ({
       </div>
       {showRightScroll && (
         <button
-          className={styles.scrollButton}
+          className={`${styles.scrollButton} ${styles.right}`}
           onClick={scrollRight}
           aria-label="Scroll tabs right"
           type="button"

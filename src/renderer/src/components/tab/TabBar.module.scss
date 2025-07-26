@@ -144,6 +144,7 @@
   align-items: center;
   gap: 4px;
   padding-right: 8px;
+  margin-left: 16px;
 }
 
 .collectionIndicator {
@@ -153,6 +154,10 @@
   border-radius: 12px;
   font-size: 0.8rem;
   margin-right: 8px;
+  max-width: 10em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .collectionName {
@@ -185,6 +190,9 @@
     box-shadow: var(--shadow-focus);
   }
 }
+.collectionsButton {
+  margin-left: 16px;
+}
 
 .scrollButton {
   display: flex;
@@ -195,6 +203,7 @@
   background: var(--color-bg-secondary);
   border: none;
   border-right: 1px solid var(--color-border-primary);
+  border-left: 1px solid var(--color-border-primary);
   font-size: 18px;
   color: var(--color-text-secondary);
   cursor: pointer;
@@ -211,8 +220,11 @@
     box-shadow: var(--shadow-focus);
   }
 
-  &:first-child {
-    border-left: 1px solid var(--color-border-primary);
+  &.left {
+    margin-right: 8px;
+  }
+  &.right {
+    margin-left: 8px;
   }
 }
 
