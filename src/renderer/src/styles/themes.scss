@@ -144,6 +144,27 @@
   /* Text colors */
   --color-text-tertiary: #6c757d;
 
+  /* フォント関連の変数 */
+  --font-mono: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+
+  /* 下位互換性のための追加変数 */
+  --bg-primary: var(--color-bg-primary);
+  --bg-secondary: var(--color-bg-secondary);
+  --bg-input: var(--color-input-bg);
+  --bg-button-primary: var(--color-bg-accent);
+  --bg-button-primary-hover: var(--color-border-focus);
+  --bg-button-secondary: var(--color-bg-secondary);
+  --bg-button-secondary-hover: var(--color-bg-hover);
+  --bg-tag: var(--color-bg-tertiary);
+
+  --border-primary: var(--color-border-primary);
+  --border-secondary: var(--color-border-secondary);
+  --border-focus: var(--color-border-focus);
+
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-tertiary: var(--color-text-tertiary);
+
   /* HTTP Method colors */
   --color-method-get: #51cf66;
   --color-method-post: #4dabf7;
@@ -219,6 +240,27 @@ body {
   --font-size-h6: 13px;
 
   --button-padding: 6px 12px;
+
+  /* フォント関連の変数 */
+  --font-mono: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+
+  /* 下位互換性のための追加変数 */
+  --bg-primary: var(--color-bg-primary);
+  --bg-secondary: var(--color-bg-secondary);
+  --bg-input: var(--color-input-bg);
+  --bg-button-primary: var(--color-bg-accent);
+  --bg-button-primary-hover: var(--color-border-focus);
+  --bg-button-secondary: var(--color-bg-secondary);
+  --bg-button-secondary-hover: var(--color-bg-hover);
+  --bg-tag: var(--color-bg-tertiary);
+
+  --border-primary: var(--color-border-primary);
+  --border-secondary: var(--color-border-secondary);
+  --border-focus: var(--color-border-focus);
+
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-tertiary: var(--color-text-tertiary);
 }
 
 /* フォントサイズ変更クラス */
