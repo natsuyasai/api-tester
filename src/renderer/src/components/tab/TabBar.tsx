@@ -48,6 +48,17 @@ export const TabBar = ({
     closeTab(tabId)
   }
 
+  const handleTabMouseDown = (e: React.MouseEvent, tabId: string) => {
+    // 中クリック（ボタン1）でタブを閉じる
+    if (e.button === 1) {
+      e.preventDefault()
+      e.stopPropagation()
+      if (canCloseTab(tabId)) {
+        closeTab(tabId)
+      }
+    }
+  }
+
   const handleAddTab = () => {
     addTab(activeCollectionId)
   }
@@ -216,6 +227,7 @@ export const TabBar = ({
                 className={styles.tabButton}
                 onClick={() => handleTabClick(tab.id)}
                 onDoubleClick={() => handleDoubleClick(tab.id, tab.title)}
+                onMouseDown={(e) => handleTabMouseDown(e, tab.id)}
                 type="button"
               >
                 <span className={styles.title} title={tab.title}>

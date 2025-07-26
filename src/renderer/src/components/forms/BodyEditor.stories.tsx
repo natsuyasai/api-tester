@@ -414,7 +414,7 @@ export const TabKeyInput: Story = {
     const canvas = within(canvasElement)
 
     // テキストエリアを取得
-    const textarea = canvas.getByDisplayValue(/"name": "test"/) as HTMLTextAreaElement
+    const textarea = canvas.getByDisplayValue(/"name": "test"/)
     await expect(textarea).toBeInTheDocument()
 
     // テキストエリアにフォーカス
@@ -472,7 +472,7 @@ export const GraphQLTabKeyInput: Story = {
     const canvas = within(canvasElement)
 
     // GraphQLクエリテキストエリアを取得
-    const textarea = canvas.getByDisplayValue(/query \{/) as HTMLTextAreaElement
+    const textarea = canvas.getByDisplayValue(/query \{/)
     await expect(textarea).toBeInTheDocument()
 
     // テキストエリアにフォーカス
