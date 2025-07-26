@@ -10,7 +10,6 @@ interface TabBarProps {
   className?: string
   onShowSettings?: () => void
   onToggleCollections?: () => void
-  onToggleHistory?: () => void
   onToggleSessions?: () => void
 }
 
@@ -18,7 +17,6 @@ export const TabBar = ({
   className,
   onShowSettings,
   onToggleCollections,
-  onToggleHistory,
   onToggleSessions
 }: TabBarProps): JSX.Element => {
   const {
@@ -282,17 +280,6 @@ export const TabBar = ({
         >
           💾
         </button>
-        {onToggleHistory && (
-          <button
-            className={styles.historyButton}
-            onClick={onToggleHistory}
-            aria-label="Toggle execution history"
-            type="button"
-            title="実行履歴"
-          >
-            📈
-          </button>
-        )}
         {onToggleSessions && (
           <button
             className={styles.sessionButton}

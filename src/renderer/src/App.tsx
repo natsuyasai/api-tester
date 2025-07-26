@@ -83,7 +83,6 @@ function App(): JSX.Element {
           <TabBar
             onShowSettings={handleShowSettings}
             onToggleCollections={() => setShowCollectionPanel(!showCollectionPanel)}
-            onToggleHistory={() => setShowExecutionHistory(!showExecutionHistory)}
             onToggleSessions={() => setShowSessionManager(!showSessionManager)}
           />
         </div>
