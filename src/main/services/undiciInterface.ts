@@ -1,8 +1,4 @@
-import type {
-  Dispatcher,
-  Agent,
-  ProxyAgent
-} from 'undici-types'
+import type { Dispatcher, Agent, ProxyAgent } from 'undici-types'
 
 /**
  * Undiciライブラリへの依存を抽象化するインターフェース
