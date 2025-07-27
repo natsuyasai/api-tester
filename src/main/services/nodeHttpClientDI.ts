@@ -1,5 +1,23 @@
-import type { Dispatcher } from 'undici-types'
+import type Dispatcher from 'undici-types/dispatcher'
 import { ApiRequest, ApiResponse, ApiResponseData } from '@/types/types'
+
+/**
+ * 拡張されたUndiciリクエストオプション
+ * 内部使用のためのプロパティを追加
+ */
+interface ExtendedRequestOptions {
+  method?: string
+  headers?: Record<string, string> | null
+  body?: string | Buffer | Uint8Array | FormData | NodeJS.ReadableStream | null
+  headersTimeout?: number
+  bodyTimeout?: number
+  dispatcher?: unknown
+  signal?: AbortSignal | null
+  _followRedirects?: boolean
+  path?: string
+  origin?: string | URL
+}
+
 import {
   HttpClientInterface,
   UndiciRequestInterface,
@@ -84,8 +102,8 @@ export class NodeHttpClientDI implements HttpClientInterface {
         timestamp: new Date().toISOString()
       })
 
-      // リクエスト実行
-      const response = await this.undiciRequest(url.toString(), undiciOptions)
+      // リクエスト実行（pathはurlに含まれるため、型変換で対応）
+      const response = await this.undiciRequest(url.toString(), undiciOptions as Dispatcher.RequestOptions)
 
       // レスポンス処理
       return await this.processUndiciResponse(response, startTime)
@@ -151,8 +169,8 @@ export class NodeHttpClientDI implements HttpClientInterface {
         timestamp: new Date().toISOString()
       })
 
-      // リクエスト実行
-      const response = await this.undiciRequest(url.toString(), undiciOptions)
+      // リクエスト実行（pathはurlに含まれるため、型変換で対応）
+      const response = await this.undiciRequest(url.toString(), undiciOptions as Dispatcher.RequestOptions)
 
       // レスポンス処理
       return await this.processUndiciResponse(response, startTime)
@@ -177,23 +195,20 @@ export class NodeHttpClientDI implements HttpClientInterface {
     fetchOptions: RequestInit,
     _url: string,
     followRedirects?: boolean
-  ): Dispatcher.RequestOptions & { _followRedirects?: boolean } {
+  ): ExtendedRequestOptions {
     const globalSettings = this.configProvider.getConfig()
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const undiciOptions: any = {
+    const undiciOptions: ExtendedRequestOptions = {
       method: fetchOptions.method,
-      headers: fetchOptions.headers,
-      body: fetchOptions.body,
+      headers: fetchOptions.headers as Record<string, string>,
+      body: fetchOptions.body as string | Buffer | Uint8Array | FormData | NodeJS.ReadableStream | null,
       _followRedirects: followRedirects
     }
 
     // タイムアウト設定（シンプルに統一）
     if (globalSettings.defaultTimeout > 0) {
       const timeoutMs = globalSettings.defaultTimeout * 1000
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       undiciOptions.headersTimeout = Math.min(timeoutMs, 30000) // 最大30秒
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       undiciOptions.bodyTimeout = timeoutMs
     }
 
@@ -211,8 +226,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
           // proxyAuthオブジェクトから文字列形式に変換
           proxyOptions.auth = `${globalSettings.proxyAuth.username}:${globalSettings.proxyAuth.password}`
         }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        undiciOptions.dispatcher = new this.ProxyAgentClass(proxyOptions) as unknown
+        undiciOptions.dispatcher = new this.ProxyAgentClass(proxyOptions)
       } catch (error) {
         console.error('Proxy configuration error:', error)
       }
@@ -220,11 +234,9 @@ export class NodeHttpClientDI implements HttpClientInterface {
 
     // キャンセルシグナル（既存のsignalがある場合は優先）
     if (fetchOptions.signal) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       undiciOptions.signal = fetchOptions.signal
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return undiciOptions
   }
 
@@ -549,13 +561,11 @@ class NodeHttpClientFactory {
         followRedirects
       )
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const requestOptions: any = {
+      const requestOptions = {
         ...options,
         dispatcher: finalDispatcher
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      const response = await this.undiciLib.request(url, requestOptions)
+      } as ExtendedRequestOptions
+      const response = await this.undiciLib.request(url, requestOptions as Dispatcher.RequestOptions)
 
       return this.normalizeResponse(response)
     }
