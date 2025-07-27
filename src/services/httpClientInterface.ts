@@ -1,3 +1,4 @@
+import type { Dispatcher } from 'undici-types'
 import { ApiRequest, ApiResponse } from '@/types/types'
 
 /**
@@ -51,13 +52,14 @@ export interface HttpClientInterface {
 export interface UndiciRequestInterface {
   (
     url: string,
-    options?: Record<string, unknown>
+    options?: Dispatcher.RequestOptions
   ): Promise<{
     statusCode: number
     headers: Record<string, string>
     body: {
       arrayBuffer(): Promise<ArrayBuffer>
     }
+    url?: string
   }>
 }
 
@@ -65,8 +67,5 @@ export interface UndiciRequestInterface {
  * ProxyAgentクラスのインターフェース
  */
 export interface ProxyAgentInterface {
-  new (options: { uri: string; auth?: string }): {
-    dispatch: (opts: unknown, handler: unknown) => boolean
-    close: () => Promise<void>
-  }
+  new (options: { uri: string; auth?: string }): Dispatcher
 }

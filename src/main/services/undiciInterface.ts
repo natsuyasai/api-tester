@@ -1,8 +1,14 @@
+import type {
+  Dispatcher,
+  Agent,
+  ProxyAgent
+} from 'undici-types'
+
 /**
  * Undiciライブラリへの依存を抽象化するインターフェース
  */
 interface UndiciRequest {
-  (url: string, options: Record<string, unknown>): Promise<UndiciResponse>
+  (url: string, options: Dispatcher.RequestOptions): Promise<UndiciResponse>
 }
 
 interface UndiciResponse {
@@ -13,22 +19,11 @@ interface UndiciResponse {
   }
 }
 
-interface UndiciAgent {
-  dispatch: (opts: unknown, handler: unknown) => boolean
-  close: () => Promise<void>
-  compose: (interceptor: unknown) => UndiciAgent
-}
+type UndiciAgent = Agent
 
-interface UndiciProxyAgent {
-  dispatch: (opts: unknown, handler: unknown) => boolean
-  close: () => Promise<void>
-}
+type UndiciProxyAgent = ProxyAgent
 
-interface UndiciDispatcher {
-  dispatch: (opts: unknown, handler: unknown) => boolean
-  close: () => Promise<void>
-  compose: (interceptor: unknown) => UndiciDispatcher
-}
+type UndiciDispatcher = Dispatcher
 
 interface UndiciRedirectInterceptor {
   (options: { maxRedirections: number }): unknown
@@ -43,7 +38,7 @@ export interface UndiciLibraryInterface {
   ProxyAgent: new (options: { uri: string; auth?: string } | string) => UndiciProxyAgent
   getGlobalDispatcher: () => UndiciDispatcher
   interceptors: UndiciInterceptors
-  Agent: new (options: Record<string, unknown>) => UndiciAgent
+  Agent: new (options?: Agent.Options) => UndiciAgent
 }
 
 /**
@@ -61,7 +56,7 @@ interface UndiciModule {
   ProxyAgent: new (options: { uri: string; auth?: string } | string) => UndiciProxyAgent
   getGlobalDispatcher: () => UndiciDispatcher
   interceptors: UndiciInterceptors
-  Agent: new (options: Record<string, unknown>) => UndiciAgent
+  Agent: new (options?: Agent.Options) => UndiciAgent
 }
 
 export class RealUndiciLibrary implements UndiciLibraryInterface {
@@ -89,7 +84,7 @@ export class RealUndiciLibrary implements UndiciLibraryInterface {
     return this.undiciModule!.interceptors
   }
 
-  get Agent(): new (options: Record<string, unknown>) => UndiciAgent {
+  get Agent(): new (options?: Agent.Options) => UndiciAgent {
     return this.undiciModule!.Agent
   }
 }

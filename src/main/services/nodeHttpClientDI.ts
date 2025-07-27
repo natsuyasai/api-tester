@@ -1,3 +1,4 @@
+import type { Dispatcher } from 'undici-types'
 import { ApiRequest, ApiResponse, ApiResponseData } from '@/types/types'
 import {
   HttpClientInterface,
@@ -176,28 +177,28 @@ export class NodeHttpClientDI implements HttpClientInterface {
     fetchOptions: RequestInit,
     _url: string,
     followRedirects?: boolean
-  ) {
+  ): Dispatcher.RequestOptions & { _followRedirects?: boolean } {
     const globalSettings = this.configProvider.getConfig()
 
-    const undiciOptions: Record<string, unknown> = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const undiciOptions: any = {
       method: fetchOptions.method,
       headers: fetchOptions.headers,
-      body: fetchOptions.body
+      body: fetchOptions.body,
+      _followRedirects: followRedirects
     }
-
-    // リダイレクト設定のフラグを保持（ディスパッチャー作成で使用）
-    const typedOptions = undiciOptions as Record<string, unknown> & { _followRedirects?: boolean }
-    typedOptions._followRedirects = followRedirects
 
     // タイムアウト設定（シンプルに統一）
     if (globalSettings.defaultTimeout > 0) {
       const timeoutMs = globalSettings.defaultTimeout * 1000
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       undiciOptions.headersTimeout = Math.min(timeoutMs, 30000) // 最大30秒
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       undiciOptions.bodyTimeout = timeoutMs
     }
 
-    // SSL検証設定
-    undiciOptions.rejectUnauthorized = !globalSettings.allowInsecureConnections
+    // SSL検証設定（undici-typesに合わせてコメントアウト、実際の設定はconnectオプションで行う）
+    // undiciOptions.reset = !globalSettings.allowInsecureConnections
 
     // プロキシ設定
     if (globalSettings.proxyEnabled && globalSettings.proxyUrl && this.ProxyAgentClass) {
@@ -210,6 +211,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
           // proxyAuthオブジェクトから文字列形式に変換
           proxyOptions.auth = `${globalSettings.proxyAuth.username}:${globalSettings.proxyAuth.password}`
         }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         undiciOptions.dispatcher = new this.ProxyAgentClass(proxyOptions) as unknown
       } catch (error) {
         console.error('Proxy configuration error:', error)
@@ -218,9 +220,11 @@ export class NodeHttpClientDI implements HttpClientInterface {
 
     // キャンセルシグナル（既存のsignalがある場合は優先）
     if (fetchOptions.signal) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       undiciOptions.signal = fetchOptions.signal
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return undiciOptions
   }
 
@@ -545,10 +549,13 @@ class NodeHttpClientFactory {
         followRedirects
       )
 
-      const response = await this.undiciLib.request(url, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const requestOptions: any = {
         ...options,
         dispatcher: finalDispatcher
-      })
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      const response = await this.undiciLib.request(url, requestOptions)
 
       return this.normalizeResponse(response)
     }
@@ -566,7 +573,7 @@ class NodeHttpClientFactory {
     return this.undiciLib.getGlobalDispatcher().compose(
       this.undiciLib.interceptors.redirect({
         maxRedirections: globalSettings.defaultMaxRedirects || 5
-      })
+      }) as Dispatcher.DispatcherComposeInterceptor
     )
   }
 
@@ -637,7 +644,7 @@ class NodeHttpClientFactory {
       const dispatcher = tlsAgent.compose(
         this.undiciLib.interceptors.redirect({
           maxRedirections: globalSettings.defaultMaxRedirects || 5
-        })
+        }) as Dispatcher.DispatcherComposeInterceptor
       )
 
       console.debug(`Using client certificate: ${cert.name}`)
