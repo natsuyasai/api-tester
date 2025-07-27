@@ -1,6 +1,8 @@
 import { JSX } from 'react'
 import { ApiResponse, Cookie } from '@/types/types'
+import { SessionCookieManager } from '@renderer/services/sessionCookieManager'
 import { useCookieStore } from '@renderer/stores/cookieStore'
+import { useSessionStore } from '@renderer/stores/sessionStore'
 import { extractCookiesFromResponse } from '@renderer/utils/cookieUtils'
 import styles from './CookiesDisplay.module.scss'
 
@@ -11,6 +13,7 @@ interface CookiesDisplayProps {
 
 export const CookiesDisplay = ({ response, requestUrl }: CookiesDisplayProps): JSX.Element => {
   const { cookies: storedCookies, updateCookie, addCookie } = useCookieStore()
+  const { activeSessionId } = useSessionStore()
 
   // レスポンスからCookieを抽出
   const responseCookies = extractCookiesFromResponse(response.headers, requestUrl)
@@ -53,6 +56,24 @@ export const CookiesDisplay = ({ response, requestUrl }: CookiesDisplayProps): J
     }
   }
 
+  // セッションにCookieを追加
+  const handleAddToSession = (cookie: Cookie) => {
+    if (activeSessionId) {
+      SessionCookieManager.addCookiesFromResponse(
+        { ...response, headers: { 'set-cookie': `${cookie.name}=${cookie.value}` } },
+        requestUrl,
+        activeSessionId
+      )
+    }
+  }
+
+  // すべてのCookieをセッションに追加
+  const handleAddAllToSession = () => {
+    if (activeSessionId) {
+      SessionCookieManager.addCookiesFromResponse(response, requestUrl, activeSessionId)
+    }
+  }
+
   if (responseCookies.length === 0) {
     return (
       <div className={styles.noCookies}>
@@ -65,13 +86,20 @@ export const CookiesDisplay = ({ response, requestUrl }: CookiesDisplayProps): J
     <div className={styles.cookiesContainer}>
       <div className={styles.header}>
         <h4>Cookies ({responseCookies.length})</h4>
-        <button
-          type="button"
-          className={styles.addAllButton}
-          onClick={() => responseCookies.forEach(handleAddCookie)}
-        >
-          Add All to Cookie Store
-        </button>
+        <div className={styles.headerButtons}>
+          <button
+            type="button"
+            className={styles.addAllButton}
+            onClick={() => responseCookies.forEach(handleAddCookie)}
+          >
+            Add All to Global Store
+          </button>
+          {activeSessionId && (
+            <button type="button" className={styles.addAllButton} onClick={handleAddAllToSession}>
+              Add All to Session
+            </button>
+          )}
+        </div>
       </div>
 
       <div className={styles.cookiesList}>
@@ -82,14 +110,26 @@ export const CookiesDisplay = ({ response, requestUrl }: CookiesDisplayProps): J
                 <strong>{cookie.name}</strong>
                 <span className={styles.cookieValue}>{cookie.value}</span>
               </div>
-              <button
-                type="button"
-                className={styles.addButton}
-                onClick={() => handleAddCookie(cookie)}
-                title="Add to Cookie Store"
-              >
-                + Add
-              </button>
+              <div className={styles.buttonGroup}>
+                <button
+                  type="button"
+                  className={styles.addButton}
+                  onClick={() => handleAddCookie(cookie)}
+                  title="Add to Global Cookie Store"
+                >
+                  + Global
+                </button>
+                {activeSessionId && (
+                  <button
+                    type="button"
+                    className={styles.addButton}
+                    onClick={() => handleAddToSession(cookie)}
+                    title="Add to Session"
+                  >
+                    + Session
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className={styles.cookieDetails}>

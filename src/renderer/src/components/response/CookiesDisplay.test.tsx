@@ -2,12 +2,16 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { ApiResponse } from '@/types/types'
 import { useCookieStore } from '@renderer/stores/cookieStore'
+import { useSessionStore } from '@renderer/stores/sessionStore'
 import { CookiesDisplay } from './CookiesDisplay'
 
-// useCookieStoreのモック
+// ストアのモック
 vi.mock('@renderer/stores/cookieStore')
+vi.mock('@renderer/stores/sessionStore')
+vi.mock('@renderer/services/sessionCookieManager')
 
 const mockUseCookieStore = vi.mocked(useCookieStore)
+const mockUseSessionStore = vi.mocked(useSessionStore)
 
 describe('CookiesDisplay', () => {
   const mockResponse: ApiResponse = {
@@ -34,6 +38,9 @@ describe('CookiesDisplay', () => {
     mockUseCookieStore.mockReturnValue(mockCookieStoreFunctions)
     mockUseCookieStore.getState = vi.fn().mockReturnValue({
       cookies: []
+    })
+    mockUseSessionStore.mockReturnValue({
+      activeSessionId: undefined
     })
   })
 
@@ -108,7 +115,7 @@ describe('CookiesDisplay', () => {
 
     render(<CookiesDisplay response={responseWithCookies} requestUrl="https://example.com" />)
 
-    const addButton = screen.getByText('+ Add')
+    const addButton = screen.getByText('+ Global')
     fireEvent.click(addButton)
 
     expect(mockCookieStoreFunctions.addCookie).toHaveBeenCalled()
@@ -149,7 +156,7 @@ describe('CookiesDisplay', () => {
 
     render(<CookiesDisplay response={responseWithCookies} requestUrl="https://example.com" />)
 
-    const addButton = screen.getByText('+ Add')
+    const addButton = screen.getByText('+ Global')
     fireEvent.click(addButton)
 
     expect(mockCookieStoreFunctions.addCookie).not.toHaveBeenCalled()
@@ -180,7 +187,7 @@ describe('CookiesDisplay', () => {
     render(<CookiesDisplay response={responseWithCookies} requestUrl="https://example.com" />)
 
     // "Add All"ボタンが表示されているかを確認
-    const addAllButton = screen.getByText('Add All to Cookie Store')
+    const addAllButton = screen.getByText('Add All to Global Store')
     expect(addAllButton).toBeInTheDocument()
 
     fireEvent.click(addAllButton)

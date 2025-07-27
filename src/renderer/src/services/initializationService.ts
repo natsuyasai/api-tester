@@ -1,7 +1,10 @@
+import { ApiServiceV2 } from '@/services/apiServiceV2'
 import { useCollectionStore } from '@renderer/stores/collectionStore'
+import { useCookieStore } from '@renderer/stores/cookieStore'
 import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
 import { useSessionStore } from '@renderer/stores/sessionStore'
 import { useTabStore } from '@renderer/stores/tabStore'
+import { createCookieResolver } from './cookieResolverService'
 import { TabCollectionManager } from './tabCollectionManager'
 
 /**
@@ -140,9 +143,25 @@ export class InitializationService {
    */
   private static initializeCookieResolver(): void {
     try {
-      // レンダラープロセスではクッキーストアから直接クッキーヘッダーを生成
-      // APIサービスの初期化は避けて軽量に実装
-      console.log('Cookie resolver initialized for renderer process')
+      // 現在のアクティブセッションを取得
+      const sessionStore = useSessionStore.getState()
+      const activeSessionId = sessionStore.activeSessionId
+
+      // CookieリゾルバーをAPIサービスに設定
+      const cookieResolver = createCookieResolver(activeSessionId)
+      ApiServiceV2.setCookieResolver(cookieResolver)
+        .then(() => {
+          console.log('Cookie resolver initialized successfully:', {
+            activeSessionId,
+            globalCookies: useCookieStore.getState().getEnabledCookies().length,
+            sessionCookies: activeSessionId
+              ? sessionStore.getSessionCookies(activeSessionId).length
+              : 0
+          })
+        })
+        .catch((error) => {
+          console.error('Failed to set cookie resolver:', error)
+        })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       console.error('Cookie resolver initialization error:', errorMessage)
