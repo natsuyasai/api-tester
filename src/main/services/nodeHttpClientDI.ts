@@ -533,7 +533,9 @@ class NodeHttpClientFactory {
   createRequestFunction(globalSettings: MainProcessConfig): UndiciRequestInterface {
     return async (url: string, options: Parameters<UndiciRequestInterface>[1]) => {
       // リダイレクト設定を取得（オプションに含まれている）
-      const extendedOptions = options as Parameters<UndiciRequestInterface>[1] & { _followRedirects?: boolean }
+      const extendedOptions = options as Parameters<UndiciRequestInterface>[1] & {
+        _followRedirects?: boolean
+      }
       const followRedirects = extendedOptions._followRedirects ?? true
       const dispatcher = this.createDispatcher(globalSettings, followRedirects)
       const finalDispatcher = this.createFinalDispatcher(

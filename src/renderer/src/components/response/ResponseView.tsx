@@ -19,6 +19,7 @@ import {
   separateResponseData,
   formatMetadata
 } from '@renderer/utils/responseUtils'
+import { CookiesDisplay } from './CookiesDisplay'
 import { PreviewRenderer } from './PreviewRenderer'
 import { PropertySelector } from './PropertySelector'
 import styles from './ResponseView.module.scss'
@@ -207,9 +208,12 @@ export const ResponseView = ({ tabId }: ResponseViewProps): JSX.Element => {
           </div>
         )}
 
-        {activeTab === 'cookies' && (
-          <div className={styles.cookiesContent} style={{ userSelect: 'text', cursor: 'text' }}>
-            <div className={styles.placeholder}>No cookies found in response</div>
+        {activeTab === 'cookies' && response && (
+          <div className={styles.cookiesContent}>
+            <CookiesDisplay
+              response={response}
+              requestUrl={response.finalUrl || tab?.request.url || ''}
+            />
           </div>
         )}
 

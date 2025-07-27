@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { ApiResponse } from '@/types/types'
 import { useTabStore } from '@renderer/stores/tabStore'
+import { extractCookiesFromResponse, formatCookiesForDisplay } from '@renderer/utils/cookieUtils'
 import { generateRawContent } from '@renderer/utils/httpFormatters'
 import { getPropertyValue } from '@renderer/utils/propertyUtils'
 import { formatJson, separateResponseData, formatMetadata } from '@renderer/utils/responseUtils'
@@ -30,7 +31,10 @@ export const useResponseTabs = ({ tabId, response }: UseResponseTabsProps) => {
         .map(([key, value]) => `${key}: ${value}`)
         .join('\n')
     } else if (activeTab === 'cookies') {
-      return 'No cookies found in response'
+      // レスポンスヘッダーからCookieを抽出
+      const requestUrl = response.finalUrl || tab?.request.url || ''
+      const cookies = extractCookiesFromResponse(response.headers, requestUrl)
+      return formatCookiesForDisplay(cookies)
     } else if (activeTab === 'preview') {
       const previewValue = getPropertyValue(response, selectedPreviewProperty)
       return typeof previewValue === 'string' ? previewValue : formatJson(previewValue)
