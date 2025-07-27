@@ -48,6 +48,10 @@ export class HttpClient {
       url = builder.adjustUrlForApiKey(url)
       const fetchOptions = builder.buildFetchOptions()
 
+      // リダイレクト設定を追加（リクエスト設定に基づく）
+      const shouldFollowRedirects = request.settings?.followRedirects ?? true
+      fetchOptions.redirect = shouldFollowRedirects ? 'follow' : 'manual'
+
       // プロキシ設定を適用
       const finalOptions = this.applyProxySettings(fetchOptions, url.toString())
 
@@ -95,6 +99,10 @@ export class HttpClient {
       let url = builder.buildUrl()
       url = builder.adjustUrlForApiKey(url)
       const fetchOptions = builder.buildFetchOptions()
+
+      // リダイレクト設定を追加（リクエスト設定に基づく）
+      const shouldFollowRedirects = request.settings?.followRedirects ?? true
+      fetchOptions.redirect = shouldFollowRedirects ? 'follow' : 'manual'
 
       // キャンセルトークンを設定
       if (cancelToken) {

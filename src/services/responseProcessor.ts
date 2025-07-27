@@ -42,7 +42,8 @@ export class ResponseProcessor {
       headers: responseHeaders,
       data: responseData,
       duration,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      finalUrl: this.response.url // リダイレクト後の最終URL
     }
   }
 
@@ -390,7 +391,8 @@ export class ResponseProcessor {
         contentType: 'text/plain'
       } as ErrorResponseData,
       duration,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      finalUrl: undefined // エラー時は最終URLなし
     }
   }
 }

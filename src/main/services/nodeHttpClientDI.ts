@@ -67,8 +67,13 @@ export class NodeHttpClientDI implements HttpClientInterface {
       url = builder.adjustUrlForApiKey(url)
       const fetchOptions = builder.buildFetchOptions()
 
-      // undici用のオプションに変換
-      const undiciOptions = this.convertToUndiciOptions(fetchOptions, url.toString())
+      // undici用のオプションに変換（リダイレクト設定を渡す）
+      const shouldFollowRedirects = request.settings?.followRedirects ?? true
+      const undiciOptions = this.convertToUndiciOptions(
+        fetchOptions,
+        url.toString(),
+        shouldFollowRedirects
+      )
 
       // デバッグ情報をログ出力
       console.debug('NodeHttpClientDI Request:', {
@@ -128,8 +133,13 @@ export class NodeHttpClientDI implements HttpClientInterface {
         fetchOptions.signal = cancelToken
       }
 
-      // undici用のオプションに変換
-      const undiciOptions = this.convertToUndiciOptions(fetchOptions, url.toString())
+      // undici用のオプションに変換（リダイレクト設定を渡す）
+      const shouldFollowRedirects = request.settings?.followRedirects ?? true
+      const undiciOptions = this.convertToUndiciOptions(
+        fetchOptions,
+        url.toString(),
+        shouldFollowRedirects
+      )
 
       // デバッグ情報をログ出力
       console.debug('NodeHttpClientDI Request (with cancel):', {
@@ -162,7 +172,11 @@ export class NodeHttpClientDI implements HttpClientInterface {
   /**
    * Fetch APIのオプションをundici用に変換
    */
-  private convertToUndiciOptions(fetchOptions: RequestInit, _url: string) {
+  private convertToUndiciOptions(
+    fetchOptions: RequestInit,
+    _url: string,
+    followRedirects?: boolean
+  ) {
     const globalSettings = this.configProvider.getConfig()
 
     const undiciOptions: Record<string, unknown> = {
@@ -171,7 +185,9 @@ export class NodeHttpClientDI implements HttpClientInterface {
       body: fetchOptions.body
     }
 
-    // undici 7.12.0ではmaxRedirectionsはinterceptorで処理されるため、ここでは設定しない
+    // リダイレクト設定のフラグを保持（ディスパッチャー作成で使用）
+    const typedOptions = undiciOptions as Record<string, unknown> & { _followRedirects?: boolean }
+    typedOptions._followRedirects = followRedirects
 
     // タイムアウト設定（シンプルに統一）
     if (globalSettings.defaultTimeout > 0) {
@@ -216,6 +232,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
       statusCode: number
       headers: Record<string, string>
       body: { arrayBuffer(): Promise<ArrayBuffer> }
+      url?: string
     },
     startTime: number
   ): Promise<ApiResponse> {
@@ -234,7 +251,8 @@ export class NodeHttpClientDI implements HttpClientInterface {
         headers,
         data: responseData,
         duration,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        finalUrl: response.url // リダイレクト後の最終URL
       }
     } catch (error) {
       return this.createProcessingErrorResponse(error, startTime)
@@ -336,7 +354,8 @@ export class NodeHttpClientDI implements HttpClientInterface {
         error: errorMessage
       },
       duration: Date.now() - startTime,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      finalUrl: undefined
     }
   }
 
@@ -389,7 +408,8 @@ export class NodeHttpClientDI implements HttpClientInterface {
         error: errorMessage
       },
       duration,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      finalUrl: undefined
     }
   }
 
@@ -511,10 +531,17 @@ class NodeHttpClientFactory {
    * リクエスト関数を作成
    */
   createRequestFunction(globalSettings: MainProcessConfig): UndiciRequestInterface {
-    const dispatcher = this.createDispatcher(globalSettings)
-
     return async (url: string, options: Parameters<UndiciRequestInterface>[1]) => {
-      const finalDispatcher = this.createFinalDispatcher(url, dispatcher, globalSettings)
+      // リダイレクト設定を取得（オプションに含まれている）
+      const extendedOptions = options as Parameters<UndiciRequestInterface>[1] & { _followRedirects?: boolean }
+      const followRedirects = extendedOptions._followRedirects ?? true
+      const dispatcher = this.createDispatcher(globalSettings, followRedirects)
+      const finalDispatcher = this.createFinalDispatcher(
+        url,
+        dispatcher,
+        globalSettings,
+        followRedirects
+      )
 
       const response = await this.undiciLib.request(url, {
         ...options,
@@ -528,7 +555,12 @@ class NodeHttpClientFactory {
   /**
    * 基本ディスパッチャーを作成
    */
-  private createDispatcher(globalSettings: MainProcessConfig): unknown {
+  private createDispatcher(globalSettings: MainProcessConfig, followRedirects: boolean): unknown {
+    if (!followRedirects) {
+      // リダイレクトを無効にする場合はインターセプターを使わない
+      return this.undiciLib.getGlobalDispatcher()
+    }
+
     return this.undiciLib.getGlobalDispatcher().compose(
       this.undiciLib.interceptors.redirect({
         maxRedirections: globalSettings.defaultMaxRedirects || 5
@@ -542,7 +574,8 @@ class NodeHttpClientFactory {
   private createFinalDispatcher(
     url: string,
     baseDispatcher: unknown,
-    globalSettings: MainProcessConfig
+    globalSettings: MainProcessConfig,
+    followRedirects: boolean
   ): unknown {
     const certConfig = this.certProvider.getConfig()
 
@@ -555,7 +588,7 @@ class NodeHttpClientFactory {
       return baseDispatcher
     }
 
-    return this.createTlsDispatcher(matchingCert, globalSettings, baseDispatcher)
+    return this.createTlsDispatcher(matchingCert, globalSettings, followRedirects)
   }
 
   /**
@@ -578,7 +611,7 @@ class NodeHttpClientFactory {
   private createTlsDispatcher(
     cert: ClientCertificate,
     globalSettings: MainProcessConfig,
-    baseDispatcher: unknown
+    followRedirects: boolean
   ): unknown {
     try {
       const certData = this.fsModule.readFileSync(cert.certPath, 'utf8')
@@ -593,6 +626,12 @@ class NodeHttpClientFactory {
         }
       })
 
+      if (!followRedirects) {
+        // リダイレクトを無効にする場合はインターセプターを使わない
+        console.debug(`Using client certificate: ${cert.name} (no redirects)`)
+        return tlsAgent
+      }
+
       const dispatcher = tlsAgent.compose(
         this.undiciLib.interceptors.redirect({
           maxRedirections: globalSettings.defaultMaxRedirects || 5
@@ -603,7 +642,8 @@ class NodeHttpClientFactory {
       return dispatcher
     } catch (error) {
       console.error(`Failed to load client certificate ${cert.name}:`, error)
-      return baseDispatcher
+      // エラー時は基本ディスパッチャーを作成
+      return this.createDispatcher(globalSettings, followRedirects)
     }
   }
 
@@ -614,6 +654,7 @@ class NodeHttpClientFactory {
     statusCode: number
     headers: Record<string, string | string[]>
     body: { arrayBuffer(): Promise<ArrayBuffer> }
+    context?: { history?: { url: string }[] }
   }) {
     return {
       statusCode: response.statusCode,
@@ -623,7 +664,8 @@ class NodeHttpClientFactory {
           Array.isArray(value) ? value.join(', ') : String(value || '')
         ])
       ),
-      body: response.body
+      body: response.body,
+      url: response.context?.history?.slice(-1)[0]?.url // リダイレクト履歴から最終URLを取得
     }
   }
 }

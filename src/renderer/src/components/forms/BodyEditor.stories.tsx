@@ -421,13 +421,13 @@ export const TabKeyInput: Story = {
     await userEvent.click(textarea)
 
     // カーソルを適切な位置に移動（"test"の後）
-    textarea.setSelectionRange(15, 15)
+    ;(textarea as HTMLTextAreaElement).setSelectionRange(15, 15)
 
     // タブキーを押下
     await userEvent.keyboard('{Tab}')
 
     // タブ文字が挿入されることを確認
-    await expect(textarea.value).toContain('\t')
+    await expect((textarea as HTMLTextAreaElement).value).toContain('\t')
   }
 }
 
@@ -479,12 +479,12 @@ export const GraphQLTabKeyInput: Story = {
     await userEvent.click(textarea)
 
     // カーソルを適切な位置に移動
-    textarea.setSelectionRange(10, 10)
+    ;(textarea as HTMLTextAreaElement).setSelectionRange(10, 10)
 
     // タブキーを押下
     await userEvent.keyboard('{Tab}')
 
     // タブ文字が挿入されることを確認
-    await expect(textarea.value).toContain('\t')
+    await expect((textarea as HTMLTextAreaElement).value).toContain('\t')
   }
 }
