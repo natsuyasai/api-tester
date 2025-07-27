@@ -12,14 +12,6 @@ export interface FileAPI {
   writeFile: (filePath: string, data: string) => Promise<{ success: boolean; error?: string }>
 }
 
-export interface LizardParameter {
-  [key: string]: unknown
-}
-
-export interface Lizard {
-  execute: (parameter: LizardParameter) => Promise<boolean>
-}
-
 export interface ProxyAPI {
   setProxyConfig: (settings: ProxySettings) => Promise<{
     success: boolean
@@ -131,6 +123,5 @@ declare global {
     apiExecutor: ApiExecutor
     tlsConfigAPI: TlsConfigAPI
     configAPI: ConfigAPI
-    lizard: Lizard
   }
 }

@@ -1,4 +1,5 @@
 import type Dispatcher from 'undici-types/dispatcher'
+// eslint-disable-next-line import/order
 import { ApiRequest, ApiResponse, ApiResponseData } from '@/types/types'
 
 /**
@@ -103,7 +104,10 @@ export class NodeHttpClientDI implements HttpClientInterface {
       })
 
       // リクエスト実行（pathはurlに含まれるため、型変換で対応）
-      const response = await this.undiciRequest(url.toString(), undiciOptions as Dispatcher.RequestOptions)
+      const response = await this.undiciRequest(
+        url.toString(),
+        undiciOptions as Dispatcher.RequestOptions
+      )
 
       // レスポンス処理
       return await this.processUndiciResponse(response, startTime)
@@ -170,7 +174,10 @@ export class NodeHttpClientDI implements HttpClientInterface {
       })
 
       // リクエスト実行（pathはurlに含まれるため、型変換で対応）
-      const response = await this.undiciRequest(url.toString(), undiciOptions as Dispatcher.RequestOptions)
+      const response = await this.undiciRequest(
+        url.toString(),
+        undiciOptions as Dispatcher.RequestOptions
+      )
 
       // レスポンス処理
       return await this.processUndiciResponse(response, startTime)
@@ -201,7 +208,13 @@ export class NodeHttpClientDI implements HttpClientInterface {
     const undiciOptions: ExtendedRequestOptions = {
       method: fetchOptions.method,
       headers: fetchOptions.headers as Record<string, string>,
-      body: fetchOptions.body as string | Buffer | Uint8Array | FormData | NodeJS.ReadableStream | null,
+      body: fetchOptions.body as
+        | string
+        | Buffer
+        | Uint8Array
+        | FormData
+        | NodeJS.ReadableStream
+        | null,
       _followRedirects: followRedirects
     }
 
@@ -565,7 +578,10 @@ class NodeHttpClientFactory {
         ...options,
         dispatcher: finalDispatcher
       } as ExtendedRequestOptions
-      const response = await this.undiciLib.request(url, requestOptions as Dispatcher.RequestOptions)
+      const response = await this.undiciLib.request(
+        url,
+        requestOptions as Dispatcher.RequestOptions
+      )
 
       return this.normalizeResponse(response)
     }

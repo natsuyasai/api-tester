@@ -1,4 +1,4 @@
-import { electronAPI } from '@electron-toolkit/preload'
+import { ElectronAPI, electronAPI } from '@electron-toolkit/preload'
 import {
   MessageBoxOptions,
   OpenDialogOptions,
@@ -66,10 +66,13 @@ if (process.contextIsolated) {
     console.error(error)
   }
 } else {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   window.electron = electronAPI
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   window.api = api
+}
+
+declare global {
+  interface Window {
+    electron: ElectronAPI
+    api: object
+  }
 }

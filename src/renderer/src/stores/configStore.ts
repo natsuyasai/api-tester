@@ -6,16 +6,13 @@ import { ErrorHandler } from '@renderer/utils/errorUtils'
 import { KeyValuePairOperations } from '@renderer/utils/keyValueUtils'
 import { useTabStore } from './tabStore'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface ConfigState {}
-
 interface ConfigActions {
   exportConfig: () => string
   importConfig: (configJson: string) => void
   resetStore: () => void
 }
 
-export const useConfigStore = create<ConfigState & ConfigActions>()(
+export const useConfigStore = create<ConfigActions>()(
   devtools(
     () => ({
       exportConfig: () => {
