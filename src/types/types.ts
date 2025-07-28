@@ -122,6 +122,7 @@ export interface ApiRequest {
   settings?: RequestSettings // リクエスト設定
   type: ApiType
   variables?: Record<string, unknown> // GraphQL用の変数
+  postScript?: string // API実行後に実行するスクリプト
 }
 
 // レスポンスデータの型定義

@@ -39,6 +39,8 @@ interface RequestActions {
 
   // リクエスト設定管理
   updateSettings: (tabId: string, settings: RequestSettings) => void
+  // ポストスクリプト管理
+  updatePostScript: (tabId: string, postScript: string) => void
 
   // Body KeyValue管理
   addBodyKeyValue: (tabId: string) => void
@@ -160,6 +162,9 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
       updateSettings: (tabId: string, settings: RequestSettings) => {
         get().updateRequest(tabId, { settings })
+      },
+      updatePostScript: (tabId: string, postScript: string) => {
+        get().updateRequest(tabId, { postScript })
       },
 
       setResponse: (tabId: string, response: ApiResponse) => {

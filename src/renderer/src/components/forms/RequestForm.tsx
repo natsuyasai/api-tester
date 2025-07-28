@@ -2,6 +2,7 @@ import { JSX, useState } from 'react'
 import { HttpMethod } from '@/types/types'
 import { IpcApiService } from '@renderer/services/ipcApiService'
 import { useEnvironmentStore } from '@renderer/stores/environmentStore'
+import { useGlobalVariablesStore } from '@renderer/stores/globalVariablesStore'
 import { useRequestStore } from '@renderer/stores/requestStore'
 import { useSessionStore } from '@renderer/stores/sessionStore'
 import { useTabStore } from '@renderer/stores/tabStore'
@@ -9,6 +10,7 @@ import { AuthEditor } from './AuthEditor'
 import { BodyEditor } from './BodyEditor'
 import { EnvironmentEditor } from './EnvironmentEditor'
 import { KeyValueEditor } from './KeyValueEditor'
+import { PostScriptEditor } from './PostScriptEditor'
 import styles from './RequestForm.module.scss'
 import { RequestSettingsEditor } from './RequestSettingsEditor'
 
@@ -26,16 +28,18 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
     updateGraphQLVariables,
     updateAuth,
     updateSettings,
+    updatePostScript,
     setLoading,
     setResponse,
     isLoading
   } = useRequestStore()
   const { resolveVariables } = useEnvironmentStore()
   const { resolveSessionVariables } = useSessionStore()
+  const { addVariable, updateVariable, getVariableByKey } = useGlobalVariablesStore()
 
   const tab = getTab(tabId)
   const [activeSection, setActiveSection] = useState<
-    'params' | 'headers' | 'auth' | 'body' | 'environment' | 'settings'
+    'params' | 'headers' | 'auth' | 'body' | 'environment' | 'settings' | 'postscript'
   >('params')
 
   if (!tab) {
@@ -61,12 +65,50 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
 
     setLoading(true)
     try {
+      // グローバル変数操作のコールバックを作成
+      const globalVariableCallbacks = {
+        setGlobalVariable: (key: string, value: string, description?: string) => {
+          // 既存の変数を探す
+          const existingVariable = getVariableByKey(key)
+
+          if (existingVariable) {
+            // 既存の変数を更新
+            updateVariable(existingVariable.id, {
+              key,
+              value,
+              enabled: true,
+              description: description || existingVariable.description
+            })
+          } else {
+            // 新しい変数を追加
+            addVariable()
+            // 最新の状態を取得して新しい変数のIDを取得
+            const state = useGlobalVariablesStore.getState()
+            const newVariable = state.variables[state.variables.length - 1]
+            if (newVariable) {
+              updateVariable(newVariable.id, {
+                key,
+                value,
+                enabled: true,
+                description:
+                  description || `Generated from API response at ${new Date().toISOString()}`
+              })
+            }
+          }
+        },
+        getGlobalVariable: (key: string) => {
+          const variable = getVariableByKey(key)
+          return variable?.enabled ? variable.value : null
+        }
+      }
+
       const response = await IpcApiService.executeRequest(
         request,
         resolveVariables,
         true,
         resolveSessionVariables,
-        tab.sessionId
+        tab.sessionId,
+        globalVariableCallbacks
       )
       // 実行時のリクエスト内容を保存
       const responseWithExecutedRequest = {
@@ -204,6 +246,13 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
           >
             Settings
           </button>
+          <button
+            className={`${styles.tab} ${activeSection === 'postscript' ? styles.active : ''}`}
+            onClick={() => setActiveSection('postscript')}
+            type="button"
+          >
+            Post Script
+          </button>
         </div>
 
         <div className={styles.content}>
@@ -232,6 +281,12 @@ export const RequestForm = ({ tabId }: RequestFormProps): JSX.Element => {
             <RequestSettingsEditor
               settings={request.settings}
               onChange={(settings) => updateSettings(tabId, settings)}
+            />
+          )}
+          {activeSection === 'postscript' && (
+            <PostScriptEditor
+              postScript={request.postScript}
+              onChange={(postScript) => updatePostScript(tabId, postScript)}
             />
           )}
         </div>

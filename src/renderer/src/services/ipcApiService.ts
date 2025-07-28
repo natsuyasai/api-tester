@@ -4,7 +4,7 @@
  */
 
 import { ApiRequest, ApiResponse } from '@/types/types'
-import { ApiServiceV2 } from '../../../services/apiServiceV2'
+import { ApiServiceV2, GlobalVariableCallbacks } from '../../../services/apiServiceV2'
 
 // 型ガード関数
 function hasApiExecutor(): boolean {
@@ -22,7 +22,8 @@ export class IpcApiService {
     variableResolver?: (text: string) => string,
     saveToHistory: boolean = true,
     sessionVariableResolver?: (text: string, sessionId?: string) => string,
-    sessionId?: string
+    sessionId?: string,
+    globalVariableCallbacks?: GlobalVariableCallbacks
   ): Promise<ApiResponse> {
     // Electronのレンダラープロセスかどうかを確認
     if (hasApiExecutor()) {
@@ -51,7 +52,8 @@ export class IpcApiService {
         variableResolver,
         saveToHistory,
         sessionVariableResolver,
-        sessionId
+        sessionId,
+        globalVariableCallbacks
       )
     }
   }
