@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { ApiResponse, GlobalVariable } from '@/types/types'
+import type { ApiResponse } from '@/types/types'
 import { executePostScript, SCRIPT_TEMPLATES } from './postScriptEngine'
 
 describe('PostScriptEngine', () => {
@@ -34,7 +34,6 @@ describe('PostScriptEngine', () => {
         'x-api-version': 'v1.2.0'
       },
       duration: 150,
-      size: 1024,
       timestamp: '2024-01-01T00:00:00.000Z'
     }
   })

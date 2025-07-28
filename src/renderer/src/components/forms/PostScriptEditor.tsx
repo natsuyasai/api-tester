@@ -18,7 +18,7 @@ export const PostScriptEditor = ({
 
   const handleTemplateSelect = (templateKey: TemplateKey | '') => {
     setSelectedTemplate(templateKey)
-    if (templateKey && templateKey !== '') {
+    if (templateKey !== '') {
       onChange(SCRIPT_TEMPLATES[templateKey])
     }
   }
@@ -73,8 +73,8 @@ export const PostScriptEditor = ({
                 <code>getData()</code> - レスポンスデータ全体を取得
               </li>
               <li>
-                <code>getData(&apos;path&apos;)</code> - 指定されたパスのデータを取得（例: &apos;user.id&apos;,
-                &apos;data.items[0].name&apos;）
+                <code>getData(&apos;path&apos;)</code> - 指定されたパスのデータを取得（例:
+                &apos;user.id&apos;, &apos;data.items[0].name&apos;）
               </li>
               <li>
                 <code>getStatus()</code> - HTTPステータスコードを取得

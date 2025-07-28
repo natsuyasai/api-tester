@@ -32,6 +32,7 @@ interface TabActions {
   loadAllTabs: () => void
   inheritSessionFromTab: (fromTabId: string, toTabId: string) => void
   reorderTabs: (dragIndex: number, hoverIndex: number) => void
+  cleanupDeletedCollections: () => void
 }
 
 const createInitialTab = (collectionId?: string, sessionId?: string): ApiTab => ({
@@ -79,6 +80,13 @@ export const useTabStore = create<TabState & TabActions>()(
           false,
           'addTab'
         )
+
+        // コレクションが指定されている場合、コレクション側にもタブを追加
+        if (collectionId) {
+          const collectionStore = useCollectionStore.getState()
+          collectionStore.addTabToCollection(collectionId, newTab.id)
+        }
+
         return newTab.id
       },
 
@@ -112,8 +120,15 @@ export const useTabStore = create<TabState & TabActions>()(
         const tabIndex = state.tabs.findIndex((tab) => tab.id === tabId)
         if (tabIndex === -1) return
 
+        const closingTab = state.tabs[tabIndex]
         const newTabs = state.tabs.filter((tab) => tab.id !== tabId)
         let newActiveTabId = state.activeTabId
+
+        // コレクションからもタブを削除
+        if (closingTab.collectionId) {
+          const collectionStore = useCollectionStore.getState()
+          collectionStore.removeTabFromCollection(closingTab.collectionId, tabId)
+        }
 
         // すべてのタブを閉じた場合は新規タブを生成
         if (newTabs.length === 0) {
@@ -178,6 +193,13 @@ export const useTabStore = create<TabState & TabActions>()(
       },
 
       setTabCollection: (tabId: string, collectionId?: string) => {
+        const state = get()
+        const tab = state.tabs.find((t) => t.id === tabId)
+        if (!tab) return
+
+        const previousCollectionId = tab.collectionId
+
+        // タブのコレクションIDを更新
         set(
           (state) => ({
             tabs: state.tabs.map((tab) => (tab.id === tabId ? { ...tab, collectionId } : tab))
@@ -185,6 +207,18 @@ export const useTabStore = create<TabState & TabActions>()(
           false,
           'setTabCollection'
         )
+
+        const collectionStore = useCollectionStore.getState()
+
+        // 以前のコレクションからタブを削除
+        if (previousCollectionId) {
+          collectionStore.removeTabFromCollection(previousCollectionId, tabId)
+        }
+
+        // 新しいコレクションにタブを追加
+        if (collectionId) {
+          collectionStore.addTabToCollection(collectionId, tabId)
+        }
       },
 
       setTabSession: (tabId: string, sessionId?: string) => {
@@ -429,6 +463,29 @@ export const useTabStore = create<TabState & TabActions>()(
           false,
           'reorderTabs'
         )
+      },
+
+      cleanupDeletedCollections: () => {
+        const state = get()
+        const collectionStore = useCollectionStore.getState()
+        const existingCollectionIds = new Set(collectionStore.collections.map((c) => c.id))
+
+        // 存在しないコレクションIDを持つタブのcollectionIdをクリア
+        const updatedTabs = state.tabs.map((tab) => {
+          if (tab.collectionId && !existingCollectionIds.has(tab.collectionId)) {
+            return { ...tab, collectionId: undefined }
+          }
+          return tab
+        })
+
+        // 変更があった場合のみ更新
+        const hasChanges = updatedTabs.some(
+          (tab, index) => tab.collectionId !== state.tabs[index].collectionId
+        )
+
+        if (hasChanges) {
+          set({ tabs: updatedTabs }, false, 'cleanupDeletedCollections')
+        }
       }
     }),
     {

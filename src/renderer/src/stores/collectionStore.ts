@@ -139,6 +139,12 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
       },
 
       deleteCollection: (id: string) => {
+        const state = get()
+        const deletingCollection = state.collections.find((collection) => collection.id === id)
+
+        // 削除するコレクションが存在しない場合は何もしない
+        if (!deletingCollection) return
+
         set(
           (state) => ({
             collections: state.collections.filter((collection) => collection.id !== id)
@@ -146,6 +152,15 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
           false,
           'deleteCollection'
         )
+
+        // そのコレクションに属するタブのcollectionIdをクリア
+        // この処理はアプリケーション層で定期的に実行されるクリーンアップで対応
+        // または明示的にcleanupDeletedCollections()を呼び出すことで対応
+
+        // アクティブなコレクションが削除されている場合はクリア
+        if (state.activeCollectionId === id) {
+          set({ activeCollectionId: undefined }, false, 'clearActiveCollection')
+        }
       },
 
       moveCollection: (id: string, newParentId?: string) => {

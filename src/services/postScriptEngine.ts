@@ -39,7 +39,8 @@ function getValueByPath(obj: unknown, path: string): unknown {
   }
 
   const keys = normalizedPath.split('.')
-  let current = obj
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  let current: unknown = obj
 
   for (const key of keys) {
     if (current === null || current === undefined) {
@@ -50,15 +51,25 @@ function getValueByPath(obj: unknown, path: string): unknown {
     const arrayMatch = key.match(/^([^[]+)\[(\d+)\]$/)
     if (arrayMatch) {
       const [, arrayKey, index] = arrayMatch
-      current = (current as Record<string, unknown>)[arrayKey]
-      if (Array.isArray(current)) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        current = current[parseInt(index, 10)]
+      if (current && typeof current === 'object') {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        current = (current as Record<string, unknown>)[arrayKey]
+        if (Array.isArray(current)) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          current = current[parseInt(index, 10)]
+        } else {
+          return undefined
+        }
       } else {
         return undefined
       }
     } else {
-      current = (current as Record<string, unknown>)[key]
+      if (current && typeof current === 'object') {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        current = (current as Record<string, unknown>)[key]
+      } else {
+        return undefined
+      }
     }
   }
 
@@ -76,7 +87,7 @@ function createSafeEnvironment(context: PostScriptContext): Record<string, unkno
     // データアクセス用のヘルパー関数
     getData: (path?: string) => {
       const responseData = context.response.data
-      
+
       // レスポンスデータがオブジェクトでtype, dataプロパティを持つ場合、そのdataを使用
       let actualData: unknown = responseData
       if (
