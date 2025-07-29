@@ -486,16 +486,25 @@ export class TabCollectionManager {
     // アクティブコレクションを設定
     collectionStore.setActiveCollection(collectionId)
 
-    // 未選択状態になったときに未選択タブがない場合は作成
+    // コレクション切り替え時の適切なタブ選択
     if (!collectionId) {
-      const uncollectedTabs = tabStore.tabs.filter(tab => !tab.collectionId)
+      // 未選択状態になったときに未選択タブがない場合は作成
+      const uncollectedTabs = tabStore.tabs.filter((tab) => !tab.collectionId)
       if (uncollectedTabs.length === 0) {
         // 未選択タブを作成
         const newTabId = tabStore.addTab(undefined)
         console.log(`Created uncollected tab ${newTabId} for unselected state`)
       } else {
-        // 既存の未選択タブの最初のものをアクティブにする
-        tabStore.setActiveTab(uncollectedTabs[0].id)
+        // 既存の未選択タブの末尾をアクティブにする
+        const lastUncollectedTab = uncollectedTabs[uncollectedTabs.length - 1]
+        tabStore.setActiveTab(lastUncollectedTab.id)
+      }
+    } else {
+      // 特定のコレクションが選択された場合、そのコレクションの末尾タブをアクティブにする
+      const collectionTabs = tabStore.tabs.filter((tab) => tab.collectionId === collectionId)
+      if (collectionTabs.length > 0) {
+        const lastCollectionTab = collectionTabs[collectionTabs.length - 1]
+        tabStore.setActiveTab(lastCollectionTab.id)
       }
     }
 

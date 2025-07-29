@@ -39,7 +39,7 @@ function getValueByPath(obj: unknown, path: string): unknown {
   }
 
   const keys = normalizedPath.split('.')
-   
+
   let current: unknown = obj
 
   for (const key of keys) {
@@ -52,10 +52,8 @@ function getValueByPath(obj: unknown, path: string): unknown {
     if (arrayMatch) {
       const [, arrayKey, index] = arrayMatch
       if (current && typeof current === 'object') {
-         
         current = (current as Record<string, unknown>)[arrayKey]
         if (Array.isArray(current)) {
-           
           current = current[parseInt(index, 10)]
         } else {
           return undefined
@@ -65,7 +63,6 @@ function getValueByPath(obj: unknown, path: string): unknown {
       }
     } else {
       if (current && typeof current === 'object') {
-         
         current = (current as Record<string, unknown>)[key]
       } else {
         return undefined

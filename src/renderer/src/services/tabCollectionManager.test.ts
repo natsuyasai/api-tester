@@ -123,7 +123,7 @@ describe('TabCollectionManager', () => {
   })
 
   describe('setActiveCollectionSafely', () => {
-    it('コレクション選択解除時に既存の未選択タブがある場合はそれをアクティブにする', () => {
+    it('コレクション選択解除時に既存の未選択タブがある場合は末尾タブをアクティブにする', () => {
       const previousCollectionId = 'collection-1'
       mockCollectionStore.activeCollectionId = previousCollectionId
 
@@ -169,13 +169,34 @@ describe('TabCollectionManager', () => {
         }
       }
 
-      mockTabStore.tabs = [collectionTab, uncollectedTab]
+      const uncollectedTab2: ApiTab = {
+        id: 'uncollected-tab-2',
+        title: 'Uncollected Tab 2',
+        collectionId: undefined,
+        isActive: false,
+        response: null,
+        isCustomTitle: false,
+        request: {
+          id: 'req-3',
+          name: 'Uncollected Request 2',
+          url: 'https://example.com/api2',
+          method: 'PUT',
+          headers: [],
+          params: [],
+          body: '',
+          bodyType: 'json',
+          bodyKeyValuePairs: [],
+          type: 'rest'
+        }
+      }
+
+      mockTabStore.tabs = [collectionTab, uncollectedTab, uncollectedTab2]
 
       // コレクション選択を解除
       TabCollectionManager.setActiveCollectionSafely(undefined)
 
-      // 既存の未選択タブがアクティブになることを確認
-      expect(mockTabStore.setActiveTab).toHaveBeenCalledWith('uncollected-tab-1')
+      // 未選択タブの末尾（uncollected-tab-2）がアクティブになることを確認
+      expect(mockTabStore.setActiveTab).toHaveBeenCalledWith('uncollected-tab-2')
 
       // 新しいタブは作成されない
       expect(mockTabStore.addTab).not.toHaveBeenCalled()
@@ -226,15 +247,58 @@ describe('TabCollectionManager', () => {
       expect(mockCollectionStore.removeTabFromCollection).not.toHaveBeenCalled()
     })
 
-    it('新しいコレクションを選択時にはタブ移動は行われない', () => {
+    it('新しいコレクションを選択時にはそのコレクションの末尾タブがアクティブになる', () => {
       const newCollectionId = 'collection-2'
       mockCollectionStore.activeCollectionId = 'collection-1'
 
+      const tab1: ApiTab = {
+        id: 'tab-1',
+        title: 'Collection 2 Tab 1',
+        collectionId: newCollectionId,
+        isActive: false,
+        response: null,
+        isCustomTitle: false,
+        request: {
+          id: 'req-1',
+          name: 'Test Request 1',
+          url: 'https://example.com',
+          method: 'GET',
+          headers: [],
+          params: [],
+          body: '',
+          bodyType: 'json',
+          bodyKeyValuePairs: [],
+          type: 'rest'
+        }
+      }
+
+      const tab2: ApiTab = {
+        id: 'tab-2',
+        title: 'Collection 2 Tab 2',
+        collectionId: newCollectionId,
+        isActive: false,
+        response: null,
+        isCustomTitle: false,
+        request: {
+          id: 'req-2',
+          name: 'Test Request 2',
+          url: 'https://example.com/api',
+          method: 'POST',
+          headers: [],
+          params: [],
+          body: '',
+          bodyType: 'json',
+          bodyKeyValuePairs: [],
+          type: 'rest'
+        }
+      }
+
+      mockTabStore.tabs = [tab1, tab2]
+
       TabCollectionManager.setActiveCollectionSafely(newCollectionId)
 
-      // タブ移動は行われない
-      expect(mockTabStore.setTabCollection).not.toHaveBeenCalled()
-      expect(mockCollectionStore.removeTabFromCollection).not.toHaveBeenCalled()
+      // コレクションの末尾タブ（tab-2）がアクティブになることを確認
+      expect(mockTabStore.setActiveTab).toHaveBeenCalledWith('tab-2')
 
       // アクティブコレクションが変更される
       expect(mockCollectionStore.setActiveCollection).toHaveBeenCalledWith(newCollectionId)

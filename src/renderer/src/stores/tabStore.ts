@@ -146,10 +146,20 @@ export const useTabStore = create<TabState & TabActions>()(
         }
 
         if (state.activeTabId === tabId) {
-          if (tabIndex >= newTabs.length) {
-            newActiveTabId = newTabs[newTabs.length - 1].id
+          // 現在のアクティブコレクションに応じたタブを取得
+          const collectionStore = useCollectionStore.getState()
+          const activeCollectionId = collectionStore.activeCollectionId
+
+          const collectionTabs = activeCollectionId
+            ? newTabs.filter((tab) => tab.collectionId === activeCollectionId)
+            : newTabs.filter((tab) => !tab.collectionId)
+
+          // コレクション内の末尾タブを選択
+          if (collectionTabs.length > 0) {
+            newActiveTabId = collectionTabs[collectionTabs.length - 1].id
           } else {
-            newActiveTabId = newTabs[tabIndex].id
+            // コレクション内にタブがない場合は全体の末尾タブを選択
+            newActiveTabId = newTabs[newTabs.length - 1].id
           }
         }
 

@@ -64,8 +64,8 @@ export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): 
         newCollectionParent
       )
 
-      // 作成したコレクションをアクティブに設定
-      collectionStore.setActiveCollection(collectionId)
+      // 作成したコレクションをアクティブに設定（末尾タブ選択ロジック付き）
+      TabCollectionManager.setActiveCollectionSafely(collectionId)
 
       setNewCollectionName('')
       setNewCollectionParent(undefined)
@@ -76,13 +76,9 @@ export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): 
   const handleSelectCollection = (collectionId: string) => {
     const currentActive = collectionStore.activeCollectionId
     const newActiveId = currentActive === collectionId ? undefined : collectionId
-    
-    // 未選択状態になる場合は、未選択タブの管理も行う
-    if (!newActiveId) {
-      TabCollectionManager.setActiveCollectionSafely(newActiveId)
-    } else {
-      collectionStore.setActiveCollection(newActiveId)
-    }
+
+    // すべてのコレクション切り替えで末尾タブ選択ロジックを使用
+    TabCollectionManager.setActiveCollectionSafely(newActiveId)
   }
 
   const handleAddTabToCollection = (collectionId: string) => {
