@@ -12,6 +12,8 @@ import { TabCollectionManager } from './tabCollectionManager'
  * デフォルトフォルダとタブの適切な初期化を保証
  */
 export class InitializationService {
+  private static historyListenerCleanup: (() => void) | null = null
+  private static isInitialized = false
   /**
    * アプリケーションの完全な初期化を実行
    * 1. コレクション（フォルダ）の読み込み
@@ -19,7 +21,14 @@ export class InitializationService {
    * 3. デフォルトフォルダにタブが存在することを保証
    */
   static initializeApp(): void {
+    // 既に初期化済みの場合はスキップ
+    if (this.isInitialized) {
+      console.log('アプリケーションは既に初期化済みです')
+      return
+    }
+
     try {
+      this.isInitialized = true
       // コレクションストアとタブストアのインスタンスを取得
       const collectionStore = useCollectionStore.getState()
       const tabStore = useTabStore.getState()
@@ -74,6 +83,7 @@ export class InitializationService {
       // 9. クッキーリゾルバーの初期化（レンダラープロセス用）
       if (typeof window !== 'undefined') {
         this.initializeCookieResolver()
+        this.initializeHistoryListener()
       }
 
       console.log('アプリケーション初期化完了:', {
@@ -200,6 +210,67 @@ export class InitializationService {
       })
     } catch (error) {
       console.error('新規フォルダのタブ作成中にエラーが発生:', error)
+    }
+  }
+
+  /**
+   * 履歴リスナーの初期化
+   * API実行履歴をメインプロセスから受信してストアに保存
+   */
+  private static initializeHistoryListener(): void {
+    try {
+      // 既存のリスナーをクリーンアップ
+      if (this.historyListenerCleanup) {
+        console.log('既存の履歴リスナーをクリーンアップします')
+        this.historyListenerCleanup()
+        this.historyListenerCleanup = null
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      if ((window as any).executionHistoryAPI) {
+        // 履歴エントリの受信リスナーを設定
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+        this.historyListenerCleanup = (window as any).executionHistoryAPI.onHistoryEntry(
+          (_event: unknown, historyEntry: unknown) => {
+            try {
+              const collectionStore = useCollectionStore.getState()
+
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+              const entry = historyEntry as any
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              if (entry && entry.request && entry.response) {
+                // 履歴エントリをコレクションストアに追加
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+                collectionStore.addExecutionHistory(
+                  entry.request,
+                  entry.response,
+                  entry.timestamp,
+                  entry.id,
+                  entry.duration
+                )
+
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                console.log('API実行履歴を追加しました:', {
+                  id: entry.id,
+                  url: entry.request.url,
+                  method: entry.request.method,
+                  status: entry.response.status,
+                  duration: entry.duration
+                })
+              }
+            } catch (error) {
+              console.error('履歴エントリの処理中にエラーが発生:', error)
+            }
+          }
+        )
+
+        console.log('履歴リスナーを初期化しました')
+      } else {
+        console.warn('executionHistoryAPIが利用できません。履歴機能は動作しません。')
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      console.error('履歴リスナー初期化エラー:', errorMessage)
     }
   }
 

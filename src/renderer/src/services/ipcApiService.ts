@@ -46,11 +46,11 @@ export class IpcApiService {
         throw new Error(result.error || 'API実行に失敗しました')
       }
     } else {
-      // フォールバック: 直接ApiServiceV2を使用
+      // フォールバック: 直接ApiServiceV2を使用（履歴保存は無効化）
       return await ApiServiceV2.executeRequest(
         request,
         variableResolver,
-        saveToHistory,
+        false, // 履歴保存は無効化（IPCでの履歴処理と重複を防ぐため）
         sessionVariableResolver,
         sessionId,
         globalVariableCallbacks
@@ -83,12 +83,12 @@ export class IpcApiService {
         throw new Error(result.error || 'API実行に失敗しました')
       }
     } else {
-      // フォールバック: 直接ApiServiceV2を使用
+      // フォールバック: 直接ApiServiceV2を使用（履歴保存は無効化）
       return await ApiServiceV2.executeRequestWithCancel(
         request,
         cancelToken,
         variableResolver,
-        saveToHistory
+        false // 履歴保存は無効化（IPCでの履歴処理と重複を防ぐため）
       )
     }
   }

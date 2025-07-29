@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-import { ipcMain } from 'electron'
+import { ipcMain, BrowserWindow } from 'electron'
 import { ApiServiceV2 } from '../../services/apiServiceV2'
 import { showErrorDialog } from '../utils/errorUtils'
 
@@ -9,14 +9,38 @@ export function setupApiHandlers(): void {
   // API実行
   ipcMain.handle(
     'executeApiRequest',
-    async (_event, request: unknown, variableResolver?: unknown, saveToHistory = true) => {
+    async (event, request: unknown, variableResolver?: unknown, saveToHistory = true) => {
       try {
         // APIリクエストを実行
         const response = await ApiServiceV2.executeRequest(
           request as any,
           variableResolver as ((text: string) => string) | undefined,
-          saveToHistory as boolean
+          false // メインプロセスでは履歴保存をしない
         )
+
+        // 履歴が必要な場合はレンダラープロセスに送信
+        if (saveToHistory && response) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          const historyEntry = {
+            id: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+            request: request as any,
+            response,
+            duration: response.duration || 0
+          }
+
+          console.log('メインプロセス: 履歴データを送信します:', {
+            id: historyEntry.id,
+            url: (request as any).url,
+            method: (request as any).method
+          })
+
+          // レンダラープロセスに履歴データを送信
+          const browserWindow = BrowserWindow.fromWebContents(event.sender)
+          if (browserWindow) {
+            browserWindow.webContents.send('api-execution-history', historyEntry)
+          }
+        }
 
         return {
           success: true,
@@ -43,7 +67,7 @@ export function setupApiHandlers(): void {
   // キャンセル可能なAPI実行
   ipcMain.handle(
     'executeApiRequestWithCancel',
-    async (_event, request: unknown, variableResolver?: unknown, saveToHistory = true) => {
+    async (event, request: unknown, variableResolver?: unknown, saveToHistory = true) => {
       try {
         // AbortControllerを作成
         const abortController = new AbortController()
@@ -53,8 +77,32 @@ export function setupApiHandlers(): void {
           request as any,
           abortController.signal,
           variableResolver as ((text: string) => string) | undefined,
-          saveToHistory as boolean
+          false // メインプロセスでは履歴保存をしない
         )
+
+        // 履歴が必要な場合はレンダラープロセスに送信
+        if (saveToHistory && response) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          const historyEntry = {
+            id: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+            request: request as any,
+            response,
+            duration: response.duration || 0
+          }
+
+          console.log('メインプロセス: 履歴データを送信します:', {
+            id: historyEntry.id,
+            url: (request as any).url,
+            method: (request as any).method
+          })
+
+          // レンダラープロセスに履歴データを送信
+          const browserWindow = BrowserWindow.fromWebContents(event.sender)
+          if (browserWindow) {
+            browserWindow.webContents.send('api-execution-history', historyEntry)
+          }
+        }
 
         return {
           success: true,

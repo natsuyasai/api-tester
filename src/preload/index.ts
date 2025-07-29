@@ -62,6 +62,12 @@ if (process.contextIsolated) {
         return () => ipcRenderer.off('mainProcessConfigChanged', callback)
       }
     })
+    contextBridge.exposeInMainWorld('executionHistoryAPI', {
+      onHistoryEntry: (callback: (event: unknown, historyEntry: unknown) => void) => {
+        ipcRenderer.on('api-execution-history', callback)
+        return () => ipcRenderer.off('api-execution-history', callback)
+      }
+    })
   } catch (error) {
     console.error(error)
   }
@@ -74,5 +80,8 @@ declare global {
   interface Window {
     electron: ElectronAPI
     api: object
+    executionHistoryAPI: {
+      onHistoryEntry: (callback: (event: unknown, historyEntry: unknown) => void) => () => void
+    }
   }
 }
