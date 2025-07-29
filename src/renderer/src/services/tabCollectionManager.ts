@@ -446,6 +446,63 @@ export class TabCollectionManager {
   }
 
   /**
+   * コレクション選択解除時にタブを未選択状態に移動
+   */
+  static moveTabsToUncollected(collectionId: string): void {
+    const tabStore = useTabStore.getState()
+    const collectionStore = useCollectionStore.getState()
+
+    // 指定されたコレクションに属するタブを取得
+    const collectionTabs = tabStore.tabs.filter((tab) => tab.collectionId === collectionId)
+
+    if (collectionTabs.length === 0) {
+      console.log(`No tabs to move from collection ${collectionId}`)
+      return
+    }
+
+    // 各タブのcollectionIdをクリア
+    collectionTabs.forEach((tab) => {
+      tabStore.setTabCollection(tab.id, undefined)
+    })
+
+    // コレクション側からもタブ参照をクリア
+    collectionTabs.forEach((tab) => {
+      collectionStore.removeTabFromCollection(collectionId, tab.id)
+    })
+
+    console.log(
+      `Moved ${collectionTabs.length} tabs from collection ${collectionId} to uncollected state`
+    )
+  }
+
+  /**
+   * アクティブコレクションを安全に変更（未選択状態での初期タブ作成を含む）
+   */
+  static setActiveCollectionSafely(collectionId?: string): void {
+    const collectionStore = useCollectionStore.getState()
+    const tabStore = useTabStore.getState()
+    const previousCollectionId = collectionStore.activeCollectionId
+
+    // アクティブコレクションを設定
+    collectionStore.setActiveCollection(collectionId)
+
+    // 未選択状態になったときに未選択タブがない場合は作成
+    if (!collectionId) {
+      const uncollectedTabs = tabStore.tabs.filter(tab => !tab.collectionId)
+      if (uncollectedTabs.length === 0) {
+        // 未選択タブを作成
+        const newTabId = tabStore.addTab(undefined)
+        console.log(`Created uncollected tab ${newTabId} for unselected state`)
+      } else {
+        // 既存の未選択タブの最初のものをアクティブにする
+        tabStore.setActiveTab(uncollectedTabs[0].id)
+      }
+    }
+
+    console.log(`Active collection changed from ${previousCollectionId} to ${collectionId}`)
+  }
+
+  /**
    * デバッグ用: 現在の状態を検証
    */
   static validateState(): { isValid: boolean; errors: string[] } {

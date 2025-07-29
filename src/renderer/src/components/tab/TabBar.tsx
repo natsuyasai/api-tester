@@ -104,7 +104,7 @@ export const TabBar = ({
     // 現在表示されているタブのリストを取得
     const visibleTabs = activeCollectionId
       ? getTabsByCollection(activeCollectionId)
-      : tabs.filter((tab) => !tab.collectionId)
+      : getTabsByCollection(undefined)
 
     const dragIndex = visibleTabs.findIndex((tab) => tab.id === draggedTabIdFromData)
     const hoverIndex = visibleTabs.findIndex((tab) => tab.id === targetTabId)
@@ -264,7 +264,10 @@ export const TabBar = ({
       )}
       <div className={styles.tabList} ref={tabListRef}>
         {/* コレクションがアクティブな場合はそのコレクションのタブのみ表示 */}
-        {(activeCollectionId ? getTabsByCollection(activeCollectionId) : tabs).map((tab) => (
+        {(activeCollectionId
+          ? getTabsByCollection(activeCollectionId)
+          : getTabsByCollection(undefined)
+        ).map((tab) => (
           <div
             key={tab.id}
             className={`${styles.tab} ${tab.isActive ? styles.active : ''} ${editingTabId === tab.id ? styles.editing : ''} ${draggedTabId === tab.id ? styles.dragging : ''} ${dragOverTabId === tab.id ? styles.dragOver : ''}`}

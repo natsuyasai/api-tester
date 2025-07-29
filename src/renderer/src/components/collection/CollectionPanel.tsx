@@ -75,7 +75,14 @@ export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): 
 
   const handleSelectCollection = (collectionId: string) => {
     const currentActive = collectionStore.activeCollectionId
-    collectionStore.setActiveCollection(currentActive === collectionId ? undefined : collectionId)
+    const newActiveId = currentActive === collectionId ? undefined : collectionId
+    
+    // 未選択状態になる場合は、未選択タブの管理も行う
+    if (!newActiveId) {
+      TabCollectionManager.setActiveCollectionSafely(newActiveId)
+    } else {
+      collectionStore.setActiveCollection(newActiveId)
+    }
   }
 
   const handleAddTabToCollection = (collectionId: string) => {

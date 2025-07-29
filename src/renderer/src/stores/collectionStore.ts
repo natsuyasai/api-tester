@@ -62,6 +62,9 @@ interface CollectionActions {
   // データ永続化
   saveToStorage: () => void
   loadFromStorage: () => void
+
+  // タブとコレクション連携
+  moveTabsToUncollected: (collectionId: string) => void
 }
 
 const initialState: CollectionState = {
@@ -445,6 +448,7 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
             collections: state.collections,
             executionHistory: state.executionHistory,
             maxHistorySize: state.maxHistorySize,
+            activeCollectionId: state.activeCollectionId,
             timestamp: Date.now()
           }
           localStorage.setItem('api-tester-collections', JSON.stringify(data))
@@ -459,12 +463,14 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
           let collections: Collection[] = []
           let executionHistory: RequestExecutionHistory[] = []
           let maxHistorySize = 100
+          let activeCollectionId: string | undefined = undefined
 
           if (stored) {
             const data = JSON.parse(stored) as {
               collections: Collection[]
               executionHistory: RequestExecutionHistory[]
               maxHistorySize: number
+              activeCollectionId?: string
               timestamp: number
             }
 
@@ -472,6 +478,7 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
               collections = data.collections
               executionHistory = data.executionHistory
               maxHistorySize = data.maxHistorySize || 100
+              activeCollectionId = data.activeCollectionId
             }
           }
 
@@ -497,7 +504,8 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
             {
               collections,
               executionHistory,
-              maxHistorySize
+              maxHistorySize,
+              activeCollectionId
             },
             false,
             'loadFromStorage'
@@ -539,6 +547,13 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
           // デフォルト状態を保存
           get().saveToStorage()
         }
+      },
+
+      // タブとコレクション連携
+      moveTabsToUncollected: (collectionId: string) => {
+        // この機能は外部から呼び出される想定（循環参照回避のため）
+        // 実際の実装は TabCollectionManager で行う
+        console.log(`moveTabsToUncollected called for collection: ${collectionId}`)
       }
     }),
     {

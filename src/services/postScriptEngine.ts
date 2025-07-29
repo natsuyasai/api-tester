@@ -39,7 +39,7 @@ function getValueByPath(obj: unknown, path: string): unknown {
   }
 
   const keys = normalizedPath.split('.')
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+   
   let current: unknown = obj
 
   for (const key of keys) {
@@ -52,10 +52,10 @@ function getValueByPath(obj: unknown, path: string): unknown {
     if (arrayMatch) {
       const [, arrayKey, index] = arrayMatch
       if (current && typeof current === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+         
         current = (current as Record<string, unknown>)[arrayKey]
         if (Array.isArray(current)) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+           
           current = current[parseInt(index, 10)]
         } else {
           return undefined
@@ -65,7 +65,7 @@ function getValueByPath(obj: unknown, path: string): unknown {
       }
     } else {
       if (current && typeof current === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+         
         current = (current as Record<string, unknown>)[key]
       } else {
         return undefined
