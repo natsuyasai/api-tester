@@ -289,6 +289,26 @@
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
+.restoreButton {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+
+  &:hover {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
 .historyDetails {
   display: flex;
   align-items: center;

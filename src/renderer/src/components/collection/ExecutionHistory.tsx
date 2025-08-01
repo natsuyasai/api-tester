@@ -1,6 +1,8 @@
 import { JSX, useState } from 'react'
 import { RequestExecutionHistory, HttpMethod } from '@/types/types'
 import { useCollectionStore } from '@renderer/stores/collectionStore'
+import { useRequestStore } from '@renderer/stores/requestStore'
+import { useTabStore } from '@renderer/stores/tabStore'
 import { formatResponseTime, getStatusColor } from '@renderer/utils/responseUtils'
 import styles from './ExecutionHistory.module.scss'
 
@@ -19,6 +21,9 @@ export const ExecutionHistory = ({ isVisible, onToggle }: ExecutionHistoryProps)
     clearFilters,
     clearExecutionHistory
   } = useCollectionStore()
+
+  const { updateRequest } = useRequestStore()
+  const { activeTabId } = useTabStore()
 
   const [showFilters, setShowFilters] = useState(false)
   const filteredHistory = getFilteredHistory()
@@ -45,6 +50,33 @@ export const ExecutionHistory = ({ isVisible, onToggle }: ExecutionHistoryProps)
     }
   }
 
+  const handleRestoreRequest = (history: RequestExecutionHistory) => {
+    if (!activeTabId) {
+      alert('リクエストを復元するタブがありません')
+      return
+    }
+
+    // 履歴からリクエストデータを復元
+    const { request } = history
+    updateRequest(activeTabId, {
+      url: request.url,
+      method: request.method,
+      headers: request.headers,
+      params: request.params,
+      body: request.body,
+      bodyType: request.bodyType,
+      bodyKeyValuePairs: request.bodyKeyValuePairs,
+      auth: request.auth,
+      variables: request.variables,
+      settings: request.settings,
+      postScript: request.postScript,
+      name: request.name || ''
+    })
+
+    // 成功メッセージ表示（オプション）
+    // alert('リクエストを復元しました')
+  }
+
   const renderHistoryItem = (history: RequestExecutionHistory): JSX.Element => (
     <div key={history.id} className={styles.historyItem}>
       <div className={styles.historyHeader}>
@@ -59,6 +91,14 @@ export const ExecutionHistory = ({ isVisible, onToggle }: ExecutionHistoryProps)
             {history.response.status}
           </span>
           <span className={styles.duration}>{formatResponseTime(history.duration)}</span>
+          <button
+            className={styles.restoreButton}
+            onClick={() => handleRestoreRequest(history)}
+            title="リクエストを復元"
+            type="button"
+          >
+            ↺
+          </button>
         </div>
       </div>
 

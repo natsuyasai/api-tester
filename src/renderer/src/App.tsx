@@ -84,6 +84,7 @@ function App(): JSX.Element {
             onShowSettings={handleShowSettings}
             onToggleCollections={() => setShowCollectionPanel(!showCollectionPanel)}
             onToggleSessions={() => setShowSessionManager(!showSessionManager)}
+            onToggleHistory={() => setShowExecutionHistory(!showExecutionHistory)}
           />
         </div>
         <div className={styles.contentContainer}>
