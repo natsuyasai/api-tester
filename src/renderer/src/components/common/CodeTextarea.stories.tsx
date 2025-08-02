@@ -27,13 +27,7 @@ export const Default: Story = {
   },
   render: function RenderComponent(args) {
     const [value, setValue] = useState(args.value)
-    return (
-      <CodeTextarea
-        {...args}
-        value={value}
-        onChange={setValue}
-      />
-    )
+    return <CodeTextarea {...args} value={value} onChange={setValue} />
   }
 }
 
@@ -41,25 +35,21 @@ export const Default: Story = {
 export const Empty: Story = {
   args: {
     value: '',
-    placeholder: 'Start typing your code...\nPress Tab for indentation\nPress Shift+Tab to reduce indentation\nPress Esc to blur',
+    placeholder:
+      'Start typing your code...\nPress Tab for indentation\nPress Shift+Tab to reduce indentation\nPress Esc to blur',
     rows: 8
   },
   render: function RenderComponent(args) {
     const [value, setValue] = useState(args.value)
-    return (
-      <CodeTextarea
-        {...args}
-        value={value}
-        onChange={setValue}
-      />
-    )
+    return <CodeTextarea {...args} value={value} onChange={setValue} />
   }
 }
 
 // JSON編集用
 export const JSONEditor: Story = {
   args: {
-    value: '{\n  "name": "John Doe",\n  "age": 30,\n  "email": "john@example.com",\n  "skills": [\n    "JavaScript",\n    "TypeScript",\n    "React"\n  ]\n}',
+    value:
+      '{\n  "name": "John Doe",\n  "age": 30,\n  "email": "john@example.com",\n  "skills": [\n    "JavaScript",\n    "TypeScript",\n    "React"\n  ]\n}',
     placeholder: 'Enter JSON data...',
     rows: 12
   },
@@ -67,11 +57,7 @@ export const JSONEditor: Story = {
     const [value, setValue] = useState(args.value)
     return (
       <div style={{ maxWidth: '600px' }}>
-        <CodeTextarea
-          {...args}
-          value={value}
-          onChange={setValue}
-        />
+        <CodeTextarea {...args} value={value} onChange={setValue} />
       </div>
     )
   }
@@ -80,7 +66,8 @@ export const JSONEditor: Story = {
 // スクリプト編集用
 export const ScriptEditor: Story = {
   args: {
-    value: '// Post-script example\nif (getStatus() === 200) {\n  const token = getData("access_token");\n  if (token) {\n    setGlobalVariable("AUTH_TOKEN", token, "認証トークン");\n  }\n  \n  const userId = getData("user.id");\n  if (userId) {\n    setGlobalVariable("USER_ID", String(userId), "ユーザーID");\n  }\n}',
+    value:
+      '// Post-script example\nif (getStatus() === 200) {\n  const token = getData("access_token");\n  if (token) {\n    setGlobalVariable("AUTH_TOKEN", token, "認証トークン");\n  }\n  \n  const userId = getData("user.id");\n  if (userId) {\n    setGlobalVariable("USER_ID", String(userId), "ユーザーID");\n  }\n}',
     placeholder: 'Enter your script...',
     rows: 15
   },
@@ -88,11 +75,7 @@ export const ScriptEditor: Story = {
     const [value, setValue] = useState(args.value)
     return (
       <div style={{ maxWidth: '800px' }}>
-        <CodeTextarea
-          {...args}
-          value={value}
-          onChange={setValue}
-        />
+        <CodeTextarea {...args} value={value} onChange={setValue} />
       </div>
     )
   }
@@ -107,13 +90,7 @@ export const Disabled: Story = {
   },
   render: function RenderComponent(args) {
     const [value, setValue] = useState(args.value)
-    return (
-      <CodeTextarea
-        {...args}
-        value={value}
-        onChange={setValue}
-      />
-    )
+    return <CodeTextarea {...args} value={value} onChange={setValue} />
   }
 }
 
@@ -126,13 +103,7 @@ export const ReadOnly: Story = {
   },
   render: function RenderComponent(args) {
     const [value, setValue] = useState(args.value)
-    return (
-      <CodeTextarea
-        {...args}
-        value={value}
-        onChange={setValue}
-      />
-    )
+    return <CodeTextarea {...args} value={value} onChange={setValue} />
   }
 }
 
@@ -155,11 +126,83 @@ export const CustomStyling: Story = {
             background: linear-gradient(135deg, #1e1e1e, #2a2a2a);
           }
         `}</style>
-        <CodeTextarea
-          {...args}
-          value={value}
-          onChange={setValue}
-        />
+        <CodeTextarea {...args} value={value} onChange={setValue} />
+      </div>
+    )
+  }
+}
+
+// 行番号表示
+export const WithLineNumbers: Story = {
+  args: {
+    value:
+      'function calculateSum(a, b) {\n  return a + b;\n}\n\nconst result = calculateSum(5, 3);\nconsole.log("Result:", result);',
+    showLineNumbers: true,
+    language: 'javascript',
+    rows: 8
+  },
+  render: function WithLineNumbersStory(args) {
+    const [value, setValue] = useState(args.value)
+    return (
+      <div>
+        <p style={{ marginBottom: '1rem', color: '#ccc' }}>
+          機能:
+          <br />• 行番号表示
+          <br />• JavaScript シンタックスハイライト
+          <br />• 通常の編集機能すべて利用可能
+        </p>
+        <CodeTextarea {...args} value={value} onChange={setValue} />
+      </div>
+    )
+  }
+}
+
+// アクティブライン ハイライト
+export const WithActiveLineHighlight: Story = {
+  args: {
+    value:
+      'const data = {\n  name: "John",\n  age: 30,\n  city: "New York"\n};\n\n// Click on different lines\n// to see active line highlighting',
+    showLineNumbers: true,
+    highlightActiveLine: true,
+    language: 'javascript',
+    rows: 10
+  },
+  render: function WithActiveLineHighlightStory(args) {
+    const [value, setValue] = useState(args.value)
+    return (
+      <div>
+        <p style={{ marginBottom: '1rem', color: '#ccc' }}>
+          機能:
+          <br />• 行番号表示
+          <br />• アクティブライン ハイライト
+          <br />• カーソルのある行がハイライトされます
+        </p>
+        <CodeTextarea {...args} value={value} onChange={setValue} />
+      </div>
+    )
+  }
+}
+
+// JSON編集（ハイライト付き）
+export const JSONEditorWithHighlight: Story = {
+  args: {
+    value:
+      '{\n  "name": "API Response",\n  "status": 200,\n  "data": [\n    {\n      "id": 1,\n      "title": "First Item"\n    },\n    {\n      "id": 2,\n      "title": "Second Item"\n    }\n  ],\n  "timestamp": "2024-01-01T00:00:00Z"\n}',
+    showLineNumbers: true,
+    language: 'json',
+    rows: 15
+  },
+  render: function JSONEditorWithHighlightStory(args) {
+    const [value, setValue] = useState(args.value)
+    return (
+      <div style={{ maxWidth: '700px' }}>
+        <p style={{ marginBottom: '1rem', color: '#ccc' }}>
+          JSON編集エディタ:
+          <br />• 行番号表示
+          <br />• JSON シンタックスハイライト
+          <br />• 文字列、数値、キーワードの色分け
+        </p>
+        <CodeTextarea {...args} value={value} onChange={setValue} />
       </div>
     )
   }
@@ -183,11 +226,7 @@ export const UndoRedoTest: Story = {
           <br />• Ctrl+Y または Ctrl+Shift+Z でRedo
           <br />• 履歴は100件まで保持されます
         </p>
-        <CodeTextarea
-          {...args}
-          value={value}
-          onChange={setValue}
-        />
+        <CodeTextarea {...args} value={value} onChange={setValue} />
       </div>
     )
   }
@@ -211,11 +250,7 @@ export const InteractionTest: Story = {
           <br />• Escキーでフォーカス解除
           <br />• Ctrl+Z/Ctrl+Y でUndo/Redo
         </p>
-        <CodeTextarea
-          {...args}
-          value={value}
-          onChange={setValue}
-        />
+        <CodeTextarea {...args} value={value} onChange={setValue} />
       </div>
     )
   },
@@ -229,11 +264,11 @@ export const InteractionTest: Story = {
 
     // テキストをクリア
     await userEvent.clear(textarea)
-    
+
     // テストコードを入力
     await userEvent.type(textarea, 'function test() {')
     await userEvent.keyboard('{Enter}')
-    
+
     // タブキーでインデント挿入
     await userEvent.keyboard('{Tab}')
     await userEvent.type(textarea, 'console.log("indented");')
