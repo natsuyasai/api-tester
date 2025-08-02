@@ -3,6 +3,7 @@ import { BodyType, KeyValuePair } from '@/types/types'
 import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
 import { useRequestStore } from '@renderer/stores/requestStore'
 import { useTabStore } from '@renderer/stores/tabStore'
+import { CodeTextarea, CodeTextareaRef } from '../common/CodeTextarea'
 import styles from './BodyEditor.module.scss'
 import { FormDataEditor } from './FormDataEditor'
 import { GraphQLVariablesEditor } from './GraphQLVariablesEditor'
@@ -29,12 +30,12 @@ export const BodyEditor = ({
 }: BodyEditorProps): JSX.Element => {
   const [inputMode, setInputMode] = useState<'text' | 'keyvalue'>('text')
   const queryTextareaId = useId()
-  const graphqlTextareaRef = useRef<HTMLTextAreaElement>(null)
-  const bodyTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const graphqlTextareaRef = useRef<CodeTextareaRef>(null)
+  const bodyTextareaRef = useRef<CodeTextareaRef>(null)
 
   const { getTab } = useTabStore()
   const { addBodyKeyValue, updateBodyKeyValue, removeBodyKeyValue } = useRequestStore()
-  const { settings } = useGlobalSettingsStore()
+  const { settings: _settings } = useGlobalSettingsStore()
 
   const tab = getTab(tabId)
   const bodyKeyValuePairs = tab?.request.bodyKeyValuePairs || []
@@ -212,30 +213,6 @@ export const BodyEditor = ({
     onBodyChange(serializedData)
   }
 
-  // textareaのキーイベント処理
-  const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Tab') {
-      e.preventDefault()
-      const textarea = e.currentTarget
-      const start = textarea.selectionStart
-      const end = textarea.selectionEnd
-      const value = textarea.value
-      const newValue = value.substring(0, start) + '\t' + value.substring(end)
-
-      if (textarea === graphqlTextareaRef.current) {
-        onBodyChange(newValue)
-      } else {
-        onBodyChange(newValue)
-      }
-
-      // カーソル位置を調整
-      setTimeout(() => {
-        textarea.selectionStart = textarea.selectionEnd = start + 1
-      }, 0)
-    } else if (e.key === 'Escape') {
-      e.currentTarget.blur()
-    }
-  }
 
   // bodyTypeが変更された時の処理
   const handleBodyTypeChange = (newBodyType: BodyType) => {
@@ -322,20 +299,14 @@ export const BodyEditor = ({
                   Query
                 </label>
               </div>
-              <textarea
+              <CodeTextarea
                 ref={graphqlTextareaRef}
                 id={`graphql-query-textarea-${queryTextareaId}`}
                 value={body}
-                onChange={(e) => onBodyChange(e.target.value)}
-                onKeyDown={handleTextareaKeyDown}
+                onChange={onBodyChange}
                 placeholder="query {\n  users {\n    id\n    name\n    email\n  }\n}"
                 className={styles.textarea}
                 spellCheck={false}
-                style={{
-                  tabSize: settings.tabSize,
-                  whiteSpace: settings.wordWrap ? 'pre-wrap' : 'pre',
-                  lineHeight: settings.lineNumbers ? '1.5' : '1.4'
-                }}
               />
             </div>
             <div className={styles.variablesSection}>
@@ -361,11 +332,10 @@ export const BodyEditor = ({
             <KeyValueEditor tabId={tabId} type="body" items={bodyKeyValuePairs} />
           </div>
         ) : (
-          <textarea
+          <CodeTextarea
             ref={bodyTextareaRef}
             value={body}
-            onChange={(e) => onBodyChange(e.target.value)}
-            onKeyDown={handleTextareaKeyDown}
+            onChange={onBodyChange}
             placeholder={
               bodyType === 'json'
                 ? 'Enter JSON body...\n\n{\n  "key": "value"\n}'
@@ -373,11 +343,6 @@ export const BodyEditor = ({
             }
             className={styles.textarea}
             spellCheck={false}
-            style={{
-              tabSize: settings.tabSize,
-              whiteSpace: settings.wordWrap ? 'pre-wrap' : 'pre',
-              lineHeight: settings.lineNumbers ? '1.5' : '1.4'
-            }}
           />
         )}
       </div>

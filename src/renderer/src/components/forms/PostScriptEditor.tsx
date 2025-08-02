@@ -1,5 +1,6 @@
 import { JSX, useState } from 'react'
 import { SCRIPT_TEMPLATES } from '@/services/postScriptEngine'
+import { CodeTextarea } from '../common/CodeTextarea'
 import styles from './PostScriptEditor.module.scss'
 
 interface PostScriptEditorProps {
@@ -131,9 +132,9 @@ if (getStatus() === 200) {
       )}
 
       <div className={styles.editorContainer}>
-        <textarea
+        <CodeTextarea
           value={postScript}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={onChange}
           className={styles.editor}
           placeholder="// API実行後に実行するJavaScriptコードを記述してください
 // 例：

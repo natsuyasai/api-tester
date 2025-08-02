@@ -1,5 +1,6 @@
 import { JSX, useState } from 'react'
 import { KeyValuePair } from '@/types/types'
+import { CodeTextarea } from '../common/CodeTextarea'
 import styles from './FormDataEditor.module.scss'
 
 interface FormDataEditorProps {
@@ -191,9 +192,9 @@ export const FormDataEditor = ({
               Done
             </button>
           </div>
-          <textarea
+          <CodeTextarea
             value={bulkText}
-            onChange={(e) => handleBulkTextChange(e.target.value)}
+            onChange={handleBulkTextChange}
             placeholder="key1: value1&#10;key2: value2&#10;key3: value3"
             className={styles.bulkTextarea}
             spellCheck={false}

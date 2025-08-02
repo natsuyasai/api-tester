@@ -1,5 +1,6 @@
 import { JSX, useId, useState } from 'react'
 import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
+import { CodeTextarea } from '../common/CodeTextarea'
 import styles from './GraphQLVariablesEditor.module.scss'
 
 interface GraphQLVariablesEditorProps {
@@ -12,7 +13,7 @@ export const GraphQLVariablesEditor = ({
   onVariablesChange
 }: GraphQLVariablesEditorProps): JSX.Element => {
   const [error, setError] = useState<string | null>(null)
-  const { settings } = useGlobalSettingsStore()
+  const { settings: _settings } = useGlobalSettingsStore()
 
   const editorId = useId()
 
@@ -62,18 +63,13 @@ export const GraphQLVariablesEditor = ({
       </div>
 
       <div className={styles.editorContainer}>
-        <textarea
+        <CodeTextarea
           id={editorId}
           value={variables}
-          onChange={(e) => handleVariablesChange(e.target.value)}
+          onChange={handleVariablesChange}
           placeholder={`{\n  "limit": 10,\n  "offset": 0\n}`}
           className={`${styles.textarea} ${error ? styles.error : ''}`}
           spellCheck={false}
-          style={{
-            tabSize: settings.tabSize,
-            whiteSpace: settings.wordWrap ? 'pre-wrap' : 'pre',
-            lineHeight: settings.lineNumbers ? '1.5' : '1.4'
-          }}
         />
         {error && <div className={styles.errorMessage}>{error}</div>}
       </div>

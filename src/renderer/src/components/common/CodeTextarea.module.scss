@@ -1,0 +1,35 @@
+.textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 245, 0.2);
+  border-radius: 6px;
+  background-color: var(--color-background-mute);
+  color: var(--color-text);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #007acc;
+    box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+  }
+
+  &::placeholder {
+    color: rgba(235, 235, 245, 0.38);
+    font-style: italic;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: var(--color-background-soft);
+  }
+
+  &:read-only {
+    background-color: var(--color-background-soft);
+    cursor: default;
+  }
+}
