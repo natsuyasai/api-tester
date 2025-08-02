@@ -1,5 +1,5 @@
-import { action } from '@storybook/addon-actions'
 import type { Meta, StoryObj } from '@storybook/react'
+import { fn } from '@storybook/test'
 import { expect, userEvent, within } from '@storybook/test'
 import { SCRIPT_TEMPLATES } from '@/services/postScriptEngine'
 import { PostScriptEditor } from './PostScriptEditor'
@@ -34,7 +34,7 @@ type Story = StoryObj<typeof PostScriptEditor>
 // デフォルト状態（空のスクリプト）
 export const Default: Story = {
   args: {
-    onChange: action('script-changed')
+    onChange: fn()
   }
 }
 
@@ -53,7 +53,7 @@ if (getStatus() === 200) {
     setGlobalVariable('USER_ID', String(userId), 'ユーザーID');
   }
 }`,
-    onChange: action('script-changed')
+    onChange: fn()
   }
 }
 
@@ -61,7 +61,7 @@ if (getStatus() === 200) {
 export const WithComplexScript: Story = {
   args: {
     postScript: SCRIPT_TEMPLATES.complexProcessing,
-    onChange: action('script-changed')
+    onChange: fn()
   }
 }
 
@@ -70,7 +70,7 @@ export const WithHelpOpen: Story = {
   args: {
     postScript: `// ヘルプを確認してスクリプトを記述してください
 console.log('Hello, PostScript!');`,
-    onChange: action('script-changed')
+    onChange: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -89,7 +89,7 @@ console.log('Hello, PostScript!');`,
 // テンプレート選択のテスト
 export const TemplateSelection: Story = {
   args: {
-    onChange: action('script-changed')
+    onChange: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -103,7 +103,9 @@ export const TemplateSelection: Story = {
 
     // テキストエリアにテンプレートが設定されることを確認
     const editor = canvas.getByRole('textbox')
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await expect(editor).toHaveValue(expect.stringContaining('getStatus() === 200'))
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await expect(editor).toHaveValue(expect.stringContaining("getData('token')"))
   }
 }
@@ -111,7 +113,7 @@ export const TemplateSelection: Story = {
 // スクリプト入力のテスト
 export const ScriptInput: Story = {
   args: {
-    onChange: action('script-changed')
+    onChange: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -137,35 +139,35 @@ if (token) {
 export const BasicJsonExtractionTemplate: Story = {
   args: {
     postScript: SCRIPT_TEMPLATES.basicJsonExtraction,
-    onChange: action('script-changed')
+    onChange: fn()
   }
 }
 
 export const ArrayDataExtractionTemplate: Story = {
   args: {
     postScript: SCRIPT_TEMPLATES.arrayDataExtraction,
-    onChange: action('script-changed')
+    onChange: fn()
   }
 }
 
 export const HeaderExtractionTemplate: Story = {
   args: {
     postScript: SCRIPT_TEMPLATES.headerExtraction,
-    onChange: action('script-changed')
+    onChange: fn()
   }
 }
 
 export const ConditionalProcessingTemplate: Story = {
   args: {
     postScript: SCRIPT_TEMPLATES.conditionalProcessing,
-    onChange: action('script-changed')
+    onChange: fn()
   }
 }
 
 // インタラクションテスト: テンプレート切り替え
 export const TemplateSwitching: Story = {
   args: {
-    onChange: action('script-changed')
+    onChange: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -175,14 +177,17 @@ export const TemplateSwitching: Story = {
 
     // 配列データ抽出テンプレートを選択
     await userEvent.selectOptions(templateSelect, 'arrayDataExtraction')
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await expect(editor).toHaveValue(expect.stringContaining('Array.isArray(items)'))
 
     // ヘッダー抽出テンプレートに切り替え
     await userEvent.selectOptions(templateSelect, 'headerExtraction')
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await expect(editor).toHaveValue(expect.stringContaining('getHeaders()'))
 
     // 条件付き処理テンプレートに切り替え
     await userEvent.selectOptions(templateSelect, 'conditionalProcessing')
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await expect(editor).toHaveValue(expect.stringContaining('if (status === 200)'))
   }
 }
@@ -191,7 +196,7 @@ export const TemplateSwitching: Story = {
 export const UIComponents: Story = {
   args: {
     postScript: '// スクリプトを記述してください',
-    onChange: action('script-changed')
+    onChange: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -218,7 +223,7 @@ export const UIComponents: Story = {
 // アクセシビリティテスト
 export const AccessibilityTest: Story = {
   args: {
-    onChange: action('script-changed')
+    onChange: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -302,7 +307,7 @@ const now = new Date().toISOString();
 setGlobalVariable('LAST_EXECUTION_TIME', now, '最後の実行時刻');
 
 console.log('ポストスクリプトの実行が完了しました');`,
-    onChange: action('script-changed')
+    onChange: fn()
   }
 }
 
@@ -312,14 +317,11 @@ export const AllStates: Story = {
     <div style={{ display: 'grid', gap: '2rem', gridTemplateColumns: '1fr 1fr' }}>
       <div>
         <h4>デフォルト状態</h4>
-        <PostScriptEditor onChange={action('default-changed')} />
+        <PostScriptEditor onChange={fn()} />
       </div>
       <div>
         <h4>スクリプト設定済み</h4>
-        <PostScriptEditor
-          postScript={SCRIPT_TEMPLATES.basicJsonExtraction}
-          onChange={action('with-script-changed')}
-        />
+        <PostScriptEditor postScript={SCRIPT_TEMPLATES.basicJsonExtraction} onChange={fn()} />
       </div>
     </div>
   )

@@ -184,7 +184,9 @@ describe('TabBar', () => {
         }
       ]
     }
-    mockUseTabStore.mockReturnValue(storeWithoutTitle)
+
+    // 新しいモックを設定
+    mockUseTabStore.mockReturnValueOnce(storeWithoutTitle)
 
     render(<TabBar />)
 

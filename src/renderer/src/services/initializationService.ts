@@ -1,4 +1,5 @@
 import { ApiServiceV2 } from '@/services/apiServiceV2'
+import type { RequestExecutionHistory } from '@/types/types'
 import { useCollectionStore } from '@renderer/stores/collectionStore'
 import { useCookieStore } from '@renderer/stores/cookieStore'
 import { useGlobalSettingsStore } from '@renderer/stores/globalSettingsStore'
@@ -235,21 +236,17 @@ export class InitializationService {
             try {
               const collectionStore = useCollectionStore.getState()
 
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
-              const entry = historyEntry as any
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              const entry = historyEntry as RequestExecutionHistory
               if (entry && entry.request && entry.response) {
                 // 履歴エントリをコレクションストアに追加
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+
                 collectionStore.addExecutionHistory(
                   entry.request,
                   entry.response,
-                  entry.timestamp,
-                  entry.id,
-                  entry.duration
+                  entry.duration,
+                  entry.status || 'success'
                 )
 
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
                 console.log('API実行履歴を追加しました:', {
                   id: entry.id,
                   url: entry.request.url,

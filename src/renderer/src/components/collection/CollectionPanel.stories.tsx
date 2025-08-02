@@ -1,5 +1,5 @@
-import { action } from '@storybook/addon-actions'
 import type { Meta, StoryObj } from '@storybook/react'
+import { fn } from '@storybook/test'
 import { expect, userEvent, within } from '@storybook/test'
 import type { Collection } from '@/types/types'
 import { useCollectionStore } from '@renderer/stores/collectionStore'
@@ -143,7 +143,7 @@ type Story = StoryObj<typeof CollectionPanel>
 export const Visible: Story = {
   args: {
     isVisible: true,
-    onToggle: action('toggle-panel')
+    onToggle: fn()
   }
 }
 
@@ -151,7 +151,7 @@ export const Visible: Story = {
 export const Hidden: Story = {
   args: {
     isVisible: false,
-    onToggle: action('toggle-panel')
+    onToggle: fn()
   }
 }
 
@@ -159,7 +159,7 @@ export const Hidden: Story = {
 export const EmptyCollections: Story = {
   args: {
     isVisible: true,
-    onToggle: action('toggle-panel')
+    onToggle: fn()
   },
   decorators: [
     (Story) => {
@@ -187,7 +187,7 @@ export const EmptyCollections: Story = {
 export const NoActiveCollection: Story = {
   args: {
     isVisible: true,
-    onToggle: action('toggle-panel')
+    onToggle: fn()
   },
   decorators: [
     (Story) => {
@@ -219,7 +219,7 @@ export const NoActiveCollection: Story = {
 export const ToggleVisibility: Story = {
   args: {
     isVisible: false,
-    onToggle: action('toggle-panel')
+    onToggle: fn()
   },
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement)
@@ -240,7 +240,7 @@ export const ToggleVisibility: Story = {
 export const CollectionSelection: Story = {
   args: {
     isVisible: true,
-    onToggle: action('toggle-panel')
+    onToggle: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -260,7 +260,7 @@ export const CollectionSelection: Story = {
 export const CreateNewCollection: Story = {
   args: {
     isVisible: true,
-    onToggle: action('toggle-panel')
+    onToggle: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -283,7 +283,7 @@ export const CreateNewCollection: Story = {
 export const ExpandCollapse: Story = {
   args: {
     isVisible: true,
-    onToggle: action('toggle-panel')
+    onToggle: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -310,7 +310,7 @@ export const ExpandCollapse: Story = {
 export const EditCollectionName: Story = {
   args: {
     isVisible: true,
-    onToggle: action('toggle-panel')
+    onToggle: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -320,7 +320,7 @@ export const EditCollectionName: Story = {
 
     // 右クリックメニューまたは編集ボタンを探す
     // 実装に依存するため、実際のUI構造に合わせて調整が必要
-    await userEvent.rightClick(collection)
+    await userEvent.pointer({ keys: '[MouseRight]', target: collection })
 
     // 編集オプションがある場合
     const editOption = canvas.queryByText(/編集|名前変更/)
@@ -342,7 +342,7 @@ export const EditCollectionName: Story = {
 export const TabCollectionAssociation: Story = {
   args: {
     isVisible: true,
-    onToggle: action('toggle-panel')
+    onToggle: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -366,7 +366,7 @@ export const TabCollectionAssociation: Story = {
 export const ErrorStates: Story = {
   args: {
     isVisible: true,
-    onToggle: action('toggle-panel')
+    onToggle: fn()
   },
   decorators: [
     (Story) => {
@@ -398,7 +398,7 @@ export const ErrorStates: Story = {
 export const AccessibilityTest: Story = {
   args: {
     isVisible: true,
-    onToggle: action('toggle-panel')
+    onToggle: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -418,7 +418,12 @@ export const AccessibilityTest: Story = {
     }
 
     // ARIA属性の確認
-    const panel = canvas.getByRole('complementary') || canvas.querySelector('[role="navigation"]')
+    let panel: HTMLElement | Element | null = null
+    try {
+      panel = canvas.getByRole('complementary')
+    } catch {
+      panel = document.querySelector('[role="navigation"]')
+    }
 
     if (panel) {
       // パネルに適切なARIA属性が設定されていることを確認
@@ -431,7 +436,7 @@ export const AccessibilityTest: Story = {
 export const ResponsiveLayout: Story = {
   args: {
     isVisible: true,
-    onToggle: action('toggle-panel')
+    onToggle: fn()
   },
   parameters: {
     viewport: {

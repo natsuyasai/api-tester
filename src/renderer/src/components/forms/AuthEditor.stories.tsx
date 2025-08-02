@@ -1,5 +1,5 @@
-import { action } from '@storybook/addon-actions'
 import type { Meta, StoryObj } from '@storybook/react'
+import { fn } from '@storybook/test'
 import { expect, userEvent, within } from '@storybook/test'
 import type { AuthConfig } from '@/types/types'
 import { AuthEditor } from './AuthEditor'
@@ -34,7 +34,7 @@ type Story = StoryObj<typeof AuthEditor>
 // デフォルト状態（認証なし）
 export const Default: Story = {
   args: {
-    onChange: action('auth-changed')
+    onChange: fn()
   }
 }
 
@@ -48,7 +48,7 @@ export const BasicAuth: Story = {
         password: 'testpass'
       }
     } as AuthConfig,
-    onChange: action('auth-changed')
+    onChange: fn()
   }
 }
 
@@ -61,7 +61,7 @@ export const BearerAuth: Story = {
         token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
       }
     } as AuthConfig,
-    onChange: action('auth-changed')
+    onChange: fn()
   }
 }
 
@@ -76,7 +76,7 @@ export const ApiKeyHeader: Story = {
         location: 'header'
       }
     } as AuthConfig,
-    onChange: action('auth-changed')
+    onChange: fn()
   }
 }
 
@@ -91,7 +91,7 @@ export const ApiKeyQuery: Story = {
         location: 'query'
       }
     } as AuthConfig,
-    onChange: action('auth-changed')
+    onChange: fn()
   }
 }
 
@@ -101,14 +101,14 @@ export const EmptyAuth: Story = {
     auth: {
       type: 'none'
     } as AuthConfig,
-    onChange: action('auth-changed')
+    onChange: fn()
   }
 }
 
 // インタラクションテスト: 認証タイプの変更
 export const AuthTypeChange: Story = {
   args: {
-    onChange: action('auth-changed')
+    onChange: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -143,7 +143,7 @@ export const AuthTypeChange: Story = {
 // インタラクションテスト: Basic認証の入力
 export const BasicAuthInput: Story = {
   args: {
-    onChange: action('auth-changed')
+    onChange: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -168,7 +168,7 @@ export const BasicAuthInput: Story = {
 // インタラクションテスト: Bearer Token認証の入力
 export const BearerAuthInput: Story = {
   args: {
-    onChange: action('auth-changed')
+    onChange: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -188,7 +188,7 @@ export const BearerAuthInput: Story = {
 // インタラクションテスト: API Key認証の入力と配置場所変更
 export const ApiKeyInput: Story = {
   args: {
-    onChange: action('auth-changed')
+    onChange: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -235,7 +235,7 @@ export const ExistingSettingsPreservation: Story = {
         location: 'query'
       }
     } as AuthConfig,
-    onChange: action('auth-changed')
+    onChange: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -271,7 +271,7 @@ export const ExistingSettingsPreservation: Story = {
 // アクセシビリティテスト
 export const AccessibilityTest: Story = {
   args: {
-    onChange: action('auth-changed')
+    onChange: fn()
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -308,7 +308,7 @@ export const AllAuthTypes: Story = {
     >
       <div>
         <h4>認証なし</h4>
-        <AuthEditor onChange={action('none-changed')} />
+        <AuthEditor onChange={fn()} />
       </div>
       <div>
         <h4>Basic認証</h4>
@@ -317,7 +317,7 @@ export const AllAuthTypes: Story = {
             type: 'basic',
             basic: { username: 'user', password: 'pass' }
           }}
-          onChange={action('basic-changed')}
+          onChange={fn()}
         />
       </div>
       <div>
@@ -327,7 +327,7 @@ export const AllAuthTypes: Story = {
             type: 'bearer',
             bearer: { token: 'token123' }
           }}
-          onChange={action('bearer-changed')}
+          onChange={fn()}
         />
       </div>
       <div>
@@ -337,7 +337,7 @@ export const AllAuthTypes: Story = {
             type: 'api-key',
             apiKey: { key: 'X-API-Key', value: 'key123', location: 'header' }
           }}
-          onChange={action('apikey-header-changed')}
+          onChange={fn()}
         />
       </div>
       <div>
@@ -347,7 +347,7 @@ export const AllAuthTypes: Story = {
             type: 'api-key',
             apiKey: { key: 'api_key', value: 'key123', location: 'query' }
           }}
-          onChange={action('apikey-query-changed')}
+          onChange={fn()}
         />
       </div>
     </div>
