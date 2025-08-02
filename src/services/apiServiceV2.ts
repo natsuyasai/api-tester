@@ -1,7 +1,6 @@
 import { ApiRequest, ApiResponse, AuthConfig } from '@/types/types'
 import { HttpClient } from './httpClient'
 import { HttpClientInterface } from './httpClientInterface'
-import { executePostScript, PostScriptResult } from './postScriptEngine'
 
 /**
  * グローバル変数操作のためのコールバック型
@@ -64,8 +63,7 @@ export class ApiServiceV2 {
     variableResolver?: (text: string) => string,
     saveToHistory: boolean = true,
     sessionVariableResolver?: (text: string, sessionId?: string) => string,
-    sessionId?: string,
-    globalVariableCallbacks?: GlobalVariableCallbacks
+    sessionId?: string
   ): Promise<ApiResponse> {
     const startTime = Date.now()
     let executionStatus: 'success' | 'error' = 'success'
@@ -85,39 +83,6 @@ export class ApiServiceV2 {
       if (apiResponse.status >= 400) {
         executionStatus = 'error'
         errorMessage = `HTTP ${apiResponse.status}: ${apiResponse.statusText}`
-      }
-
-      // ポストスクリプトを実行（設定されている場合）
-      let postScriptResult: PostScriptResult | undefined
-      if (request.postScript && globalVariableCallbacks) {
-        try {
-          postScriptResult = executePostScript(
-            request.postScript,
-            apiResponse,
-            globalVariableCallbacks.setGlobalVariable,
-            globalVariableCallbacks.getGlobalVariable
-          )
-
-          // ポストスクリプトのログを出力
-          if (postScriptResult.logs.length > 0) {
-            console.log('[PostScript Logs]:', postScriptResult.logs)
-          }
-
-          // ポストスクリプトでエラーが発生した場合のログ
-          if (!postScriptResult.success && postScriptResult.error) {
-            console.error('[PostScript Error]:', postScriptResult.error)
-          }
-
-          // 生成された変数の情報をログ出力
-          if (postScriptResult.generatedVariables.length > 0) {
-            console.log(
-              '[Generated Variables]:',
-              postScriptResult.generatedVariables.map((v) => `${v.key}=${v.value}`)
-            )
-          }
-        } catch (error) {
-          console.error('[PostScript Execution Error]:', error)
-        }
       }
 
       // 実行履歴に保存

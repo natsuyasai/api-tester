@@ -5,6 +5,7 @@
 
 import { ApiRequest, ApiResponse } from '@/types/types'
 import { ApiServiceV2, GlobalVariableCallbacks } from '../../../services/apiServiceV2'
+import { executePostScript } from '../../../services/postScriptEngine'
 
 // 型ガード関数
 function hasApiExecutor(): boolean {
@@ -41,20 +42,71 @@ export class IpcApiService {
       )
 
       if (result.success && result.response) {
-        return result.response as ApiResponse
+        const response = result.response as ApiResponse
+
+        // ポストスクリプト実行（グローバル変数コールバックが提供されている場合）
+        if (request.postScript && globalVariableCallbacks) {
+          try {
+            const postScriptResult = executePostScript(
+              request.postScript,
+              response,
+              globalVariableCallbacks.setGlobalVariable,
+              globalVariableCallbacks.getGlobalVariable
+            )
+
+            // ポストスクリプトのログを出力
+            if (postScriptResult.logs.length > 0) {
+              console.log('[PostScript Logs]:', postScriptResult.logs)
+            }
+
+            // エラーがある場合は警告を出力
+            if (postScriptResult.error) {
+              console.warn('[PostScript Error]:', postScriptResult.error)
+            }
+          } catch (error) {
+            console.error('PostScript execution failed:', error)
+          }
+        }
+
+        return response
       } else {
         throw new Error(result.error || 'API実行に失敗しました')
       }
     } else {
       // フォールバック: 直接ApiServiceV2を使用（履歴保存は無効化）
-      return await ApiServiceV2.executeRequest(
+      const response = await ApiServiceV2.executeRequest(
         request,
         variableResolver,
         false, // 履歴保存は無効化（IPCでの履歴処理と重複を防ぐため）
         sessionVariableResolver,
-        sessionId,
-        globalVariableCallbacks
+        sessionId
       )
+
+      // フォールバック時にもポストスクリプトを実行
+      if (request.postScript && globalVariableCallbacks) {
+        try {
+          const postScriptResult = executePostScript(
+            request.postScript,
+            response,
+            globalVariableCallbacks.setGlobalVariable,
+            globalVariableCallbacks.getGlobalVariable
+          )
+
+          // ポストスクリプトのログを出力
+          if (postScriptResult.logs.length > 0) {
+            console.log('[PostScript Logs]:', postScriptResult.logs)
+          }
+
+          // エラーがある場合は警告を出力
+          if (postScriptResult.error) {
+            console.warn('[PostScript Error]:', postScriptResult.error)
+          }
+        } catch (error) {
+          console.error('PostScript execution failed:', error)
+        }
+      }
+
+      return response
     }
   }
 
@@ -65,12 +117,20 @@ export class IpcApiService {
     request: ApiRequest,
     cancelToken: AbortSignal,
     variableResolver?: (text: string) => string,
-    saveToHistory: boolean = true
+    saveToHistory: boolean = true,
+    sessionVariableResolver?: (text: string, sessionId?: string) => string,
+    sessionId?: string,
+    globalVariableCallbacks?: GlobalVariableCallbacks
   ): Promise<ApiResponse> {
     // ElectronのIPCではAbortSignalの転送は複雑なため、通常のexecuteRequestを使用
     if (hasApiExecutor()) {
       // 変数を事前に解決したリクエストを作成
-      const resolvedRequest = this.resolveVariablesInRequest(request, variableResolver)
+      const resolvedRequest = this.resolveVariablesInRequest(
+        request,
+        variableResolver,
+        sessionVariableResolver,
+        sessionId
+      )
       const result = await window.apiExecutor.executeRequestWithCancel(
         resolvedRequest,
         undefined,
@@ -78,7 +138,33 @@ export class IpcApiService {
       )
 
       if (result.success && result.response) {
-        return result.response as ApiResponse
+        const response = result.response as ApiResponse
+
+        // ポストスクリプト実行（グローバル変数コールバックが提供されている場合）
+        if (request.postScript && globalVariableCallbacks) {
+          try {
+            const postScriptResult = executePostScript(
+              request.postScript,
+              response,
+              globalVariableCallbacks.setGlobalVariable,
+              globalVariableCallbacks.getGlobalVariable
+            )
+
+            // ポストスクリプトのログを出力
+            if (postScriptResult.logs.length > 0) {
+              console.log('[PostScript Logs]:', postScriptResult.logs)
+            }
+
+            // エラーがある場合は警告を出力
+            if (postScriptResult.error) {
+              console.warn('[PostScript Error]:', postScriptResult.error)
+            }
+          } catch (error) {
+            console.error('PostScript execution failed:', error)
+          }
+        }
+
+        return response
       } else {
         throw new Error(result.error || 'API実行に失敗しました')
       }
