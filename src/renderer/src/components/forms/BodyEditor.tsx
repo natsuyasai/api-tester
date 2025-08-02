@@ -213,7 +213,6 @@ export const BodyEditor = ({
     onBodyChange(serializedData)
   }
 
-
   // bodyTypeが変更された時の処理
   const handleBodyTypeChange = (newBodyType: BodyType) => {
     onBodyTypeChange(newBodyType)
@@ -307,6 +306,9 @@ export const BodyEditor = ({
                 placeholder="query {\n  users {\n    id\n    name\n    email\n  }\n}"
                 className={styles.textarea}
                 spellCheck={false}
+                showLineNumbers={true}
+                language="javascript"
+                highlightActiveLine={true}
               />
             </div>
             <div className={styles.variablesSection}>
@@ -343,6 +345,9 @@ export const BodyEditor = ({
             }
             className={styles.textarea}
             spellCheck={false}
+            showLineNumbers={bodyType === 'json'}
+            language={bodyType === 'json' ? 'json' : 'plain'}
+            highlightActiveLine={bodyType === 'json'}
           />
         )}
       </div>

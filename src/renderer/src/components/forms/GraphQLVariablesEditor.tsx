@@ -70,6 +70,9 @@ export const GraphQLVariablesEditor = ({
           placeholder={`{\n  "limit": 10,\n  "offset": 0\n}`}
           className={`${styles.textarea} ${error ? styles.error : ''}`}
           spellCheck={false}
+          showLineNumbers={true}
+          language="json"
+          highlightActiveLine={true}
         />
         {error && <div className={styles.errorMessage}>{error}</div>}
       </div>

@@ -35,13 +35,15 @@ describe('GraphQLVariablesEditor', () => {
   })
 
   it('should show error for invalid JSON', () => {
-    render(<GraphQLVariablesEditor {...defaultProps} />)
+    const { container } = render(<GraphQLVariablesEditor {...defaultProps} />)
 
     const textarea = screen.getByRole('textbox')
     fireEvent.change(textarea, { target: { value: 'invalid json' } })
 
     expect(screen.getByText('Invalid JSON format')).toBeInTheDocument()
-    expect(textarea.className).toContain('error')
+    // react-simple-code-editorが使用されているため、エラークラスはコンテナに適用される
+    const editorContainer = container.querySelector('[class*="error"]')
+    expect(editorContainer).toBeTruthy()
   })
 
   it('should not show error for valid JSON', () => {

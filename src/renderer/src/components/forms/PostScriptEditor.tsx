@@ -146,6 +146,9 @@ if (getStatus() === 200) {
 // }"
           rows={15}
           spellCheck={false}
+          showLineNumbers={true}
+          language="javascript"
+          highlightActiveLine={true}
         />
       </div>
 
