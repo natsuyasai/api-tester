@@ -18,7 +18,9 @@ function App(): JSX.Element {
   const [showExecutionHistory, setShowExecutionHistory] = useState(false)
   const [showSessionManager, setShowSessionManager] = useState(false)
 
-  useKeyboardShortcuts()
+  useKeyboardShortcuts({
+    onToggleCollections: () => setShowCollectionPanel(!showCollectionPanel)
+  })
   useAutoSave() // 自動保存機能を有効化
   useTabCollectionSync() // タブとコレクションの同期
 

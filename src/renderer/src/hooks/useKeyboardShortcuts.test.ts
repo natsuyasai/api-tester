@@ -14,6 +14,10 @@ vi.mock('@renderer/stores/tabStore', () => ({
   useTabStore: () => mockTabStore
 }))
 
+vi.mock('@renderer/stores/collectionStore', () => ({
+  useCollectionStore: () => ({ activeCollectionId: 'test-collection' })
+}))
+
 describe('useKeyboardShortcuts', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -176,6 +180,83 @@ describe('useKeyboardShortcuts', () => {
 
     const event = new KeyboardEvent('keydown', {
       key: 'F2'
+    })
+    const preventDefaultSpy = vi.spyOn(event, 'preventDefault')
+
+    act(() => {
+      document.dispatchEvent(event)
+    })
+
+    expect(preventDefaultSpy).toHaveBeenCalled()
+    unmount()
+  })
+
+  it('should call onToggleCollections when Ctrl+B is pressed', () => {
+    const mockOnToggleCollections = vi.fn()
+    const { unmount } = renderHook(() =>
+      useKeyboardShortcuts({ onToggleCollections: mockOnToggleCollections })
+    )
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'b',
+      ctrlKey: true
+    })
+
+    act(() => {
+      document.dispatchEvent(event)
+    })
+
+    expect(mockOnToggleCollections).toHaveBeenCalledTimes(1)
+    unmount()
+  })
+
+  it('should call onToggleCollections when Cmd+B is pressed (Mac)', () => {
+    const mockOnToggleCollections = vi.fn()
+    const { unmount } = renderHook(() =>
+      useKeyboardShortcuts({ onToggleCollections: mockOnToggleCollections })
+    )
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'b',
+      metaKey: true
+    })
+
+    act(() => {
+      document.dispatchEvent(event)
+    })
+
+    expect(mockOnToggleCollections).toHaveBeenCalledTimes(1)
+    unmount()
+  })
+
+  it('should dispatch custom event when Ctrl+B is pressed without onToggleCollections callback', () => {
+    const { unmount } = renderHook(() => useKeyboardShortcuts())
+    const dispatchEventSpy = vi.spyOn(document, 'dispatchEvent')
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'b',
+      ctrlKey: true
+    })
+
+    act(() => {
+      document.dispatchEvent(event)
+    })
+
+    expect(dispatchEventSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'toggle-collections'
+      })
+    )
+    unmount()
+    dispatchEventSpy.mockRestore()
+  })
+
+  it('should prevent default behavior for Ctrl+B key', () => {
+    const { unmount } = renderHook(() => useKeyboardShortcuts())
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'b',
+      ctrlKey: true
     })
     const preventDefaultSpy = vi.spyOn(event, 'preventDefault')
 

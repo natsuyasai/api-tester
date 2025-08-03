@@ -4,12 +4,13 @@ import { useTabStore } from '@renderer/stores/tabStore'
 
 interface UseKeyboardShortcutsProps {
   onEditActiveTab?: () => void
+  onToggleCollections?: () => void
 }
 
 export const useKeyboardShortcuts = (props?: UseKeyboardShortcutsProps) => {
   const { addTab, switchToNextTab, switchToPreviousTab, closeActiveTab } = useTabStore()
   const { activeCollectionId } = useCollectionStore()
-  const { onEditActiveTab } = props || {}
+  const { onEditActiveTab, onToggleCollections } = props || {}
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -29,6 +30,16 @@ export const useKeyboardShortcuts = (props?: UseKeyboardShortcutsProps) => {
               switchToPreviousTab()
             } else {
               switchToNextTab()
+            }
+            break
+          case 'b':
+            event.preventDefault()
+            if (onToggleCollections) {
+              onToggleCollections()
+            } else {
+              // コールバックが指定されていない場合はカスタムイベントを発行
+              const toggleEvent = new CustomEvent('toggle-collections')
+              document.dispatchEvent(toggleEvent)
             }
             break
           default:
@@ -55,6 +66,7 @@ export const useKeyboardShortcuts = (props?: UseKeyboardShortcutsProps) => {
     switchToPreviousTab,
     closeActiveTab,
     onEditActiveTab,
+    onToggleCollections,
     activeCollectionId
   ])
 }
