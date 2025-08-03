@@ -82,6 +82,9 @@ export class NodeHttpClientDI implements HttpClientInterface {
         throw new Error(`Request validation failed: ${validationErrors.join(', ')}`)
       }
 
+      // 実行時リクエスト内容を取得（変数展開済み）
+      const executedRequest = builder.getExecutedRequest()
+
       // URL と オプションを構築
       let url = builder.buildUrl()
       url = builder.adjustUrlForApiKey(url)
@@ -110,7 +113,12 @@ export class NodeHttpClientDI implements HttpClientInterface {
       )
 
       // レスポンス処理
-      return await this.processUndiciResponse(response, startTime)
+      const apiResponse = await this.processUndiciResponse(response, startTime)
+      
+      // 実行時リクエスト内容をレスポンスに含める
+      apiResponse.executedRequest = executedRequest
+      
+      return apiResponse
     } catch (error) {
       // エラー詳細をログ出力
       console.error('NodeHttpClientDI Request failed:', {
@@ -146,6 +154,9 @@ export class NodeHttpClientDI implements HttpClientInterface {
         throw new Error(`Request validation failed: ${validationErrors.join(', ')}`)
       }
 
+      // 実行時リクエスト内容を取得（変数展開済み）
+      const executedRequest = builder.getExecutedRequest()
+
       // URL と オプションを構築
       let url = builder.buildUrl()
       url = builder.adjustUrlForApiKey(url)
@@ -180,7 +191,12 @@ export class NodeHttpClientDI implements HttpClientInterface {
       )
 
       // レスポンス処理
-      return await this.processUndiciResponse(response, startTime)
+      const apiResponse = await this.processUndiciResponse(response, startTime)
+      
+      // 実行時リクエスト内容をレスポンスに含める
+      apiResponse.executedRequest = executedRequest
+      
+      return apiResponse
     } catch (error) {
       // エラー詳細をログ出力
       console.error('NodeHttpClientDI Request (with cancel) failed:', {

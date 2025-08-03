@@ -35,13 +35,20 @@ export const useResponseActions = ({
     const tab = getTab(tabId)
     if (!tab || !response) return
 
+    // 実行時のリクエスト内容が保存されている場合はそれを使用、なければ現在のリクエスト内容を使用
+    const requestToExport = response.executedRequest || tab.request
+
     const exportData = {
       request: {
-        url: tab.request.url,
-        method: tab.request.method,
-        headers: tab.request.headers.filter((h) => h.enabled && h.key),
-        params: tab.request.params.filter((p) => p.enabled && p.key),
-        body: tab.request.body
+        url: requestToExport.url,
+        method: requestToExport.method,
+        headers: requestToExport.headers.filter((h) => h.enabled && h.key),
+        params: requestToExport.params.filter((p) => p.enabled && p.key),
+        body: requestToExport.body,
+        auth: requestToExport.auth,
+        bodyType: requestToExport.bodyType,
+        bodyKeyValuePairs: requestToExport.bodyKeyValuePairs?.filter((p) => p.enabled && p.key),
+        variables: requestToExport.variables
       },
       response: {
         status: response.status,
@@ -50,6 +57,10 @@ export const useResponseActions = ({
         data: response.data,
         duration: response.duration,
         timestamp: response.timestamp
+      },
+      metadata: {
+        exportedAt: new Date().toISOString(),
+        variablesExpanded: !!response.executedRequest // 変数が展開されているかどうかを示すフラグ
       }
     }
 

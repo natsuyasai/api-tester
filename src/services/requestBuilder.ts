@@ -304,6 +304,81 @@ export class RequestBuilder {
   }
 
   /**
+   * 実行時のリクエスト内容を取得（変数展開済み）
+   */
+  getExecutedRequest(): ApiRequest {
+    // 元のリクエストをコピー
+    const executedRequest: ApiRequest = {
+      ...this.request,
+      // 基本情報を変数展開
+      url: this.resolveAllVariables(this.request.url),
+      // ヘッダーを変数展開
+      headers: this.request.headers.map(header => ({
+        ...header,
+        key: this.resolveAllVariables(header.key),
+        value: this.resolveAllVariables(header.value)
+      })),
+      // パラメータを変数展開
+      params: this.request.params.map(param => ({
+        ...param,
+        key: this.resolveAllVariables(param.key),
+        value: this.resolveAllVariables(param.value)
+      })),
+      // ボディを変数展開
+      body: this.resolveAllVariables(this.request.body),
+      // ボディキーバリューペアを変数展開
+      bodyKeyValuePairs: this.request.bodyKeyValuePairs?.map(pair => ({
+        ...pair,
+        key: this.resolveAllVariables(pair.key),
+        value: this.resolveAllVariables(pair.value),
+        fileName: pair.fileName ? this.resolveAllVariables(pair.fileName) : pair.fileName
+      }))
+    }
+
+    // 認証情報を変数展開
+    if (this.request.auth && this.request.auth.type !== 'none') {
+      executedRequest.auth = { ...this.request.auth }
+      
+      switch (this.request.auth.type) {
+        case 'bearer':
+          if (this.request.auth.bearer) {
+            executedRequest.auth.bearer = {
+              token: this.resolveAllVariables(this.request.auth.bearer.token)
+            }
+          }
+          break
+        case 'api-key':
+          if (this.request.auth.apiKey) {
+            executedRequest.auth.apiKey = {
+              ...this.request.auth.apiKey,
+              key: this.resolveAllVariables(this.request.auth.apiKey.key),
+              value: this.resolveAllVariables(this.request.auth.apiKey.value)
+            }
+          }
+          break
+        // Basic認証は平文なのでそのまま
+      }
+    }
+
+    // GraphQL変数も変数展開
+    if (this.request.variables) {
+      executedRequest.variables = { ...this.request.variables }
+      for (const [key, value] of Object.entries(this.request.variables)) {
+        if (typeof value === 'string') {
+          executedRequest.variables[key] = this.resolveAllVariables(value)
+        }
+      }
+    }
+
+    // PostScriptも変数展開
+    if (this.request.postScript) {
+      executedRequest.postScript = this.resolveAllVariables(this.request.postScript)
+    }
+
+    return executedRequest
+  }
+
+  /**
    * リクエスト検証
    */
   validate(): string[] {
