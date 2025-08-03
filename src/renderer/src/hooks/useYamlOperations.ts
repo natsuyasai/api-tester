@@ -10,6 +10,10 @@ export const useYamlOperations = () => {
   const { tabs } = useTabStore()
 
   const exportYaml = useCallback(() => {
+    return YamlService.exportToYamlWithVariables(tabs)
+  }, [tabs])
+
+  const exportYamlRaw = useCallback(() => {
     return YamlService.exportToYaml(tabs)
   }, [tabs])
 
@@ -197,6 +201,7 @@ export const useYamlOperations = () => {
 
   return {
     exportYaml,
+    exportYamlRaw,
     importYaml,
     saveToFile,
     loadFromFile

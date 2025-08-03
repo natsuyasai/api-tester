@@ -69,6 +69,7 @@ describe('TabBar', () => {
 
   const mockYamlOperations = {
     exportYaml: vi.fn(),
+    exportYamlRaw: vi.fn(),
     importYaml: vi.fn(),
     saveToFile: vi.fn(),
     loadFromFile: vi.fn()

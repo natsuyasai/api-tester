@@ -1,6 +1,9 @@
 import yaml from 'js-yaml'
 import { v4 as uuidv4 } from 'uuid'
-import { ApiTab, ApiRequest, Collection } from '@/types/types'
+import { ApiTab, ApiRequest, Collection, AuthType, ApiKeyLocation, FileEncoding } from '@/types/types'
+import { useEnvironmentStore } from '@renderer/stores/environmentStore'
+import { useGlobalVariablesStore } from '@renderer/stores/globalVariablesStore'
+import { useSessionStore } from '@renderer/stores/sessionStore'
 import { KeyValuePairOperations } from '@renderer/utils/keyValueUtils'
 export interface YamlExportData {
   version: string
@@ -28,7 +31,40 @@ export interface YamlRequest {
   params?: Record<string, string>
   body?: unknown
   bodyType?: string
+  bodyKeyValuePairs?: Array<{
+    key: string
+    value: string
+    enabled: boolean
+    isFile?: boolean
+    fileName?: string
+    fileContent?: string
+    fileEncoding?: FileEncoding
+  }>
   variables?: Record<string, unknown>
+  auth?: {
+    type: AuthType
+    basic?: {
+      username: string
+      password: string
+    }
+    bearer?: {
+      token: string
+    }
+    apiKey?: {
+      key: string
+      value: string
+      location: ApiKeyLocation
+    }
+  }
+  settings?: {
+    timeout: number
+    followRedirects: boolean
+    maxRedirects: number
+    validateSSL: boolean
+    userAgent?: string
+  }
+  postScript?: string
+  type?: string
   description?: string
 }
 
@@ -82,6 +118,120 @@ export class YamlService {
       noRefs: true,
       sortKeys: false
     })
+  }
+
+  /**
+   * 変数展開済みのAPIタブをYAML形式でエクスポート
+   */
+  static exportToYamlWithVariables(tabs: ApiTab[]): string {
+    const resolvedTabs = this.resolveTabsVariables(tabs)
+    return this.exportToYaml(resolvedTabs)
+  }
+
+  /**
+   * 変数展開済みのコレクションとAPIタブをYAML形式でエクスポート
+   */
+  static exportCollectionsToYamlWithVariables(collections: Collection[], tabs: ApiTab[]): string {
+    const resolvedTabs = this.resolveTabsVariables(tabs)
+    return this.exportCollectionsToYaml(collections, resolvedTabs)
+  }
+
+  /**
+   * タブの変数を展開する
+   */
+  private static resolveTabsVariables(tabs: ApiTab[]): ApiTab[] {
+    // 変数解決関数を作成
+    const variableResolver = this.createVariableResolver()
+    
+    return tabs.map((tab) => ({
+      ...tab,
+      request: this.resolveRequestVariables(tab.request, variableResolver)
+    }))
+  }
+
+  /**
+   * 変数解決関数を作成
+   */
+  private static createVariableResolver(): (text: string) => string {
+    // グローバル変数を取得
+    const globalVariables = useGlobalVariablesStore.getState().variables
+    // 環境変数を取得
+    const environmentStore = useEnvironmentStore.getState()
+    const activeEnvironment = environmentStore.environments.find(
+      env => env.id === environmentStore.activeEnvironmentId
+    )
+    const environmentVariables = activeEnvironment?.variables || []
+    // セッション変数を取得
+    const sessionVariables = useSessionStore.getState().sharedVariables || []
+
+    return (text: string): string => {
+      let resolved = text
+
+      // セッション変数を解決
+      sessionVariables.forEach((variable) => {
+        if (variable.enabled) {
+          const regex = new RegExp(`\\{\\{${variable.key}\\}\\}`, 'g')
+          resolved = resolved.replace(regex, variable.value)
+        }
+      })
+
+      // 環境変数を解決
+      environmentVariables.forEach((variable) => {
+        if (variable.enabled) {
+          const regex = new RegExp(`\\{\\{${variable.key}\\}\\}`, 'g')
+          resolved = resolved.replace(regex, variable.value)
+        }
+      })
+
+      // グローバル変数を解決
+      globalVariables.forEach((variable) => {
+        if (variable.enabled) {
+          const regex = new RegExp(`\\{\\{${variable.key}\\}\\}`, 'g')
+          resolved = resolved.replace(regex, variable.value)
+        }
+      })
+
+      return resolved
+    }
+  }
+
+  /**
+   * リクエストの変数を展開する
+   */
+  private static resolveRequestVariables(request: ApiRequest, resolver: (text: string) => string): ApiRequest {
+    return {
+      ...request,
+      url: resolver(request.url),
+      headers: request.headers.map(header => ({
+        ...header,
+        key: resolver(header.key),
+        value: resolver(header.value)
+      })),
+      params: request.params.map(param => ({
+        ...param,
+        key: resolver(param.key),
+        value: resolver(param.value)
+      })),
+      body: resolver(request.body),
+      bodyKeyValuePairs: request.bodyKeyValuePairs?.map(pair => ({
+        ...pair,
+        key: resolver(pair.key),
+        value: resolver(pair.value),
+        fileName: pair.fileName ? resolver(pair.fileName) : pair.fileName
+      })),
+      auth: request.auth ? {
+        ...request.auth,
+        bearer: request.auth.bearer ? {
+          token: resolver(request.auth.bearer.token)
+        } : request.auth.bearer,
+        apiKey: request.auth.apiKey ? {
+          ...request.auth.apiKey,
+          key: resolver(request.auth.apiKey.key),
+          value: resolver(request.auth.apiKey.value)
+        } : request.auth.apiKey
+      } : request.auth,
+      postScript: request.postScript ? resolver(request.postScript) : request.postScript
+    }
   }
 
   /**
@@ -337,7 +487,8 @@ export class YamlService {
     const yamlRequest: YamlRequest = {
       name: tab.title || request.name,
       method: request.method,
-      url: request.url
+      url: request.url,
+      type: request.type
     }
 
     if (Object.keys(headers).length > 0) {
@@ -361,8 +512,50 @@ export class YamlService {
       yamlRequest.bodyType = request.bodyType
     }
 
+    // BodyKeyValuePairsを追加
+    if (request.bodyKeyValuePairs && request.bodyKeyValuePairs.length > 0) {
+      const enabledPairs = request.bodyKeyValuePairs.filter((pair) => pair.enabled && pair.key)
+      if (enabledPairs.length > 0) {
+        yamlRequest.bodyKeyValuePairs = enabledPairs.map(pair => ({
+          key: pair.key,
+          value: pair.value,
+          enabled: pair.enabled,
+          isFile: pair.isFile,
+          fileName: pair.fileName,
+          fileContent: pair.fileContent,
+          fileEncoding: pair.fileEncoding
+        }))
+      }
+    }
+
     if (request.variables && Object.keys(request.variables).length > 0) {
       yamlRequest.variables = request.variables
+    }
+
+    // 認証情報を追加
+    if (request.auth && request.auth.type !== 'none') {
+      yamlRequest.auth = {
+        type: request.auth.type,
+        basic: request.auth.basic,
+        bearer: request.auth.bearer,
+        apiKey: request.auth.apiKey
+      }
+    }
+
+    // 設定情報を追加
+    if (request.settings) {
+      yamlRequest.settings = {
+        timeout: request.settings.timeout,
+        followRedirects: request.settings.followRedirects,
+        maxRedirects: request.settings.maxRedirects,
+        validateSSL: request.settings.validateSSL,
+        userAgent: request.settings.userAgent
+      }
+    }
+
+    // PostScriptを追加
+    if (request.postScript) {
+      yamlRequest.postScript = request.postScript
     }
 
     return yamlRequest
@@ -457,6 +650,24 @@ export class YamlService {
       }
     }
 
+    // BodyKeyValuePairsを復元
+    const bodyKeyValuePairs = yamlRequest.bodyKeyValuePairs
+      ? yamlRequest.bodyKeyValuePairs.map(pair => ({
+          key: pair.key,
+          value: pair.value,
+          enabled: pair.enabled,
+          isFile: pair.isFile,
+          fileName: pair.fileName,
+          fileContent: pair.fileContent,
+          fileEncoding: pair.fileEncoding
+        }))
+      : []
+
+    // 空の行を追加
+    if (bodyKeyValuePairs.length > 0) {
+      bodyKeyValuePairs.push(...KeyValuePairOperations.add([]))
+    }
+
     const request: ApiRequest = {
       id: uuidv4(),
       name: yamlRequest.name || `Request ${index + 1}`,
@@ -466,8 +677,23 @@ export class YamlService {
       params,
       body,
       bodyType: (yamlRequest.bodyType as ApiRequest['bodyType']) || 'json',
-      type: yamlRequest.bodyType === 'graphql' ? 'graphql' : 'rest',
-      variables: yamlRequest.variables || {}
+      bodyKeyValuePairs: bodyKeyValuePairs.length > 0 ? bodyKeyValuePairs : undefined,
+      type: yamlRequest.type === 'graphql' ? 'graphql' : 'rest',
+      variables: yamlRequest.variables || {},
+      auth: yamlRequest.auth ? {
+        type: yamlRequest.auth.type,
+        basic: yamlRequest.auth.basic,
+        bearer: yamlRequest.auth.bearer,
+        apiKey: yamlRequest.auth.apiKey
+      } : undefined,
+      settings: yamlRequest.settings ? {
+        timeout: yamlRequest.settings.timeout,
+        followRedirects: yamlRequest.settings.followRedirects,
+        maxRedirects: yamlRequest.settings.maxRedirects,
+        validateSSL: yamlRequest.settings.validateSSL,
+        userAgent: yamlRequest.settings.userAgent
+      } : undefined,
+      postScript: yamlRequest.postScript
     }
 
     return {

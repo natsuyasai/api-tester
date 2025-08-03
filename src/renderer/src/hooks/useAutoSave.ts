@@ -20,7 +20,22 @@ export const useAutoSave = () => {
       id: tab.id,
       title: tab.title,
       collectionId: tab.collectionId,
-      request: tab.request,
+      request: {
+        id: tab.request.id,
+        name: tab.request.name,
+        url: tab.request.url,
+        method: tab.request.method,
+        headers: tab.request.headers,
+        params: tab.request.params,
+        body: tab.request.body,
+        bodyType: tab.request.bodyType,
+        bodyKeyValuePairs: tab.request.bodyKeyValuePairs,
+        auth: tab.request.auth,
+        settings: tab.request.settings,
+        type: tab.request.type,
+        variables: tab.request.variables,
+        postScript: tab.request.postScript
+      },
       response: tab.response
         ? {
             status: tab.response.status,
