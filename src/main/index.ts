@@ -6,6 +6,7 @@ import { setupDialogHandlers } from './handlers/dialogHandlers'
 import { setupFileHandlers } from './handlers/fileHandlers'
 import { setupProxyHandlers } from './handlers/proxyHandlers'
 import { setupTlsHandlers, cleanupTlsHandlers } from './handlers/tlsHandlers'
+import { setupWindowHandlers } from './handlers/windowHandlers'
 import { showErrorDialog } from './utils/errorUtils'
 import { createWindow } from './window/windowManager'
 
@@ -14,7 +15,7 @@ import { createWindow } from './window/windowManager'
 // Some APIs can only be used after this event occurs.
 app
   .whenReady()
-  .then(() => {
+  .then(async () => {
     // Set app user model id for windows
     electronApp.setAppUserModelId('com.electron')
 
@@ -31,17 +32,27 @@ app
     setupFileHandlers()
     setupProxyHandlers()
     setupTlsHandlers()
+    setupWindowHandlers()
     setupApiHandlers()
 
     // IPC test
     ipcMain.on('ping', () => console.log('pong'))
 
-    createWindow()
+    await createWindow()
 
     app.on('activate', function () {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
-      if (BrowserWindow.getAllWindows().length === 0) createWindow()
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow().catch((error) => {
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          showErrorDialog(
+            'ウィンドウ作成エラー',
+            'ウィンドウの作成に失敗しました',
+            errorMessage
+          )
+        })
+      }
     })
   })
   .catch((error) => {

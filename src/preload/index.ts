@@ -68,6 +68,10 @@ if (process.contextIsolated) {
         return () => ipcRenderer.off('api-execution-history', callback)
       }
     })
+    contextBridge.exposeInMainWorld('windowAPI', {
+      getStateInfo: () => ipcRenderer.invoke('window:getStateInfo'),
+      resetState: () => ipcRenderer.invoke('window:resetState')
+    })
   } catch (error) {
     console.error(error)
   }
@@ -82,6 +86,10 @@ declare global {
     api: object
     executionHistoryAPI: {
       onHistoryEntry: (callback: (event: unknown, historyEntry: unknown) => void) => () => void
+    }
+    windowAPI: {
+      getStateInfo: () => Promise<unknown>
+      resetState: () => Promise<{ success: boolean }>
     }
   }
 }

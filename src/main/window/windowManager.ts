@@ -2,15 +2,21 @@ import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import { BrowserWindow, shell } from 'electron'
 import icon from '../../../resources/icon.png?asset'
+import { WindowStateService } from '../services/windowStateService'
 import { showErrorDialog } from '../utils/errorUtils'
 
-export function createWindow(): void {
+export async function createWindow(): Promise<void> {
+  // ウィンドウ状態を読み込み
+  const windowState = await WindowStateService.loadWindowState()
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     minWidth: 800,
-    minHeight: 800,
-    width: 800,
-    height: 720,
+    minHeight: 600,
+    width: windowState.width,
+    height: windowState.height,
+    x: windowState.x,
+    y: windowState.y,
     resizable: true,
     show: false,
     autoHideMenuBar: true,
@@ -21,7 +27,16 @@ export function createWindow(): void {
     }
   })
 
+  // ウィンドウ状態管理を設定
+  WindowStateService.setupWindowStateManager(mainWindow)
+
   mainWindow.on('ready-to-show', () => {
+    // 最大化・フルスクリーン状態を復元
+    if (windowState.isMaximized) {
+      mainWindow.maximize()
+    } else if (windowState.isFullScreen) {
+      mainWindow.setFullScreen(true)
+    }
     mainWindow.show()
   })
 
