@@ -86,12 +86,12 @@ export const compareRequestContent = (original: ApiRequest, executed?: ApiReques
   console.log('=== Variable Expansion Comparison ===')
   console.log('Original URL:', original.url)
   console.log('Executed URL:', executed.url)
-  
+
   console.log('\nOriginal Headers:')
-  original.headers.forEach(h => console.log(`  ${h.key}: ${h.value}`))
+  original.headers.forEach((h) => console.log(`  ${h.key}: ${h.value}`))
   console.log('Executed Headers:')
-  executed.headers.forEach(h => console.log(`  ${h.key}: ${h.value}`))
-  
+  executed.headers.forEach((h) => console.log(`  ${h.key}: ${h.value}`))
+
   console.log('\nOriginal Body:', original.body)
   console.log('Executed Body:', executed.body)
 }

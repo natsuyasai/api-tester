@@ -11,7 +11,6 @@ interface WindowState {
   isFullScreen?: boolean
 }
 
-
 /**
  * ウィンドウの状態を保存・復元するサービス
  */
@@ -51,7 +50,7 @@ export class WindowStateService {
   static async loadWindowState(): Promise<WindowState> {
     try {
       const configPath = this.getConfigPath()
-      
+
       if (!(await NodeFileService.fileExists(configPath))) {
         return this.getDefaultWindowState()
       }
@@ -73,10 +72,9 @@ export class WindowStateService {
       // ウィンドウが画面外にある場合は位置をリセット
       if (state.x !== undefined && state.y !== undefined) {
         const displays = screen.getAllDisplays()
-        const isOnScreen = displays.some(display => {
+        const isOnScreen = displays.some((display) => {
           const { x, y, width, height } = display.bounds
-          return state.x! >= x && state.y! >= y && 
-                 state.x! < x + width && state.y! < y + height
+          return state.x! >= x && state.y! >= y && state.x! < x + width && state.y! < y + height
         })
 
         if (!isOnScreen) {
@@ -125,7 +123,7 @@ export class WindowStateService {
         clearTimeout(saveTimeout)
       }
       saveTimeout = setTimeout(() => {
-        this.saveWindowState(window).catch(error => {
+        this.saveWindowState(window).catch((error) => {
           console.error('自動保存に失敗:', error)
         })
       }, 100) // 100msの遅延でスロットリング
@@ -134,7 +132,7 @@ export class WindowStateService {
     // ウィンドウサイズ・位置変更時
     window.on('resize', throttledSave)
     window.on('move', throttledSave)
-    
+
     // 最大化・最小化状態変更時
     window.on('maximize', throttledSave)
     window.on('unmaximize', throttledSave)
@@ -147,7 +145,7 @@ export class WindowStateService {
         clearTimeout(saveTimeout)
       }
       // 同期的に保存（アプリ終了前に確実に保存）
-      this.saveWindowState(window).catch(error => {
+      this.saveWindowState(window).catch((error) => {
         console.error('終了時の保存に失敗:', error)
       })
     })
@@ -187,7 +185,7 @@ export class WindowStateService {
   static async resetWindowState(): Promise<void> {
     try {
       const configPath = this.getConfigPath()
-      
+
       if (await NodeFileService.fileExists(configPath)) {
         await NodeFileService.deleteFile(configPath)
       }
@@ -208,7 +206,7 @@ export class WindowStateService {
     try {
       const configPath = this.getConfigPath()
       const hasConfigFile = await NodeFileService.fileExists(configPath)
-      
+
       let currentState: WindowState | undefined
       if (hasConfigFile) {
         currentState = await this.loadWindowState()

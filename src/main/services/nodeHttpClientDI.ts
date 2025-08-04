@@ -114,10 +114,10 @@ export class NodeHttpClientDI implements HttpClientInterface {
 
       // レスポンス処理
       const apiResponse = await this.processUndiciResponse(response, startTime)
-      
+
       // 実行時リクエスト内容をレスポンスに含める
       apiResponse.executedRequest = executedRequest
-      
+
       return apiResponse
     } catch (error) {
       // エラー詳細をログ出力
@@ -192,10 +192,10 @@ export class NodeHttpClientDI implements HttpClientInterface {
 
       // レスポンス処理
       const apiResponse = await this.processUndiciResponse(response, startTime)
-      
+
       // 実行時リクエスト内容をレスポンスに含める
       apiResponse.executedRequest = executedRequest
-      
+
       return apiResponse
     } catch (error) {
       // エラー詳細をログ出力

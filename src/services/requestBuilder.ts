@@ -313,13 +313,13 @@ export class RequestBuilder {
       // 基本情報を変数展開
       url: this.resolveAllVariables(this.request.url),
       // ヘッダーを変数展開
-      headers: this.request.headers.map(header => ({
+      headers: this.request.headers.map((header) => ({
         ...header,
         key: this.resolveAllVariables(header.key),
         value: this.resolveAllVariables(header.value)
       })),
       // パラメータを変数展開
-      params: this.request.params.map(param => ({
+      params: this.request.params.map((param) => ({
         ...param,
         key: this.resolveAllVariables(param.key),
         value: this.resolveAllVariables(param.value)
@@ -327,7 +327,7 @@ export class RequestBuilder {
       // ボディを変数展開
       body: this.resolveAllVariables(this.request.body),
       // ボディキーバリューペアを変数展開
-      bodyKeyValuePairs: this.request.bodyKeyValuePairs?.map(pair => ({
+      bodyKeyValuePairs: this.request.bodyKeyValuePairs?.map((pair) => ({
         ...pair,
         key: this.resolveAllVariables(pair.key),
         value: this.resolveAllVariables(pair.value),
@@ -338,7 +338,7 @@ export class RequestBuilder {
     // 認証情報を変数展開
     if (this.request.auth && this.request.auth.type !== 'none') {
       executedRequest.auth = { ...this.request.auth }
-      
+
       switch (this.request.auth.type) {
         case 'bearer':
           if (this.request.auth.bearer) {

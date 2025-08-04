@@ -198,9 +198,7 @@ export const FormDataEditor = ({
             placeholder="key1: value1&#10;key2: value2&#10;key3: value3"
             className={styles.bulkTextarea}
             spellCheck={false}
-            showLineNumbers={true}
             language="plain"
-            highlightActiveLine={true}
           />
         </div>
       )}

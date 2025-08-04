@@ -1,6 +1,13 @@
 import yaml from 'js-yaml'
 import { v4 as uuidv4 } from 'uuid'
-import { ApiTab, ApiRequest, Collection, AuthType, ApiKeyLocation, FileEncoding } from '@/types/types'
+import {
+  ApiTab,
+  ApiRequest,
+  Collection,
+  AuthType,
+  ApiKeyLocation,
+  FileEncoding
+} from '@/types/types'
 import { useEnvironmentStore } from '@renderer/stores/environmentStore'
 import { useGlobalVariablesStore } from '@renderer/stores/globalVariablesStore'
 import { useSessionStore } from '@renderer/stores/sessionStore'
@@ -142,7 +149,7 @@ export class YamlService {
   private static resolveTabsVariables(tabs: ApiTab[]): ApiTab[] {
     // 変数解決関数を作成
     const variableResolver = this.createVariableResolver()
-    
+
     return tabs.map((tab) => ({
       ...tab,
       request: this.resolveRequestVariables(tab.request, variableResolver)
@@ -158,7 +165,7 @@ export class YamlService {
     // 環境変数を取得
     const environmentStore = useEnvironmentStore.getState()
     const activeEnvironment = environmentStore.environments.find(
-      env => env.id === environmentStore.activeEnvironmentId
+      (env) => env.id === environmentStore.activeEnvironmentId
     )
     const environmentVariables = activeEnvironment?.variables || []
     // セッション変数を取得
@@ -198,38 +205,47 @@ export class YamlService {
   /**
    * リクエストの変数を展開する
    */
-  private static resolveRequestVariables(request: ApiRequest, resolver: (text: string) => string): ApiRequest {
+  private static resolveRequestVariables(
+    request: ApiRequest,
+    resolver: (text: string) => string
+  ): ApiRequest {
     return {
       ...request,
       url: resolver(request.url),
-      headers: request.headers.map(header => ({
+      headers: request.headers.map((header) => ({
         ...header,
         key: resolver(header.key),
         value: resolver(header.value)
       })),
-      params: request.params.map(param => ({
+      params: request.params.map((param) => ({
         ...param,
         key: resolver(param.key),
         value: resolver(param.value)
       })),
       body: resolver(request.body),
-      bodyKeyValuePairs: request.bodyKeyValuePairs?.map(pair => ({
+      bodyKeyValuePairs: request.bodyKeyValuePairs?.map((pair) => ({
         ...pair,
         key: resolver(pair.key),
         value: resolver(pair.value),
         fileName: pair.fileName ? resolver(pair.fileName) : pair.fileName
       })),
-      auth: request.auth ? {
-        ...request.auth,
-        bearer: request.auth.bearer ? {
-          token: resolver(request.auth.bearer.token)
-        } : request.auth.bearer,
-        apiKey: request.auth.apiKey ? {
-          ...request.auth.apiKey,
-          key: resolver(request.auth.apiKey.key),
-          value: resolver(request.auth.apiKey.value)
-        } : request.auth.apiKey
-      } : request.auth,
+      auth: request.auth
+        ? {
+            ...request.auth,
+            bearer: request.auth.bearer
+              ? {
+                  token: resolver(request.auth.bearer.token)
+                }
+              : request.auth.bearer,
+            apiKey: request.auth.apiKey
+              ? {
+                  ...request.auth.apiKey,
+                  key: resolver(request.auth.apiKey.key),
+                  value: resolver(request.auth.apiKey.value)
+                }
+              : request.auth.apiKey
+          }
+        : request.auth,
       postScript: request.postScript ? resolver(request.postScript) : request.postScript
     }
   }
@@ -516,7 +532,7 @@ export class YamlService {
     if (request.bodyKeyValuePairs && request.bodyKeyValuePairs.length > 0) {
       const enabledPairs = request.bodyKeyValuePairs.filter((pair) => pair.enabled && pair.key)
       if (enabledPairs.length > 0) {
-        yamlRequest.bodyKeyValuePairs = enabledPairs.map(pair => ({
+        yamlRequest.bodyKeyValuePairs = enabledPairs.map((pair) => ({
           key: pair.key,
           value: pair.value,
           enabled: pair.enabled,
@@ -652,7 +668,7 @@ export class YamlService {
 
     // BodyKeyValuePairsを復元
     const bodyKeyValuePairs = yamlRequest.bodyKeyValuePairs
-      ? yamlRequest.bodyKeyValuePairs.map(pair => ({
+      ? yamlRequest.bodyKeyValuePairs.map((pair) => ({
           key: pair.key,
           value: pair.value,
           enabled: pair.enabled,
@@ -680,19 +696,23 @@ export class YamlService {
       bodyKeyValuePairs: bodyKeyValuePairs.length > 0 ? bodyKeyValuePairs : undefined,
       type: yamlRequest.type === 'graphql' ? 'graphql' : 'rest',
       variables: yamlRequest.variables || {},
-      auth: yamlRequest.auth ? {
-        type: yamlRequest.auth.type,
-        basic: yamlRequest.auth.basic,
-        bearer: yamlRequest.auth.bearer,
-        apiKey: yamlRequest.auth.apiKey
-      } : undefined,
-      settings: yamlRequest.settings ? {
-        timeout: yamlRequest.settings.timeout,
-        followRedirects: yamlRequest.settings.followRedirects,
-        maxRedirects: yamlRequest.settings.maxRedirects,
-        validateSSL: yamlRequest.settings.validateSSL,
-        userAgent: yamlRequest.settings.userAgent
-      } : undefined,
+      auth: yamlRequest.auth
+        ? {
+            type: yamlRequest.auth.type,
+            basic: yamlRequest.auth.basic,
+            bearer: yamlRequest.auth.bearer,
+            apiKey: yamlRequest.auth.apiKey
+          }
+        : undefined,
+      settings: yamlRequest.settings
+        ? {
+            timeout: yamlRequest.settings.timeout,
+            followRedirects: yamlRequest.settings.followRedirects,
+            maxRedirects: yamlRequest.settings.maxRedirects,
+            validateSSL: yamlRequest.settings.validateSSL,
+            userAgent: yamlRequest.settings.userAgent
+          }
+        : undefined,
       postScript: yamlRequest.postScript
     }
 

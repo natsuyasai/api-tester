@@ -81,7 +81,9 @@ describe('CodeTextarea', () => {
 
   it('should apply custom className to container', () => {
     const mockOnChange = vi.fn()
-    const { container } = render(<CodeTextarea value="test" onChange={mockOnChange} className="custom-class" />)
+    const { container } = render(
+      <CodeTextarea value="test" onChange={mockOnChange} className="custom-class" />
+    )
 
     // コンテナにクラス名が適用されることを確認
     const codeContainer = container.firstChild as HTMLElement
@@ -203,7 +205,6 @@ describe('CodeTextarea', () => {
     expect(mockOnChange).toHaveBeenCalled()
   })
 
-
   it('should expose basic methods through ref', () => {
     const mockOnChange = vi.fn()
     const ref = React.createRef<CodeTextareaRef>()
@@ -233,60 +234,6 @@ describe('CodeTextarea', () => {
     expect(mockOnChange).toHaveBeenCalled()
   })
 
-  it('should display line numbers when showLineNumbers is true', () => {
-    const mockOnChange = vi.fn()
-    const { container } = render(
-      <CodeTextarea value="line a\nline b\nline c" onChange={mockOnChange} showLineNumbers={true} language="plain" />
-    )
-
-    // line-numbers コンテナが存在することを確認
-    const lineNumbersContainer = container.querySelector('[class*="lineNumbers"]')
-    expect(lineNumbersContainer).toBeInTheDocument()
-  })
-
-  it('should not display line numbers when showLineNumbers is false', () => {
-    const mockOnChange = vi.fn()
-    const { container } = render(
-      <CodeTextarea
-        value="line a\nline b\nline c"
-        onChange={mockOnChange}
-        showLineNumbers={false}
-        language="plain"
-      />
-    )
-
-    // line-numbers コンテナが存在しないことを確認
-    const lineNumbersContainer = container.querySelector('[class*="lineNumbers"]')
-    expect(lineNumbersContainer).not.toBeInTheDocument()
-  })
-
-  it('should highlight active line when highlightActiveLine is true', async () => {
-    const user = userEvent.setup()
-    const mockOnChange = vi.fn()
-    const { container } = render(
-      <CodeTextarea
-        value="line 1\nline 2\nline 3"
-        onChange={mockOnChange}
-        showLineNumbers={true}
-        highlightActiveLine={true}
-        language="plain"
-      />
-    )
-
-    const textarea = screen.getByRole('textbox')
-    textarea.focus()
-
-    // カーソルを2行目に移動
-    ;(textarea as HTMLTextAreaElement).setSelectionRange(7, 7) // "line 1\n"の次
-
-    // 現在の行番号の更新をトリガー
-    await user.click(textarea)
-
-    // アクティブライン機能が有効であることを確認（コンテナにクラスが設定されることを確認）
-    const lineNumbersContainer = container.querySelector('[class*="lineNumbers"]')
-    expect(lineNumbersContainer).toBeInTheDocument()
-  })
-
   it('should support different language highlighting', () => {
     const mockOnChange = vi.fn()
     render(
@@ -309,33 +256,5 @@ describe('CodeTextarea', () => {
     // プレーンテキストとして表示されることを確認
     const textarea = screen.getByRole('textbox')
     expect(textarea).toHaveValue('This is plain text')
-  })
-
-  it('should sync line numbers scroll with textarea scroll', () => {
-    const mockOnChange = vi.fn()
-    const longText = Array.from({ length: 50 }, (_, i) => `line ${i + 1}`).join('\n')
-
-    render(
-      <CodeTextarea value={longText} onChange={mockOnChange} showLineNumbers={true} rows={10} />
-    )
-
-    const textarea = screen.getByRole('textbox')
-
-    // スクロールイベントが正しく処理されることを確認
-    expect(textarea).toBeInTheDocument()
-  })
-
-  it('should maintain functionality with line numbers enabled', async () => {
-    const user = userEvent.setup()
-    const mockOnChange = vi.fn()
-    render(<CodeTextarea value="initial text" onChange={mockOnChange} showLineNumbers={true} />)
-
-    const textarea = screen.getByRole('textbox')
-    textarea.focus()
-
-    // 行番号表示時でもTabキーが正常に動作することを確認
-    await user.keyboard('{Tab}')
-
-    expect(mockOnChange).toHaveBeenCalledWith('  initial text')
   })
 })

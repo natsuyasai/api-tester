@@ -4,7 +4,7 @@
   border: 1px solid rgba(255, 255, 245, 0.2);
   border-radius: 6px;
   background-color: var(--color-background-mute);
-  overflow: hidden;
+  overflow: auto;
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
@@ -12,77 +12,5 @@
   &:focus-within {
     border-color: #007acc;
     box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
-  }
-}
-
-.containerWithLineNumbers {
-  display: flex;
-}
-
-// 行番号エリア
-.lineNumbers {
-  position: relative;
-  background-color: var(--color-background-soft);
-  border-right: 1px solid rgba(255, 255, 245, 0.1);
-  min-width: 3rem;
-  text-align: right;
-  user-select: none;
-  overflow: hidden;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: rgba(235, 235, 245, 0.4);
-  padding-top: 1rem; // テキストエリアのpaddingと同期
-  padding-bottom: 1rem;
-}
-
-.lineNumber {
-  padding: 0 0.5rem;
-  height: 1.35rem; // line-height * font-size (0.9rem * 1.5)
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  line-height: 1.5; // 明示的にline-heightを指定
-  box-sizing: border-box; // 正確な高さ計算
-
-  &.activeLine {
-    background-color: rgba(0, 122, 204, 0.1);
-    color: #007acc;
-    font-weight: 600;
-  }
-}
-
-// エディタラッパー
-.editorWrapper {
-  position: relative;
-  flex: 1;
-  overflow: hidden;
-}
-
-// react-simple-code-editorのスタイル調整
-.editorWrapper {
-  :global(.npm__react-simple-code-editor__textarea) {
-    outline: none !important;
-  }
-
-  :global(.npm__react-simple-code-editor__container) {
-    border: none;
-    background: transparent;
-  }
-}
-
-// react-simple-code-editorスタイル調整
-.withLineNumbers {
-  :global(.npm__react-simple-code-editor__textarea) {
-    padding-left: 0.75rem !important;
-  }
-}
-
-// 行番号がない場合のスタイル
-.container:not(.containerWithLineNumbers) {
-  :global(.npm__react-simple-code-editor__container) {
-    border: 1px solid rgba(255, 255, 245, 0.2);
-    border-radius: 6px;
-    background-color: var(--color-background-mute);
   }
 }

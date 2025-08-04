@@ -46,11 +46,7 @@ app
       if (BrowserWindow.getAllWindows().length === 0) {
         createWindow().catch((error) => {
           const errorMessage = error instanceof Error ? error.message : String(error)
-          showErrorDialog(
-            'ウィンドウ作成エラー',
-            'ウィンドウの作成に失敗しました',
-            errorMessage
-          )
+          showErrorDialog('ウィンドウ作成エラー', 'ウィンドウの作成に失敗しました', errorMessage)
         })
       }
     })
