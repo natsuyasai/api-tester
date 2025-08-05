@@ -13,6 +13,7 @@ interface TabState {
 
 interface TabActions {
   addTab: (collectionId?: string, sessionId?: string) => string
+  duplicateTab: (tabId: string) => string
   closeTab: (tabId: string) => void
   setActiveTab: (tabId: string) => void
   updateTabTitle: (tabId: string, title: string) => void
@@ -57,6 +58,30 @@ const createInitialTab = (collectionId?: string, sessionId?: string): ApiTab => 
   }
 })
 
+const generateDuplicateTitle = (originalTitle: string, existingTabs: ApiTab[]): string => {
+  const baseTitle = originalTitle.replace(/ \(Copy( \d+)?\)$/, '') // 既存の(Copy)や(Copy N)を削除
+  const copyPattern = new RegExp(
+    `^${baseTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\(Copy( \\d+)?\\)$`
+  )
+
+  // 既存の複製タブ数を数える
+  const copyNumbers = existingTabs
+    .map((tab) => tab.title)
+    .filter((title) => copyPattern.test(title))
+    .map((title) => {
+      const match = title.match(/ \(Copy( (\d+))?\)$/)
+      return match ? (match[2] ? parseInt(match[2]) : 1) : 0
+    })
+    .filter((num) => num > 0)
+
+  if (copyNumbers.length === 0) {
+    return `${baseTitle} (Copy)`
+  }
+
+  const maxCopyNumber = Math.max(...copyNumbers)
+  return `${baseTitle} (Copy ${maxCopyNumber + 1})`
+}
+
 const initialTab = createInitialTab()
 const initialState: TabState = {
   tabs: [initialTab],
@@ -88,6 +113,50 @@ export const useTabStore = create<TabState & TabActions>()(
         }
 
         return newTab.id
+      },
+
+      duplicateTab: (tabId: string) => {
+        const state = get()
+        const originalTab = state.tabs.find((tab) => tab.id === tabId)
+        if (!originalTab) {
+          return ''
+        }
+
+        // 新しいIDを生成してタブを複製
+        const duplicatedTab: ApiTab = {
+          ...originalTab,
+          id: uuidv4(),
+          title: generateDuplicateTitle(originalTab.title, state.tabs),
+          isActive: true, // 複製されたタブをアクティブに
+          isCustomTitle: true, // 複製時は常にカスタムタイトルとして扱う
+          request: {
+            ...originalTab.request,
+            id: uuidv4(), // リクエストIDも新規生成
+            name: generateDuplicateTitle(
+              originalTab.request.name,
+              state.tabs.map((tab) => ({ title: tab.request.name }) as ApiTab)
+            )
+          },
+          response: null // レスポンスはクリア
+        }
+
+        // 他のタブを非アクティブにして、複製したタブを追加
+        set(
+          (state) => ({
+            tabs: [...state.tabs.map((tab) => ({ ...tab, isActive: false })), duplicatedTab],
+            activeTabId: duplicatedTab.id
+          }),
+          false,
+          'duplicateTab'
+        )
+
+        // コレクションが指定されている場合、コレクション側にもタブを追加
+        if (duplicatedTab.collectionId) {
+          const collectionStore = useCollectionStore.getState()
+          collectionStore.addTabToCollection(duplicatedTab.collectionId, duplicatedTab.id)
+        }
+
+        return duplicatedTab.id
       },
 
       canCloseTab: (tabId: string) => {

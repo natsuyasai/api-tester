@@ -24,6 +24,7 @@ export const TabBar = ({
   const {
     tabs,
     addTab,
+    duplicateTab,
     closeTab,
     setActiveTab,
     updateTabTitle,
@@ -62,6 +63,94 @@ export const TabBar = ({
         closeTab(tabId)
       }
     }
+  }
+
+  const handleTabContextMenu = (e: React.MouseEvent, tabId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // 右クリックメニューを作成
+    const menu = document.createElement('div')
+    menu.className = styles.contextMenu || 'context-menu'
+    menu.style.position = 'fixed'
+    menu.style.left = `${e.clientX}px`
+    menu.style.top = `${e.clientY}px`
+    menu.style.zIndex = '1000'
+    menu.style.backgroundColor = 'white'
+    menu.style.border = '1px solid #ccc'
+    menu.style.borderRadius = '4px'
+    menu.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)'
+    menu.style.padding = '4px 0'
+    menu.style.minWidth = '140px'
+
+    // 複製オプション
+    const duplicateOption = document.createElement('button')
+    duplicateOption.textContent = 'タブを複製'
+    duplicateOption.style.display = 'block'
+    duplicateOption.style.width = '100%'
+    duplicateOption.style.padding = '8px 12px'
+    duplicateOption.style.border = 'none'
+    duplicateOption.style.backgroundColor = 'transparent'
+    duplicateOption.style.cursor = 'pointer'
+    duplicateOption.style.textAlign = 'left'
+    duplicateOption.onmouseover = () => {
+      duplicateOption.style.backgroundColor = '#f5f5f5'
+    }
+    duplicateOption.onmouseout = () => {
+      duplicateOption.style.backgroundColor = 'transparent'
+    }
+    duplicateOption.onclick = () => {
+      duplicateTab(tabId)
+      document.body.removeChild(menu)
+    }
+
+    // 閉じるオプション（閉じることができる場合のみ）
+    if (canCloseTab(tabId)) {
+      const closeOption = document.createElement('button')
+      closeOption.textContent = 'タブを閉じる'
+      closeOption.style.display = 'block'
+      closeOption.style.width = '100%'
+      closeOption.style.padding = '8px 12px'
+      closeOption.style.border = 'none'
+      closeOption.style.backgroundColor = 'transparent'
+      closeOption.style.cursor = 'pointer'
+      closeOption.style.textAlign = 'left'
+      closeOption.onmouseover = () => {
+        closeOption.style.backgroundColor = '#f5f5f5'
+      }
+      closeOption.onmouseout = () => {
+        closeOption.style.backgroundColor = 'transparent'
+      }
+      closeOption.onclick = () => {
+        closeTab(tabId)
+        document.body.removeChild(menu)
+      }
+
+      const separator = document.createElement('hr')
+      separator.style.margin = '4px 0'
+      separator.style.border = 'none'
+      separator.style.borderTop = '1px solid #eee'
+
+      menu.appendChild(duplicateOption)
+      menu.appendChild(separator)
+      menu.appendChild(closeOption)
+    } else {
+      menu.appendChild(duplicateOption)
+    }
+
+    document.body.appendChild(menu)
+
+    // メニュー外をクリックしたら閉じる
+    const closeMenu = (event: MouseEvent) => {
+      if (!menu.contains(event.target as Node)) {
+        document.body.removeChild(menu)
+        document.removeEventListener('click', closeMenu)
+      }
+    }
+
+    setTimeout(() => {
+      document.addEventListener('click', closeMenu)
+    }, 0)
   }
 
   const handleDragStart = (e: React.DragEvent, tabId: string) => {
@@ -300,6 +389,7 @@ export const TabBar = ({
                 onClick={() => handleTabClick(tab.id)}
                 onDoubleClick={() => handleDoubleClick(tab.id, tab.title)}
                 onMouseDown={(e) => handleTabMouseDown(e, tab.id)}
+                onContextMenu={(e) => handleTabContextMenu(e, tab.id)}
                 type="button"
               >
                 <span className={styles.title} title={tab.title}>

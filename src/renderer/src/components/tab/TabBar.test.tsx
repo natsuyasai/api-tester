@@ -56,6 +56,7 @@ describe('TabBar', () => {
     tabs: mockTabs,
     activeTabId: 'tab-1',
     addTab: vi.fn(),
+    duplicateTab: vi.fn(),
     closeTab: vi.fn(),
     setActiveTab: vi.fn(),
     updateTabTitle: vi.fn(),
@@ -64,7 +65,8 @@ describe('TabBar', () => {
     resetTabs: vi.fn(),
     startEditingActiveTab: vi.fn(),
     getTabsByCollection: vi.fn(() => mockTabs),
-    canCloseTab: vi.fn(() => true)
+    canCloseTab: vi.fn(() => true),
+    reorderTabs: vi.fn()
   }
 
   const mockYamlOperations = {
@@ -176,22 +178,26 @@ describe('TabBar', () => {
   })
 
   it('should display "Untitled" for tabs without title', () => {
+    const tabWithoutTitle = {
+      ...mockTabs[0],
+      title: ''
+    }
+    
     const storeWithoutTitle = {
       ...mockTabStore,
-      tabs: [
-        {
-          ...mockTabs[0],
-          title: ''
-        }
-      ]
+      tabs: [tabWithoutTitle],
+      getTabsByCollection: vi.fn().mockReturnValue([tabWithoutTitle])
     }
 
     // 新しいモックを設定
-    mockUseTabStore.mockReturnValueOnce(storeWithoutTitle)
+    mockUseTabStore.mockReturnValue(storeWithoutTitle)
 
     render(<TabBar />)
 
     expect(screen.getByText('Untitled')).toBeInTheDocument()
+    
+    // テスト後にモックをリセット
+    mockUseTabStore.mockReturnValue(mockTabStore)
   })
 
   it('should enable editing mode when tab title is double-clicked', async () => {
@@ -303,5 +309,47 @@ describe('TabBar', () => {
     await user.click(settingsButton)
 
     expect(mockOnShowSettings).toHaveBeenCalled()
+  })
+
+  it('should show context menu on right click and duplicate tab', async () => {
+    const user = userEvent.setup()
+    
+    // documentに要素を追加するためのスパイ
+    const appendChildSpy = vi.spyOn(document.body, 'appendChild')
+    const removeChildSpy = vi.spyOn(document.body, 'removeChild')
+    
+    render(<TabBar />)
+
+    const tabButton = screen.getByText('Tab 1').closest('button')
+    expect(tabButton).toBeInTheDocument()
+
+    // 右クリックでコンテキストメニューを表示
+    await user.pointer({ keys: '[MouseRight]', target: tabButton! })
+
+    // コンテキストメニューが作成されたことを確認
+    expect(appendChildSpy).toHaveBeenCalled()
+    
+    // appendChildの最後の呼び出しの引数（メニュー要素）を取得
+    const menuElement = appendChildSpy.mock.calls[appendChildSpy.mock.calls.length - 1][0] as HTMLElement
+    
+    // 複製ボタンを取得してクリック
+    const duplicateButton = Array.from(menuElement.querySelectorAll('button'))
+      .find(btn => btn.textContent === 'タブを複製')
+    
+    expect(duplicateButton).toBeTruthy()
+    
+    if (duplicateButton) {
+      fireEvent.click(duplicateButton)
+      
+      // duplicateTab関数が呼ばれたことを確認
+      expect(mockTabStore.duplicateTab).toHaveBeenCalledWith('tab-1')
+      
+      // メニューが削除されたことを確認
+      expect(removeChildSpy).toHaveBeenCalledWith(menuElement)
+    }
+    
+    // クリーンアップ
+    appendChildSpy.mockRestore()
+    removeChildSpy.mockRestore()
   })
 })
