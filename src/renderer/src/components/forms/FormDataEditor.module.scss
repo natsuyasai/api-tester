@@ -59,7 +59,7 @@
 
 .tableHeader {
   display: grid;
-  grid-template-columns: 40px 1fr 1fr 60px;
+  grid-template-columns: 40px 1fr 1fr 50px 60px;
   gap: 8px;
   padding: 8px 12px;
   background-color: var(--color-bg-secondary);
@@ -78,7 +78,7 @@
 
 .tableRow {
   display: grid;
-  grid-template-columns: 40px 1fr 1fr 60px;
+  grid-template-columns: 40px 1fr 1fr 50px 60px;
   gap: 8px;
   padding: 8px 12px;
   border-bottom: 1px solid var(--color-border-secondary);
@@ -102,6 +102,12 @@
 .keyColumn,
 .valueColumn {
   min-width: 0;
+}
+
+.typeColumn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .actionsColumn {
@@ -220,5 +226,88 @@
   &::placeholder {
     color: var(--color-text-muted);
     font-style: italic;
+  }
+}
+
+// File Input Styles
+.fileInput {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.fileName {
+  flex: 1;
+  font-size: var(--font-size-code);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 6px 8px;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius);
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+.fileSelectButton {
+  padding: 4px 8px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--border-radius);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-small);
+  cursor: pointer;
+  transition: var(--transition-base);
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-border-focus);
+    box-shadow: var(--shadow-focus);
+  }
+}
+
+.typeButton {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--border-radius);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-base);
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-border-focus);
+    box-shadow: var(--shadow-focus);
+  }
+
+  &.fileType {
+    background-color: var(--color-bg-accent);
+    color: var(--color-text-inverse);
+    border-color: var(--color-border-accent);
+  }
+
+  &.textType {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
   }
 }

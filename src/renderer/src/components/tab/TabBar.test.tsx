@@ -182,7 +182,7 @@ describe('TabBar', () => {
       ...mockTabs[0],
       title: ''
     }
-    
+
     const storeWithoutTitle = {
       ...mockTabStore,
       tabs: [tabWithoutTitle],
@@ -195,7 +195,7 @@ describe('TabBar', () => {
     render(<TabBar />)
 
     expect(screen.getByText('Untitled')).toBeInTheDocument()
-    
+
     // テスト後にモックをリセット
     mockUseTabStore.mockReturnValue(mockTabStore)
   })
@@ -313,11 +313,11 @@ describe('TabBar', () => {
 
   it('should show context menu on right click and duplicate tab', async () => {
     const user = userEvent.setup()
-    
+
     // documentに要素を追加するためのスパイ
     const appendChildSpy = vi.spyOn(document.body, 'appendChild')
     const removeChildSpy = vi.spyOn(document.body, 'removeChild')
-    
+
     render(<TabBar />)
 
     const tabButton = screen.getByText('Tab 1').closest('button')
@@ -328,26 +328,29 @@ describe('TabBar', () => {
 
     // コンテキストメニューが作成されたことを確認
     expect(appendChildSpy).toHaveBeenCalled()
-    
+
     // appendChildの最後の呼び出しの引数（メニュー要素）を取得
-    const menuElement = appendChildSpy.mock.calls[appendChildSpy.mock.calls.length - 1][0] as HTMLElement
-    
+    const menuElement = appendChildSpy.mock.calls[
+      appendChildSpy.mock.calls.length - 1
+    ][0] as HTMLElement
+
     // 複製ボタンを取得してクリック
-    const duplicateButton = Array.from(menuElement.querySelectorAll('button'))
-      .find(btn => btn.textContent === 'タブを複製')
-    
+    const duplicateButton = Array.from(menuElement.querySelectorAll('button')).find(
+      (btn) => btn.textContent === 'タブを複製'
+    )
+
     expect(duplicateButton).toBeTruthy()
-    
+
     if (duplicateButton) {
       fireEvent.click(duplicateButton)
-      
+
       // duplicateTab関数が呼ばれたことを確認
       expect(mockTabStore.duplicateTab).toHaveBeenCalledWith('tab-1')
-      
+
       // メニューが削除されたことを確認
       expect(removeChildSpy).toHaveBeenCalledWith(menuElement)
     }
-    
+
     // クリーンアップ
     appendChildSpy.mockRestore()
     removeChildSpy.mockRestore()

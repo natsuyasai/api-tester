@@ -49,6 +49,91 @@ describe('FormDataEditor', () => {
     expect(screen.getByDisplayValue('30')).toBeInTheDocument()
   })
 
+  it('should render Type column', () => {
+    render(<FormDataEditor {...defaultProps} />)
+
+    expect(screen.getByText('Type')).toBeInTheDocument()
+  })
+
+  it('should show file type button for each row', () => {
+    const data: KeyValuePair[] = [{ key: 'file', value: '', enabled: true, isFile: false }]
+
+    render(<FormDataEditor {...defaultProps} data={data} />)
+
+    const typeButtons = screen.getAllByTitle(/テキストモード|ファイルモード/)
+    expect(typeButtons.length).toBeGreaterThan(0)
+  })
+
+  it('should toggle between text and file mode', async () => {
+    const user = userEvent.setup()
+    const data: KeyValuePair[] = [{ key: 'upload', value: '', enabled: true, isFile: false }]
+
+    render(<FormDataEditor {...defaultProps} data={data} />)
+
+    const typeButtons = screen.getAllByTitle('テキストモード')
+    // 最初の行のタイプボタンをクリック
+    await user.click(typeButtons[0])
+
+    expect(mockOnChange).toHaveBeenCalledWith([
+      expect.objectContaining({
+        key: 'upload',
+        isFile: true,
+        enabled: true
+      })
+    ])
+  })
+
+  it('should display file name when file is selected', () => {
+    const data: KeyValuePair[] = [
+      {
+        key: 'document',
+        value: 'test.pdf',
+        enabled: true,
+        isFile: true,
+        fileName: 'test.pdf',
+        fileContent: 'base64content',
+        fileEncoding: 'base64'
+      }
+    ]
+
+    render(<FormDataEditor {...defaultProps} data={data} />)
+
+    expect(screen.getByText('test.pdf')).toBeInTheDocument()
+    expect(screen.getByText('選択')).toBeInTheDocument()
+  })
+
+  it('should handle file mode toggle correctly', async () => {
+    const user = userEvent.setup()
+    const data: KeyValuePair[] = [
+      {
+        key: 'file',
+        value: 'test.txt',
+        enabled: true,
+        isFile: true,
+        fileName: 'test.txt',
+        fileContent: 'content',
+        fileEncoding: 'base64'
+      }
+    ]
+
+    render(<FormDataEditor {...defaultProps} data={data} />)
+
+    // ファイルモードからテキストモードに切り替え
+    const typeButton = screen.getByTitle('ファイルモード')
+    await user.click(typeButton)
+
+    expect(mockOnChange).toHaveBeenCalledWith([
+      expect.objectContaining({
+        key: 'file',
+        isFile: false,
+        fileName: undefined,
+        fileContent: undefined,
+        fileEncoding: undefined,
+        value: ''
+      })
+    ])
+  })
+
   it('should add new row when typing in last empty row and auto-enable checkbox', () => {
     render(<FormDataEditor {...defaultProps} />)
 

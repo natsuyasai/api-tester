@@ -1,5 +1,5 @@
-import { JSX, useState } from 'react'
-import { KeyValuePair } from '@/types/types'
+import { JSX, useState, useRef } from 'react'
+import { KeyValuePair, FileEncoding } from '@/types/types'
 import { CodeTextarea } from '../common/CodeTextarea'
 import styles from './FormDataEditor.module.scss'
 
@@ -19,6 +19,7 @@ export const FormDataEditor = ({
 }: FormDataEditorProps): JSX.Element => {
   const [viewMode, setViewMode] = useState<'table' | 'bulk'>('table')
   const [bulkText, setBulkText] = useState('')
+  const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({})
 
   // テーブルデータを確実に空行を含む状態に保つ
   const tableData =
@@ -97,6 +98,98 @@ export const FormDataEditor = ({
     setViewMode('table')
   }
 
+  const handleFileSelect = async (index: number, file: File) => {
+    const newData = [...tableData]
+    const currentItem = newData[index]
+
+    try {
+      // ファイルサイズチェック（10MB制限）
+      if (file.size > 10 * 1024 * 1024) {
+        alert('ファイルサイズが大きすぎます（10MB以下にしてください）')
+        return
+      }
+
+      // ファイル内容をbase64で読み込み
+      const fileContent = await readFileAsBase64(file)
+
+      // ファイル情報を設定
+      newData[index] = {
+        ...currentItem,
+        value: file.name, // 値にファイル名を表示
+        isFile: true,
+        fileName: file.name,
+        fileContent: fileContent,
+        fileEncoding: 'base64' as FileEncoding,
+        enabled: true
+      }
+
+      // 最後の行に入力があった場合、新しい空行を追加
+      if (index === newData.length - 1) {
+        newData.push({ key: '', value: '', enabled: false })
+      }
+
+      // 空でない行のみを返す（最後の空行は除く）
+      const filteredData = newData.filter((item, idx) =>
+        idx === newData.length - 1 ? false : item.key !== '' || item.value !== '' || item.isFile
+      )
+
+      onChange(filteredData)
+    } catch (error) {
+      console.error('ファイル読み込みエラー:', error)
+      alert('ファイルの読み込みに失敗しました')
+    }
+  }
+
+  const readFileAsBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const result = reader.result as string
+        // data:base64,の部分を除去してbase64文字列のみを取得
+        const base64 = result.split(',')[1]
+        resolve(base64)
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const handleToggleFileMode = (index: number) => {
+    const newData = [...tableData]
+    const currentItem = newData[index]
+
+    if (currentItem.isFile) {
+      // ファイルモードを解除
+      newData[index] = {
+        ...currentItem,
+        isFile: false,
+        fileName: undefined,
+        fileContent: undefined,
+        fileEncoding: undefined,
+        value: ''
+      }
+    } else {
+      // ファイルモードに切り替え
+      newData[index] = {
+        ...currentItem,
+        isFile: true,
+        value: currentItem.fileName || ''
+      }
+
+      // ファイル選択ダイアログを開く
+      setTimeout(() => {
+        fileInputRefs.current[index]?.click()
+      }, 0)
+    }
+
+    // 空でない行のみを返す（最後の空行は除く）
+    const filteredData = newData.filter((item, idx) =>
+      idx === newData.length - 1 ? false : item.key !== '' || item.value !== '' || item.isFile
+    )
+
+    onChange(filteredData)
+  }
+
   return (
     <div className={styles.formDataEditor}>
       <div className={styles.header}>
@@ -134,6 +227,7 @@ export const FormDataEditor = ({
             </div>
             <div className={styles.keyColumn}>Key</div>
             <div className={styles.valueColumn}>Value</div>
+            <div className={styles.typeColumn}>Type</div>
             <div className={styles.actionsColumn}>Actions</div>
           </div>
 
@@ -158,13 +252,50 @@ export const FormDataEditor = ({
                   />
                 </div>
                 <div className={styles.valueColumn}>
-                  <input
-                    type="text"
-                    value={item.value}
-                    onChange={(e) => handleItemChange(index, 'value', e.target.value)}
-                    placeholder={placeholder.value}
-                    className={styles.input}
-                  />
+                  {item.isFile ? (
+                    <div className={styles.fileInput}>
+                      <span className={styles.fileName}>{item.fileName || 'ファイルを選択'}</span>
+                      <input
+                        ref={(el) => {
+                          fileInputRefs.current[index] = el
+                        }}
+                        type="file"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            void handleFileSelect(index, file)
+                          }
+                        }}
+                        className={styles.hiddenFileInput}
+                        accept="*/*"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRefs.current[index]?.click()}
+                        className={styles.fileSelectButton}
+                      >
+                        選択
+                      </button>
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      value={item.value}
+                      onChange={(e) => handleItemChange(index, 'value', e.target.value)}
+                      placeholder={placeholder.value}
+                      className={styles.input}
+                    />
+                  )}
+                </div>
+                <div className={styles.typeColumn}>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleFileMode(index)}
+                    className={`${styles.typeButton} ${item.isFile ? styles.fileType : styles.textType}`}
+                    title={item.isFile ? 'ファイルモード' : 'テキストモード'}
+                  >
+                    {item.isFile ? '📎' : 'T'}
+                  </button>
                 </div>
                 <div className={styles.actionsColumn}>
                   {index < tableData.length - 1 && (
