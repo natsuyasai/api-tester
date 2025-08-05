@@ -10,11 +10,21 @@ export const useYamlOperations = () => {
   const { tabs } = useTabStore()
 
   const exportYaml = useCallback(() => {
-    return YamlService.exportToYamlWithVariables(tabs)
+    const { collections } = useCollectionStore.getState()
+    if (collections.length > 0) {
+      return YamlService.exportCollectionsToYamlWithVariables(collections, tabs)
+    } else {
+      return YamlService.exportToYamlWithVariables(tabs)
+    }
   }, [tabs])
 
   const exportYamlRaw = useCallback(() => {
-    return YamlService.exportToYaml(tabs)
+    const { collections } = useCollectionStore.getState()
+    if (collections.length > 0) {
+      return YamlService.exportCollectionsToYaml(collections, tabs)
+    } else {
+      return YamlService.exportToYaml(tabs)
+    }
   }, [tabs])
 
   const importTabsFromYaml = useCallback(
@@ -140,7 +150,7 @@ export const useYamlOperations = () => {
 
   const saveToFile = useCallback(async () => {
     try {
-      const yamlContent = exportYaml()
+      const yamlContent = exportYamlRaw()
       const result = await window.dialogAPI.showSaveDialog({
         title: 'Save API Collection',
         defaultPath: 'api-collection.yaml',
@@ -165,7 +175,7 @@ export const useYamlOperations = () => {
       )
       throw error
     }
-  }, [exportYaml])
+  }, [exportYamlRaw])
 
   const loadFromFile = useCallback(async () => {
     try {

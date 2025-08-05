@@ -122,6 +122,7 @@ describe('useYamlOperations', () => {
 
     // YamlServiceのモックをリセット
     mockYamlService.exportToYaml.mockReset()
+    mockYamlService.exportToYamlWithVariables.mockReset()
     mockYamlService.importFromYaml.mockReset()
     mockYamlService.importCollectionsFromYaml.mockReset()
 
@@ -152,13 +153,13 @@ describe('useYamlOperations', () => {
     it('should export tabs to YAML', () => {
       const mockYamlOutput =
         'version: "1.0"\ncollections:\n  - name: API Collection\n    description: Exported collection with 1 requests\n    requests:\n      - name: Test Tab\n        method: GET\n        url: https://api.example.com'
-      mockYamlService.exportToYaml.mockReturnValue(mockYamlOutput)
+      mockYamlService.exportToYamlWithVariables.mockReturnValue(mockYamlOutput)
 
       const { result } = renderHook(() => useYamlOperations())
 
       const yamlOutput = result.current.exportYaml()
 
-      expect(mockYamlService.exportToYaml).toHaveBeenCalledWith(mockTabs)
+      expect(mockYamlService.exportToYamlWithVariables).toHaveBeenCalledWith(mockTabs)
       expect(yamlOutput).toBe(mockYamlOutput)
     })
   })
