@@ -133,7 +133,6 @@ export const CodeTextarea = forwardRef<CodeTextareaRef, CodeTextareaProps>(
           value={value}
           onValueChange={onChange}
           highlight={highlightWithPrism}
-          padding={16}
           tabSize={2}
           insertSpaces={true}
           style={editorStyle}

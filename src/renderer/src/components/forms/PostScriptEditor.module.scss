@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100%;
   padding: 1rem;
-  background-color: var(--color-background);
+  background-color: var(--color-bg-primary);
 }
 
 .header {
@@ -14,7 +14,7 @@
 
   h3 {
     margin: 0;
-    color: var(--color-text);
+    color: var(--color-text-primary);
     font-size: 1.1rem;
     font-weight: 600;
   }
@@ -28,27 +28,27 @@
 
 .templateSelect {
   padding: 0.5rem;
-  border: 1px solid rgba(255, 255, 245, 0.2);
+  border: 1px solid var(--color-border-primary);
   border-radius: 4px;
-  background-color: var(--color-background-mute);
-  color: var(--color-text);
+  background-color: var(--color-input-bg);
+  color: var(--color-text-primary);
   font-size: 0.9rem;
   min-width: 200px;
 
   &:focus {
     outline: none;
-    border-color: #007acc;
-    box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+    border-color: var(--color-border-focus);
+    box-shadow: var(--shadow-focus);
   }
 }
 
 .helpButton {
   width: 2rem;
   height: 2rem;
-  border: 1px solid rgba(255, 255, 245, 0.2);
+  border: 1px solid var(--color-border-primary);
   border-radius: 50%;
-  background-color: var(--color-background-mute);
-  color: rgba(235, 235, 245, 0.6);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -57,24 +57,24 @@
   font-size: 0.9rem;
 
   &:hover {
-    background-color: var(--color-background-soft);
-    border-color: #007acc;
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border-focus);
   }
 }
 
 .description {
-  color: rgba(235, 235, 245, 0.6);
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
   margin-bottom: 1rem;
   padding: 0.75rem;
-  background-color: rgba(0, 122, 204, 0.1);
-  border-left: 3px solid #007acc;
+  background-color: var(--color-bg-tertiary);
+  border-left: 3px solid var(--color-border-accent);
   border-radius: 4px;
 }
 
 .help {
-  background-color: var(--color-background-soft);
-  border: 1px solid rgba(255, 255, 245, 0.2);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -83,14 +83,14 @@
 
   h4 {
     margin: 0 0 0.75rem 0;
-    color: var(--color-text);
+    color: var(--color-text-primary);
     font-size: 1rem;
     font-weight: 600;
   }
 
   h5 {
     margin: 0.75rem 0 0.5rem 0;
-    color: var(--color-text);
+    color: var(--color-text-primary);
     font-size: 0.9rem;
     font-weight: 600;
   }
@@ -101,17 +101,17 @@
 
     li {
       margin-bottom: 0.25rem;
-      color: rgba(235, 235, 245, 0.6);
+      color: var(--color-text-secondary);
       font-size: 0.85rem;
       line-height: 1.4;
 
       code {
-        background-color: var(--color-background-mute);
+        background-color: var(--color-bg-tertiary);
         padding: 0.1rem 0.3rem;
         border-radius: 3px;
         font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         font-size: 0.8rem;
-        color: #f8f8f2;
+        color: var(--color-text-accent);
       }
     }
   }
@@ -124,13 +124,13 @@
 }
 
 .example {
-  background-color: var(--color-background-mute);
-  border: 1px solid rgba(255, 255, 245, 0.2);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
   border-radius: 4px;
   padding: 0.75rem;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.8rem;
-  color: #f8f8f2;
+  color: var(--color-text-accent);
   overflow-x: auto;
   white-space: pre;
   margin: 0.5rem 0 0 0;
@@ -148,10 +148,10 @@
   width: 100%;
   min-height: 300px;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 245, 0.2);
+  border: 1px solid var(--color-border-primary);
   border-radius: 6px;
-  background-color: var(--color-background-mute);
-  color: var(--color-text);
+  background-color: var(--color-input-bg);
+  color: var(--color-text-primary);
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.9rem;
   line-height: 1.5;
@@ -159,12 +159,12 @@
 
   &:focus {
     outline: none;
-    border-color: #007acc;
-    box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+    border-color: var(--color-border-focus);
+    box-shadow: var(--shadow-focus);
   }
 
   &::placeholder {
-    color: rgba(235, 235, 245, 0.38);
+    color: var(--color-text-muted);
     font-style: italic;
   }
 }
@@ -174,18 +174,18 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 245, 0.2);
+  border-top: 1px solid var(--color-border-primary);
 }
 
 .info {
   display: flex;
   align-items: center;
-  color: rgba(235, 235, 245, 0.6);
+  color: var(--color-text-secondary);
   font-size: 0.85rem;
 }
 
 .stats {
-  color: rgba(235, 235, 245, 0.38);
+  color: var(--color-text-muted);
   font-size: 0.8rem;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }

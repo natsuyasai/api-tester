@@ -41,7 +41,7 @@ const InteractiveFormDataEditor = (
   const [data, setData] = useState<KeyValuePair[]>(props.data || [])
 
   return (
-    <div style={{ height: '400px', border: '1px solid #ddd' }}>
+    <div style={{ height: '400px', border: '1px solid var(--color-border-primary)' }}>
       <FormDataEditor {...props} data={data} onChange={setData} />
     </div>
   )

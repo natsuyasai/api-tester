@@ -69,6 +69,16 @@ export const TabBar = ({
     e.preventDefault()
     e.stopPropagation()
 
+    // CSS変数の値を取得
+    const rootStyles = getComputedStyle(document.documentElement)
+    const bgPrimary = rootStyles.getPropertyValue('--color-bg-primary').trim()
+    const borderPrimary = rootStyles.getPropertyValue('--color-border-primary').trim()
+    const borderRadius = rootStyles.getPropertyValue('--border-radius').trim()
+    const shadowMd = rootStyles.getPropertyValue('--shadow-md').trim()
+    const textPrimary = rootStyles.getPropertyValue('--color-text-primary').trim()
+    const bgHover = rootStyles.getPropertyValue('--color-bg-hover').trim()
+    const borderSecondary = rootStyles.getPropertyValue('--color-border-secondary').trim()
+
     // 右クリックメニューを作成
     const menu = document.createElement('div')
     menu.className = styles.contextMenu || 'context-menu'
@@ -76,12 +86,13 @@ export const TabBar = ({
     menu.style.left = `${e.clientX}px`
     menu.style.top = `${e.clientY}px`
     menu.style.zIndex = '1000'
-    menu.style.backgroundColor = 'white'
-    menu.style.border = '1px solid #ccc'
-    menu.style.borderRadius = '4px'
-    menu.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)'
+    menu.style.backgroundColor = bgPrimary
+    menu.style.border = `1px solid ${borderPrimary}`
+    menu.style.borderRadius = borderRadius
+    menu.style.boxShadow = shadowMd
     menu.style.padding = '4px 0'
     menu.style.minWidth = '140px'
+    menu.style.color = textPrimary
 
     // 複製オプション
     const duplicateOption = document.createElement('button')
@@ -93,8 +104,10 @@ export const TabBar = ({
     duplicateOption.style.backgroundColor = 'transparent'
     duplicateOption.style.cursor = 'pointer'
     duplicateOption.style.textAlign = 'left'
+    duplicateOption.style.color = textPrimary
+    duplicateOption.style.fontSize = rootStyles.getPropertyValue('--font-size-base').trim()
     duplicateOption.onmouseover = () => {
-      duplicateOption.style.backgroundColor = '#f5f5f5'
+      duplicateOption.style.backgroundColor = bgHover
     }
     duplicateOption.onmouseout = () => {
       duplicateOption.style.backgroundColor = 'transparent'
@@ -115,8 +128,10 @@ export const TabBar = ({
       closeOption.style.backgroundColor = 'transparent'
       closeOption.style.cursor = 'pointer'
       closeOption.style.textAlign = 'left'
+      closeOption.style.color = textPrimary
+      closeOption.style.fontSize = rootStyles.getPropertyValue('--font-size-base').trim()
       closeOption.onmouseover = () => {
-        closeOption.style.backgroundColor = '#f5f5f5'
+        closeOption.style.backgroundColor = bgHover
       }
       closeOption.onmouseout = () => {
         closeOption.style.backgroundColor = 'transparent'
@@ -129,7 +144,7 @@ export const TabBar = ({
       const separator = document.createElement('hr')
       separator.style.margin = '4px 0'
       separator.style.border = 'none'
-      separator.style.borderTop = '1px solid #eee'
+      separator.style.borderTop = `1px solid ${borderSecondary}`
 
       menu.appendChild(duplicateOption)
       menu.appendChild(separator)
