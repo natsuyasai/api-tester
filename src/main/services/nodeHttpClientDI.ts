@@ -223,7 +223,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
 
     try {
       const undiciFormData = new this.undiciLib.FormData()
-      
+
       for (const [name, value] of globalFormData.entries()) {
         if (typeof value === 'string') {
           undiciFormData.append(name, value)
@@ -239,7 +239,7 @@ export class NodeHttpClientDI implements HttpClientInterface {
           }
         }
       }
-      
+
       return undiciFormData
     } catch (error) {
       console.error('Failed to convert FormData to Undici FormData:', error)
