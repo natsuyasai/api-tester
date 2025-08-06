@@ -35,6 +35,7 @@ export interface UndiciLibraryInterface {
   getGlobalDispatcher: () => UndiciDispatcher
   interceptors: UndiciInterceptors
   Agent: new (options?: Agent.Options) => UndiciAgent
+  FormData: new () => FormData
 }
 
 /**
@@ -53,6 +54,7 @@ interface UndiciModule {
   getGlobalDispatcher: () => UndiciDispatcher
   interceptors: UndiciInterceptors
   Agent: new (options?: Agent.Options) => UndiciAgent
+  FormData: new () => FormData
 }
 
 export class RealUndiciLibrary implements UndiciLibraryInterface {
@@ -82,6 +84,10 @@ export class RealUndiciLibrary implements UndiciLibraryInterface {
 
   get Agent(): new (options?: Agent.Options) => UndiciAgent {
     return this.undiciModule!.Agent
+  }
+
+  get FormData(): new () => FormData {
+    return this.undiciModule!.FormData
   }
 }
 

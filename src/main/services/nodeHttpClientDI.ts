@@ -52,7 +52,8 @@ export class NodeHttpClientDI implements HttpClientInterface {
   constructor(
     private undiciRequest: UndiciRequestInterface,
     private ProxyAgentClass?: ProxyAgentInterface,
-    private configProvider: MainProcessConfigProvider = new DefaultConfigProvider()
+    private configProvider: MainProcessConfigProvider = new DefaultConfigProvider(),
+    private undiciLib?: UndiciLibraryInterface
   ) {}
 
   /**
@@ -212,6 +213,41 @@ export class NodeHttpClientDI implements HttpClientInterface {
   }
 
   /**
+   * グローバルFormDataをundici FormDataに変換
+   */
+  private convertFormDataToUndici(globalFormData: FormData): FormData | null {
+    if (!this.undiciLib?.FormData) {
+      console.warn('Undici FormData not available, using global FormData')
+      return globalFormData
+    }
+
+    try {
+      const undiciFormData = new this.undiciLib.FormData()
+      
+      for (const [name, value] of globalFormData.entries()) {
+        if (typeof value === 'string') {
+          undiciFormData.append(name, value)
+        } else {
+          // File/Blobオブジェクトの場合の処理
+          const fileValue = value as File | Blob
+          if ('name' in fileValue && typeof fileValue.name === 'string') {
+            // File オブジェクトの場合、名前も含めてappend
+            undiciFormData.append(name, fileValue, fileValue.name)
+          } else {
+            // Blob オブジェクトまたは名前のないファイルの場合
+            undiciFormData.append(name, fileValue)
+          }
+        }
+      }
+      
+      return undiciFormData
+    } catch (error) {
+      console.error('Failed to convert FormData to Undici FormData:', error)
+      return globalFormData
+    }
+  }
+
+  /**
    * Fetch APIのオプションをundici用に変換
    */
   private convertToUndiciOptions(
@@ -221,16 +257,26 @@ export class NodeHttpClientDI implements HttpClientInterface {
   ): ExtendedRequestOptions {
     const globalSettings = this.configProvider.getConfig()
 
+    // FormDataがある場合はundici FormDataに変換
+    let processedBody = fetchOptions.body as
+      | string
+      | Buffer
+      | Uint8Array
+      | FormData
+      | NodeJS.ReadableStream
+      | null
+
+    if (fetchOptions.body instanceof FormData) {
+      const convertedFormData = this.convertFormDataToUndici(fetchOptions.body)
+      if (convertedFormData) {
+        processedBody = convertedFormData
+      }
+    }
+
     const undiciOptions: ExtendedRequestOptions = {
       method: fetchOptions.method,
       headers: fetchOptions.headers as Record<string, string>,
-      body: fetchOptions.body as
-        | string
-        | Buffer
-        | Uint8Array
-        | FormData
-        | NodeJS.ReadableStream
-        | null,
+      body: processedBody,
       _followRedirects: followRedirects
     }
 
@@ -750,7 +796,8 @@ export async function createNodeHttpClient(
   return new NodeHttpClientDI(
     requestWithRedirect,
     realUndici.ProxyAgent as ProxyAgentInterface,
-    provider
+    provider,
+    realUndici
   )
 }
 
@@ -760,8 +807,9 @@ export async function createNodeHttpClient(
 export function createMockNodeHttpClient(
   mockUndiciRequest: UndiciRequestInterface,
   MockProxyAgent?: ProxyAgentInterface,
-  configProvider?: MainProcessConfigProvider
+  configProvider?: MainProcessConfigProvider,
+  mockUndiciLib?: UndiciLibraryInterface
 ): NodeHttpClientDI {
   const provider = configProvider || new DefaultConfigProvider()
-  return new NodeHttpClientDI(mockUndiciRequest, MockProxyAgent, provider)
+  return new NodeHttpClientDI(mockUndiciRequest, MockProxyAgent, provider, mockUndiciLib)
 }
