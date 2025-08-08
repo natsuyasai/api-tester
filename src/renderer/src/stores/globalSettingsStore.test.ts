@@ -18,10 +18,51 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock
 })
 
+// window.matchMediaのモック
+const mockMatchMedia = vi.fn((query) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn()
+}))
+
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: mockMatchMedia
+})
+
+// document.documentElementのモック
+const mockDocumentElement = {
+  setAttribute: vi.fn(),
+  getAttribute: vi.fn(),
+  removeAttribute: vi.fn(),
+  classList: {
+    add: vi.fn(),
+    remove: vi.fn(),
+    toggle: vi.fn(),
+    contains: vi.fn()
+  }
+}
+
+Object.defineProperty(document, 'documentElement', {
+  value: mockDocumentElement,
+  writable: true
+})
+
 describe('GlobalSettingsStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorageMock.getItem.mockReturnValue(null)
+    mockMatchMedia.mockReturnValue({
+      matches: false,
+      media: '',
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn()
+    })
 
     // ストアを初期状態にリセット
     useGlobalSettingsStore.setState({

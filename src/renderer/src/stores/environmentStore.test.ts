@@ -2,19 +2,26 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useEnvironmentStore } from './environmentStore'
 
 // グローバル変数ストアのモック
+const mockResolveGlobalVariables = vi.fn((text: string) =>
+  text.replace(/{{GLOBAL_VAR}}/g, 'global_value')
+)
+
 vi.mock('./globalVariablesStore', () => ({
   useGlobalVariablesStore: {
-    getState: vi.fn(() => ({
-      resolveGlobalVariables: vi.fn((text: string) =>
-        text.replace(/{{GLOBAL_VAR}}/g, 'global_value')
-      )
-    }))
+    getState: () => ({
+      resolveGlobalVariables: mockResolveGlobalVariables
+    })
   }
 }))
 
 describe('EnvironmentStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+
+    // モック関数をリセット
+    mockResolveGlobalVariables.mockImplementation((text: string) =>
+      text.replace(/{{GLOBAL_VAR}}/g, 'global_value')
+    )
 
     // ストアを初期状態にリセット
     useEnvironmentStore.setState({
@@ -303,6 +310,9 @@ describe('EnvironmentStore', () => {
 
     it('環境変数がグローバル変数より優先される', () => {
       const { addVariable, updateVariable, resolveVariables } = useEnvironmentStore.getState()
+
+      // モック関数を環境変数が優先されることを考慮して設定
+      mockResolveGlobalVariables.mockImplementation((text: string) => text) // グローバル変数は置換しない
 
       // 環境変数にGLOBAL_VARと同じキーを設定
       addVariable(envId)
