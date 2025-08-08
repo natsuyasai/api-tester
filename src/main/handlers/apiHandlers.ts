@@ -135,9 +135,9 @@ export function setupApiHandlers(): void {
   // APIリクエストの検証
   ipcMain.handle(
     'validateApiRequest',
-    async (_event, request: ApiRequest, variableResolver?: (text: string) => string) => {
+    (_event, request: ApiRequest, variableResolver?: (text: string) => string) => {
       try {
-        const errors = await ApiServiceV2.validateRequest(request, variableResolver)
+        const errors = ApiServiceV2.validateRequest(request, variableResolver)
 
         return {
           success: true,

@@ -27,11 +27,18 @@ export class ResponseProcessor {
     const endTime = Date.now()
     const duration = endTime - this.startTime
 
+    // レスポンスが存在しない場合のフォールバック
+    if (!this.response) {
+      return ResponseProcessor.createErrorResponse(new Error('No response object'), this.startTime)
+    }
+
     // ヘッダーをオブジェクトに変換
     const responseHeaders: Record<string, string> = {}
-    this.response.headers.forEach((value, key) => {
-      responseHeaders[key] = value
-    })
+    if (this.response.headers && typeof this.response.headers.forEach === 'function') {
+      this.response.headers.forEach((value, key) => {
+        responseHeaders[key] = value
+      })
+    }
 
     // レスポンスデータを処理
     const responseData = await this.processResponseData()

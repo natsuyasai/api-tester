@@ -362,9 +362,9 @@ export class IpcApiService {
    * Cookie取得関数を設定
    * 注意: IPC経由では直接設定できないため、フォールバックのみ
    */
-  static async setCookieResolver(resolver: (domain: string) => string): Promise<void> {
+  static setCookieResolver(resolver: (domain: string) => string): void {
     // IPC経由では複雑なため、フォールバックのみ実装
-    return await ApiServiceV2.setCookieResolver(resolver)
+    ApiServiceV2.setCookieResolver(resolver)
   }
 
   /**

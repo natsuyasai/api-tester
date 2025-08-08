@@ -497,7 +497,7 @@ export const useCollectionStore = create<CollectionState & CollectionActions>()(
             collections = [defaultCollection]
 
             // デフォルトフォルダをアクティブに設定
-            set({ activeCollectionId: defaultCollection.id }, false, 'setActiveCollection')
+            activeCollectionId = defaultCollection.id
           }
 
           set(

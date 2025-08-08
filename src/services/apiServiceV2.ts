@@ -15,34 +15,22 @@ export interface GlobalVariableCallbacks {
  * 責任を分離し、型安全性を向上
  */
 export class ApiServiceV2 {
-  private static httpClientPromise: Promise<HttpClient | HttpClientInterface> | null = null
+  private static httpClient: HttpClient | HttpClientInterface | null = null
 
   /**
-   * HTTPクライアントのインスタンスを取得（非同期初期化対応）
+   * HTTPクライアントのインスタンスを取得
    */
-  private static async getHttpClient(): Promise<HttpClient | HttpClientInterface> {
-    if (!this.httpClientPromise) {
-      this.httpClientPromise = this.createHttpClient()
+  private static getHttpClient(): HttpClient | HttpClientInterface {
+    if (!this.httpClient) {
+      this.httpClient = this.createHttpClient()
     }
-    return await this.httpClientPromise
+    return this.httpClient
   }
 
   /**
    * 実行環境に応じて適切なHTTPクライアントを作成
    */
-  private static async createHttpClient(): Promise<HttpClient | HttpClientInterface> {
-    // Node.js環境またはElectronメインプロセス（windowが存在しない）
-    if (
-      typeof process !== 'undefined' &&
-      process.versions &&
-      (process.versions.node || process.versions.electron) &&
-      typeof window === 'undefined'
-    ) {
-      // メインプロセスでのみnodeHttpClientを作成
-      const { createNodeHttpClient } = await import('../main/services/nodeHttpClientDI')
-      return await createNodeHttpClient()
-    }
-
+  private static createHttpClient(): HttpClient | HttpClientInterface {
     // ブラウザ環境またはElectronレンダラープロセス
     return new HttpClient()
   }
@@ -50,8 +38,8 @@ export class ApiServiceV2 {
   /**
    * Cookie取得関数を設定
    */
-  static async setCookieResolver(resolver: (domain: string) => string): Promise<void> {
-    const httpClient = await this.getHttpClient()
+  static setCookieResolver(resolver: (domain: string) => string): void {
+    const httpClient = this.getHttpClient()
     httpClient.setCookieResolver(resolver)
   }
 
@@ -71,7 +59,7 @@ export class ApiServiceV2 {
 
     try {
       // HTTPリクエストを実行
-      const httpClient = await this.getHttpClient()
+      const httpClient = this.getHttpClient()
       const apiResponse = await httpClient.executeRequest(
         request,
         variableResolver,
@@ -137,7 +125,7 @@ export class ApiServiceV2 {
     let errorMessage: string | undefined
 
     try {
-      const httpClient = await this.getHttpClient()
+      const httpClient = this.getHttpClient()
       const apiResponse = await httpClient.executeRequestWithCancel(
         request,
         variableResolver,
@@ -193,11 +181,11 @@ export class ApiServiceV2 {
   /**
    * リクエストの検証（拡張版）
    */
-  static async validateRequest(
+  static validateRequest(
     request: ApiRequest,
     variableResolver?: (text: string) => string
-  ): Promise<string[]> {
-    const httpClient = await this.getHttpClient()
+  ): string[] {
+    const httpClient = this.getHttpClient()
     const basicValidation = httpClient.validateRequest(request, variableResolver)
     const advancedValidation = this.validateRequestAdvanced(request)
 
@@ -270,8 +258,8 @@ export class ApiServiceV2 {
   /**
    * リクエストの詳細情報を取得（デバッグ用）
    */
-  static async getRequestDetails(request: ApiRequest, variableResolver?: (text: string) => string) {
-    const httpClient = await this.getHttpClient()
+  static getRequestDetails(request: ApiRequest, variableResolver?: (text: string) => string) {
+    const httpClient = this.getHttpClient()
     return httpClient.getRequestDetails(request, variableResolver)
   }
 

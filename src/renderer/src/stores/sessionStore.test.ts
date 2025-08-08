@@ -318,8 +318,11 @@ describe('SessionStore', () => {
         status: 200,
         statusText: 'OK',
         data: {
-          type: 'text' as const,
-          data: 'user session data'
+          type: 'json' as const,
+          data: {
+            user: { id: '123' },
+            token: 'abc123'
+          }
         },
         headers: {},
         duration: 100,
@@ -328,8 +331,8 @@ describe('SessionStore', () => {
       }
 
       const extractRules = [
-        { key: 'USER_ID', path: 'user.id' },
-        { key: 'TOKEN', path: 'token' }
+        { key: 'USER_ID', path: '$.user.id' },
+        { key: 'TOKEN', path: '$.token' }
       ]
 
       extractFromResponse(sessionId, mockResponse, extractRules)

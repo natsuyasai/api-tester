@@ -160,19 +160,18 @@ export class InitializationService {
 
       // CookieリゾルバーをAPIサービスに設定
       const cookieResolver = createCookieResolver(activeSessionId)
-      ApiServiceV2.setCookieResolver(cookieResolver)
-        .then(() => {
-          console.log('Cookie resolver initialized successfully:', {
-            activeSessionId,
-            globalCookies: useCookieStore.getState().getEnabledCookies().length,
-            sessionCookies: activeSessionId
-              ? sessionStore.getSessionCookies(activeSessionId).length
-              : 0
-          })
+      try {
+        ApiServiceV2.setCookieResolver(cookieResolver)
+        console.log('Cookie resolver initialized successfully:', {
+          activeSessionId,
+          globalCookies: useCookieStore.getState().getEnabledCookies().length,
+          sessionCookies: activeSessionId
+            ? sessionStore.getSessionCookies(activeSessionId).length
+            : 0
         })
-        .catch((error) => {
-          console.error('Failed to set cookie resolver:', error)
-        })
+      } catch (error) {
+        console.error('Failed to set cookie resolver:', error)
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       console.error('Cookie resolver initialization error:', errorMessage)

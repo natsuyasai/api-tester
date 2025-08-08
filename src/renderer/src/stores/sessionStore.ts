@@ -90,12 +90,13 @@ export const useSessionStore = create<SessionStore & SessionActions>()(
           cookies: [],
           createdAt: now,
           updatedAt: now,
-          isActive: false
+          isActive: true
         }
 
         set(
           (state) => ({
-            sessions: [...state.sessions, newSession]
+            sessions: state.sessions.map((s) => ({ ...s, isActive: false })).concat(newSession),
+            activeSessionId: newSession.id
           }),
           false,
           'createSession'

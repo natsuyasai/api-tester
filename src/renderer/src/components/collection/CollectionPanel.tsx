@@ -172,19 +172,25 @@ export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): 
                   if (e.key === 'Escape') cancelEdit()
                 }}
                 className={styles.editInput}
-                // eslint-disable-next-line jsx-a11y/no-autofocus
-                autoFocus
               />
-              <button onClick={(e) => {
-                e.stopPropagation()
-                saveEdit()
-              }} className={styles.saveButton} type="button">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  saveEdit()
+                }}
+                className={styles.saveButton}
+                type="button"
+              >
                 ✓
               </button>
-              <button onClick={(e) => {
-                e.stopPropagation()
-                cancelEdit()
-              }} className={styles.cancelButton} type="button">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  cancelEdit()
+                }}
+                className={styles.cancelButton}
+                type="button"
+              >
                 ✕
               </button>
             </div>

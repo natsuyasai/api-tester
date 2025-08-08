@@ -13,10 +13,10 @@ export class SessionCookieManager {
    * セッション変更時にCookieリゾルバーを更新
    * @param sessionId 新しいアクティブセッションID
    */
-  static async updateCookieResolverForSession(sessionId?: string): Promise<void> {
+  static updateCookieResolverForSession(sessionId?: string): void {
     try {
       const cookieResolver = createCookieResolver(sessionId)
-      await ApiServiceV2.setCookieResolver(cookieResolver)
+      ApiServiceV2.setCookieResolver(cookieResolver)
 
       console.log('Cookie resolver updated for session:', {
         sessionId,
@@ -69,14 +69,14 @@ export class SessionCookieManager {
    * Cookieリゾルバーの更新とログ出力を含む
    * @param sessionId 新しいセッションID
    */
-  static async switchSession(sessionId?: string): Promise<void> {
+  static switchSession(sessionId?: string): void {
     try {
       // セッションストアを更新
       const sessionStore = useSessionStore.getState()
       sessionStore.setActiveSession(sessionId)
 
       // Cookieリゾルバーを更新
-      await this.updateCookieResolverForSession(sessionId)
+      this.updateCookieResolverForSession(sessionId)
 
       // 現在のCookie状態をデバッグ出力
       this.debugCurrentCookieState(sessionId)
@@ -137,10 +137,10 @@ export class SessionCookieManager {
    * セッション作成時の初期設定
    * @param sessionId 新しく作成されたセッションID
    */
-  static async initializeNewSession(sessionId: string): Promise<void> {
+  static initializeNewSession(sessionId: string): void {
     try {
       // 新しいセッションをアクティブに設定
-      await this.switchSession(sessionId)
+      this.switchSession(sessionId)
 
       console.log('New session initialized:', sessionId)
     } catch (error) {

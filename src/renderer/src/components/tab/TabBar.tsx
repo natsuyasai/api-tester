@@ -368,7 +368,7 @@ export const TabBar = ({
           ‹
         </button>
       )}
-      <div className={styles.tabList} ref={tabListRef}>
+      <div className={styles.tabList} ref={tabListRef} role="tablist">
         {/* コレクションがアクティブな場合はそのコレクションのタブのみ表示 */}
         {(activeCollectionId
           ? getTabsByCollection(activeCollectionId)

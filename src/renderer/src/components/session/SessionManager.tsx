@@ -1,4 +1,4 @@
-import { JSX, useState } from 'react'
+import { JSX, useState, useId } from 'react'
 import { useSessionStore } from '@renderer/stores/sessionStore'
 import { useTabStore } from '@renderer/stores/tabStore'
 import styles from './SessionManager.module.scss'
@@ -12,6 +12,7 @@ export function SessionManager({ isVisible, onToggle }: SessionManagerProps): JS
   const [isCreateMode, setIsCreateMode] = useState(false)
   const [newSessionName, setNewSessionName] = useState('')
   const [selectedTabForInherit, setSelectedTabForInherit] = useState<string>('')
+  const inheritSelectId = useId()
 
   const {
     sessions,
@@ -167,10 +168,10 @@ export function SessionManager({ isVisible, onToggle }: SessionManagerProps): JS
       {/* セッション継承 */}
       {activeTab && tabs.length > 1 && (
         <div className={styles.sessionSelector}>
-          <label htmlFor="inherit-session-select">他のタブからセッションを継承:</label>
+          <label htmlFor={inheritSelectId}>他のタブからセッションを継承:</label>
           <div className={styles.sessionSelectWrapper}>
             <select
-              id="inherit-session-select"
+              id={inheritSelectId}
               value={selectedTabForInherit}
               onChange={(e) => setSelectedTabForInherit(e.target.value)}
               className={styles.sessionSelect}
