@@ -172,12 +172,19 @@ export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): 
                   if (e.key === 'Escape') cancelEdit()
                 }}
                 className={styles.editInput}
-                // autoFocus
+                // eslint-disable-next-line jsx-a11y/no-autofocus
+                autoFocus
               />
-              <button onClick={saveEdit} className={styles.saveButton} type="button">
+              <button onClick={(e) => {
+                e.stopPropagation()
+                saveEdit()
+              }} className={styles.saveButton} type="button">
                 ✓
               </button>
-              <button onClick={cancelEdit} className={styles.cancelButton} type="button">
+              <button onClick={(e) => {
+                e.stopPropagation()
+                cancelEdit()
+              }} className={styles.cancelButton} type="button">
                 ✕
               </button>
             </div>
@@ -199,7 +206,10 @@ export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): 
               </div>
               <div className={styles.collectionActions}>
                 <button
-                  onClick={() => startEditing(collection)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    startEditing(collection)
+                  }}
                   className={styles.editButton}
                   type="button"
                   title="名前を編集"
@@ -207,7 +217,10 @@ export const CollectionPanel = ({ isVisible, onToggle }: CollectionPanelProps): 
                   ✏️
                 </button>
                 <button
-                  onClick={() => handleDelete(collection.id)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDelete(collection.id)
+                  }}
                   className={styles.deleteButton}
                   type="button"
                   title="削除"
