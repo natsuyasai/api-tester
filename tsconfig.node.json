@@ -24,6 +24,7 @@
   "compilerOptions": {
     "composite": true,
     "skipLibCheck": true,
+    "resolvePackageJsonExports": false,
     "types": [
       "electron-vite/node",
       "vitest/globals"
