@@ -5,11 +5,26 @@
     "src/main/**/*",
     "src/preload/**/*",
     "src/logic/**/*",
+    "src/services/fileService.ts",
+    "src/services/graphqlService.ts",
+    "src/services/httpClientInterface.ts",
+    "src/services/requestBuilder.ts",
+    "src/utils/performanceUtils.ts",
+    "src/utils/storageAdapter.ts",
     "src/types",
     "test/logic/**/*"
   ],
+  "exclude": [
+    "src/renderer/**/*",
+    "src/main/services/nodeHttpClient.ts",
+    "src/services/responseProcessor.ts",
+    "src/main/services/nodeHttpClientDI.test.ts",
+    "src/services/requestBuilder.test.ts"
+  ],
   "compilerOptions": {
     "composite": true,
+    "skipLibCheck": true,
+    "resolvePackageJsonExports": false,
     "types": [
       "electron-vite/node",
       "vitest/globals"

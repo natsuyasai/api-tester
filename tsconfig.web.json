@@ -5,10 +5,16 @@
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.tsx",
     "src/preload/*.d.ts",
+    "src/preload/index.d.ts",
     "src/types",
     "src/types/types.ts",
+    "src/renderer/src/stores/**/*",
+    "src/services/**/*",
+    "src/utils/**/*",
+    "src/test/**/*",
+    "src/mocks/**/*",
     "src/vite-env.d.ts",
-    ".storybook/**/*",
+    ".storybook/**/*"
   ],
   "compilerOptions": {
     "composite": true,
