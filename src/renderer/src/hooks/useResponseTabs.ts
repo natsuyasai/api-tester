@@ -1,0 +1,74 @@
+import { useState, useCallback } from 'react'
+import { ApiResponse } from '@/types/types'
+import { useTabStore } from '@renderer/stores/tabStore'
+import { extractCookiesFromResponse, formatCookiesForDisplay } from '@renderer/utils/cookieUtils'
+import { generateRawContent } from '@renderer/utils/httpFormatters'
+import { getPropertyValue } from '@renderer/utils/propertyUtils'
+import { formatJson, separateResponseData, formatMetadata } from '@renderer/utils/responseUtils'
+
+export type ResponseTabType = 'body' | 'headers' | 'cookies' | 'preview' | 'metadata' | 'raw'
+
+interface UseResponseTabsProps {
+  tabId: string
+  response: ApiResponse
+}
+
+export const useResponseTabs = ({ tabId, response }: UseResponseTabsProps) => {
+  const { getTab } = useTabStore()
+  const [activeTab, setActiveTab] = useState<ResponseTabType>('body')
+  const [selectedPreviewProperty, setSelectedPreviewProperty] = useState<string>('data')
+  const [showPropertySelector, setShowPropertySelector] = useState(false)
+
+  const tab = getTab(tabId)
+
+  const getCurrentContent = useCallback((): string => {
+    const separatedData = separateResponseData(response.data)
+
+    if (activeTab === 'body') {
+      return formatJson(separatedData.actualData)
+    } else if (activeTab === 'headers') {
+      return Object.entries(response.headers)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('\n')
+    } else if (activeTab === 'cookies') {
+      // レスポンスヘッダーからCookieを抽出
+      const requestUrl = response.finalUrl || tab?.request.url || ''
+      const cookies = extractCookiesFromResponse(response.headers, requestUrl)
+      return formatCookiesForDisplay(cookies)
+    } else if (activeTab === 'preview') {
+      const previewValue = getPropertyValue(response, selectedPreviewProperty)
+      return typeof previewValue === 'string' ? previewValue : formatJson(previewValue)
+    } else if (activeTab === 'metadata') {
+      return formatMetadata(separatedData.metadata)
+    } else if (activeTab === 'raw') {
+      if (!tab) return ''
+      // 実行時のリクエスト内容が保存されている場合はそれを使用、なければ現在のリクエスト内容を使用
+      const requestToShow = response.executedRequest || tab.request
+      return generateRawContent(requestToShow, response)
+    }
+    return ''
+  }, [activeTab, response, selectedPreviewProperty, tab])
+
+  const handleTabChange = useCallback((newTab: ResponseTabType) => {
+    setActiveTab(newTab)
+  }, [])
+
+  const handlePreviewPropertyChange = useCallback((property: string) => {
+    setSelectedPreviewProperty(property)
+  }, [])
+
+  const togglePropertySelector = useCallback(() => {
+    setShowPropertySelector((prev) => !prev)
+  }, [])
+
+  return {
+    activeTab,
+    selectedPreviewProperty,
+    showPropertySelector,
+    getCurrentContent,
+    handleTabChange,
+    handlePreviewPropertyChange,
+    togglePropertySelector,
+    setShowPropertySelector
+  }
+}

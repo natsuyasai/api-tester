@@ -1,0 +1,339 @@
+/* CSS カスタムプロパティによるテーマ変数 */
+
+:root {
+  /* ライトテーマ (デフォルト) */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8f9fa;
+  --color-bg-tertiary: #e9ecef;
+  --color-bg-accent: #007bff;
+  --color-bg-hover: #e9ecef;
+  --color-bg-active: #ffffff;
+
+  --color-text-primary: #495057;
+  --color-text-secondary: #6c757d;
+  --color-text-accent: #007bff;
+  --color-text-inverse: #ffffff;
+  --color-text-muted: #6c757d;
+
+  --color-border-primary: #dee2e6;
+  --color-border-secondary: #ced4da;
+  --color-border-accent: #007bff;
+  --color-border-focus: #80bdff;
+
+  --color-success: #28a745;
+  --color-success-hover: #218838;
+  --color-warning: #ffc107;
+  --color-error: #dc3545;
+  --color-danger: #dc3545;
+  --color-info: #17a2b8;
+  --color-primary: #007bff;
+  --color-primary-hover: #0056b3;
+
+  /* Surface colors */
+  --color-surface: #ffffff;
+  --color-surface-elevated: #f8f9fa;
+  --color-surface-hover: #f1f3f4;
+
+  /* Input colors */
+  --color-input-bg: #ffffff;
+  --color-button-hover: #e9ecef;
+
+  /* Border colors */
+  --color-border: #dee2e6;
+
+  /* 互換性のための追加変数 */
+  --background-color: var(--color-bg-primary);
+  --secondary-background: var(--color-bg-secondary);
+  --text-color: var(--color-text-primary);
+  --text-muted: var(--color-text-muted);
+  --border-color: var(--color-border-primary);
+  --border-color-hover: var(--color-border-focus);
+  --border-light: var(--color-border-secondary);
+  --input-background: var(--color-input-bg);
+  --code-background: var(--color-bg-tertiary);
+  --disabled-background: var(--color-bg-tertiary);
+  --color-text-disabled: var(--color-text-tertiary);
+  --color-text-accent-hover: var(--color-primary-hover);
+  --danger-color: var(--color-danger);
+  --danger-color-hover: #c82333;
+  --success-color: var(--color-success);
+  --success-color-hover: var(--color-success-hover);
+  --primary-color: var(--color-primary);
+  --primary-color-hover: var(--color-primary-hover);
+
+  /* Text colors */
+  --color-text-tertiary: #868e96;
+
+  /* HTTP Method colors */
+  --color-method-get: #28a745;
+  --color-method-post: #007bff;
+  --color-method-put: #fd7e14;
+  --color-method-delete: #dc3545;
+  --color-method-patch: #6f42c1;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-focus: 0 0 0 2px rgba(0, 123, 255, 0.25);
+
+  --transition-base: all 0.2s ease;
+  --border-radius: 4px;
+}
+
+/* ダークテーマ */
+[data-theme='dark'] {
+  --color-bg-primary: #1a1a1a;
+  --color-bg-secondary: #2d2d2d;
+  --color-bg-tertiary: #404040;
+  --color-bg-accent: #0d6efd;
+  --color-bg-hover: #404040;
+  --color-bg-active: #1a1a1a;
+
+  --color-text-primary: #e9ecef;
+  --color-text-secondary: #adb5bd;
+  --color-text-accent: #4dabf7;
+  --color-text-inverse: #1a1a1a;
+  --color-text-muted: #868e96;
+
+  --color-border-primary: #404040;
+  --color-border-secondary: #525252;
+  --color-border-accent: #0d6efd;
+  --color-border-focus: #4dabf7;
+
+  --color-success: #51cf66;
+  --color-success-hover: #40c057;
+  --color-warning: #ffd43b;
+  --color-error: #ff6b6b;
+  --color-danger: #ff6b6b;
+  --color-info: #22b8cf;
+  --color-primary: #0d6efd;
+  --color-primary-hover: #0b5ed7;
+
+  /* Surface colors */
+  --color-surface: #2d2d2d;
+  --color-surface-elevated: #404040;
+  --color-surface-hover: #4a4a4a;
+
+  /* Input colors */
+  --color-input-bg: #404040;
+  --color-button-hover: #4a4a4a;
+
+  /* Border colors */
+  --color-border: #525252;
+
+  /* 互換性のための追加変数 (ダークテーマ) */
+  --background-color: var(--color-bg-primary);
+  --secondary-background: var(--color-bg-secondary);
+  --text-color: var(--color-text-primary);
+  --text-muted: var(--color-text-muted);
+  --border-color: var(--color-border-primary);
+  --border-color-hover: var(--color-border-focus);
+  --border-light: var(--color-border-secondary);
+  --input-background: var(--color-input-bg);
+  --code-background: var(--color-bg-tertiary);
+  --disabled-background: var(--color-bg-tertiary);
+  --color-text-disabled: var(--color-text-tertiary);
+  --color-text-accent-hover: var(--color-primary-hover);
+  --danger-color: var(--color-danger);
+  --danger-color-hover: #e74c3c;
+  --success-color: var(--color-success);
+  --success-color-hover: var(--color-success-hover);
+  --primary-color: var(--color-primary);
+  --primary-color-hover: var(--color-primary-hover);
+
+  /* Text colors */
+  --color-text-tertiary: #6c757d;
+
+  /* フォント関連の変数 */
+  --font-mono: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+
+  /* 下位互換性のための追加変数 */
+  --bg-primary: var(--color-bg-primary);
+  --bg-secondary: var(--color-bg-secondary);
+  --bg-input: var(--color-input-bg);
+  --bg-button-primary: var(--color-bg-accent);
+  --bg-button-primary-hover: var(--color-border-focus);
+  --bg-button-secondary: var(--color-bg-secondary);
+  --bg-button-secondary-hover: var(--color-bg-hover);
+  --bg-tag: var(--color-bg-tertiary);
+
+  --border-primary: var(--color-border-primary);
+  --border-secondary: var(--color-border-secondary);
+  --border-focus: var(--color-border-focus);
+
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-tertiary: var(--color-text-tertiary);
+
+  /* HTTP Method colors */
+  --color-method-get: #51cf66;
+  --color-method-post: #4dabf7;
+  --color-method-put: #ff922b;
+  --color-method-delete: #ff6b6b;
+  --color-method-patch: #9775fa;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --shadow-focus: 0 0 0 2px rgba(77, 171, 247, 0.25);
+}
+
+/* 基本的なスタイルの適用 */
+html[data-theme] {
+  color-scheme: light;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: var(--transition-base);
+}
+
+/* フォーカス可能な要素の基本スタイル */
+*:focus {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* スクロールバーのスタイル (Webkit) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-secondary);
+  border-radius: var(--border-radius);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+/* 選択テキストのスタイル */
+::selection {
+  background-color: var(--color-bg-accent);
+  color: var(--color-text-inverse);
+}
+
+/* フォントサイズ変数のデフォルト (medium) */
+:root {
+  --font-size-base: 14px;
+  --font-size-small: 12px;
+  --font-size-large: 16px;
+  --font-size-code: 13px;
+  --font-size-button: 14px;
+
+  --font-size-h1: 24px;
+  --font-size-h2: 20px;
+  --font-size-h3: 16px;
+  --font-size-h4: 15px;
+  --font-size-h5: 14px;
+  --font-size-h6: 13px;
+
+  --button-padding: 6px 12px;
+
+  /* フォント関連の変数 */
+  --font-mono: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+
+  /* 下位互換性のための追加変数 */
+  --bg-primary: var(--color-bg-primary);
+  --bg-secondary: var(--color-bg-secondary);
+  --bg-input: var(--color-input-bg);
+  --bg-button-primary: var(--color-bg-accent);
+  --bg-button-primary-hover: var(--color-border-focus);
+  --bg-button-secondary: var(--color-bg-secondary);
+  --bg-button-secondary-hover: var(--color-bg-hover);
+  --bg-tag: var(--color-bg-tertiary);
+
+  --border-primary: var(--color-border-primary);
+  --border-secondary: var(--color-border-secondary);
+  --border-focus: var(--color-border-focus);
+
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-tertiary: var(--color-text-tertiary);
+}
+
+/* フォントサイズ変更クラス */
+.font-size-small {
+  --font-size-base: 12px;
+  --font-size-small: 11px;
+  --font-size-large: 13px;
+  --font-size-code: 11px;
+  --font-size-button: 12px;
+
+  --font-size-h1: 18px;
+  --font-size-h2: 16px;
+  --font-size-h3: 14px;
+  --font-size-h4: 13px;
+  --font-size-h5: 12px;
+  --font-size-h6: 11px;
+
+  --button-padding: 4px 8px;
+}
+
+.font-size-medium {
+  /* デフォルト値なので変更なし */
+}
+
+.font-size-large {
+  --font-size-base: 16px;
+  --font-size-small: 14px;
+  --font-size-large: 18px;
+  --font-size-code: 15px;
+  --font-size-button: 16px;
+
+  --font-size-h1: 28px;
+  --font-size-h2: 24px;
+  --font-size-h3: 20px;
+  --font-size-h4: 18px;
+  --font-size-h5: 16px;
+  --font-size-h6: 15px;
+
+  --button-padding: 8px 16px;
+}
+
+/* 全体のフォントサイズ適用 */
+body {
+  font-size: var(--font-size-base);
+}
+
+/* 見出しのフォントサイズ適用 */
+h1 {
+  font-size: var(--font-size-h1);
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+}
+
+h3 {
+  font-size: var(--font-size-h3);
+}
+
+h4 {
+  font-size: var(--font-size-h4);
+}
+
+h5 {
+  font-size: var(--font-size-h5);
+}
+
+h6 {
+  font-size: var(--font-size-h6);
+}
+
+/* コードのフォントサイズ適用 */
+code,
+pre {
+  font-size: var(--font-size-code);
+}

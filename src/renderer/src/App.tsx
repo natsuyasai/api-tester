@@ -1,123 +1,109 @@
-import { TargetPath } from './components/TargetPath'
-import { LanguageSelect } from './components/LanguageSelect'
-import { FormatSelect } from './components/FormatSelect'
-import { OutputFileName } from './components/OutputFileName'
-import { ParameterInput } from './components/ParameterInput'
-import { Action } from './components/Action'
+import { JSX, useState, useEffect } from 'react'
 import styles from './App.module.scss'
-import { JSX, useState } from 'react'
-import { BaseCommand, Format, Language, LizardParameter } from '../../types/types'
-import { FileNameValidator } from './validator/fileNameValidator'
-import { CommandBaseInput } from './components/CommandBaseInput'
+import { CollectionPanel } from './components/collection/CollectionPanel'
+import { ExecutionHistory } from './components/collection/ExecutionHistory'
+import { SessionManager } from './components/session/SessionManager'
+import { GlobalSettings } from './components/settings/GlobalSettings'
+import { TabBar } from './components/tab/TabBar'
+import { TabContent } from './components/tab/TabContent'
+import { useAutoSave } from './hooks/useAutoSave'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { useTabCollectionSync } from './hooks/useTabCollectionSync'
+import { InitializationService } from './services/initializationService'
+import { showErrorDialog } from './utils/errorUtils'
 
 function App(): JSX.Element {
-  const initParam: LizardParameter = {
-    baseCommand: BaseCommand,
-    targetPath: '',
-    language: Language.AUTO,
-    format: Format.HTML,
-    outputFileName: 'output',
-    addParameter: ''
-  }
-  const [parameter, setParameter] = useState(initParam)
+  const [showSettings, setShowSettings] = useState(false)
+  const [showCollectionPanel, setShowCollectionPanel] = useState(false)
+  const [showExecutionHistory, setShowExecutionHistory] = useState(false)
+  const [showSessionManager, setShowSessionManager] = useState(false)
 
-  const [enableExecute, setEnableExecute] = useState(false)
-  const [enableCancel, setEnableCancel] = useState(false)
+  useKeyboardShortcuts({
+    onToggleCollections: () => setShowCollectionPanel(!showCollectionPanel)
+  })
+  useAutoSave() // 自動保存機能を有効化
+  useTabCollectionSync() // タブとコレクションの同期
 
-  async function execute(): Promise<void> {
-    const validator = new FileNameValidator(parameter.outputFileName)
-    if (!validator.validate()) {
-      window.dialogAPI.showModalMessageBox({
-        type: 'warning',
-        title: 'info',
-        message: 'Invalid FileName',
-        detail: 'The FileName contains invalid characters.'
-      })
-      return
+  // テーマ管理はglobalSettingsStoreで自動的に処理される
+
+  // アプリケーション起動時に完全な初期化を実行
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        InitializationService.initializeApp()
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        await showErrorDialog(
+          'アプリケーション初期化エラー',
+          'アプリケーションの初期化中にエラーが発生しました',
+          errorMessage
+        )
+      }
     }
+    initializeApp().catch((error) => {
+      console.error('アプリケーション初期化で予期しないエラーが発生:', error)
+    })
+  }, [])
 
-    updateExecuteButtonState()
-    await window.lizard.execute(parameter)
-    updateDefaultButtonState()
+  const handleShowSettings = () => {
+    setShowSettings(true)
   }
 
-  function updateExecuteButtonState(): void {
-    setEnableCancel(true)
-    setEnableExecute(false)
+  const handleHideSettings = () => {
+    setShowSettings(false)
   }
 
-  function updateDefaultButtonState(): void {
-    setEnableCancel(false)
-    setEnableExecute(true)
-  }
-
-  function cancel(): void {
-    updateDefaultButtonState()
-  }
-
-  function updateTargetPath(targetPath: string): void {
-    setParameter({ ...parameter, ...{ targetPath } })
-    const canExecute = targetPath !== '' && parameter.outputFileName !== ''
-    setEnableExecute(canExecute)
-  }
-
-  function updateOutputFilename(outputFileName: string): void {
-    setParameter({ ...parameter, ...{ outputFileName } })
-    const canExecute = parameter.targetPath !== '' && outputFileName !== ''
-    setEnableExecute(canExecute)
-  }
-
-  function updateBaseCommnad(baseCommand: string): void {
-    setParameter({ ...parameter, ...{ baseCommand } })
-    const canExecute =
-      parameter.targetPath !== '' && parameter.outputFileName !== '' && baseCommand !== ''
-    setEnableExecute(canExecute)
+  if (showSettings) {
+    return (
+      <div className={styles.app_root}>
+        <div className={styles.settingsContainer}>
+          <div className={styles.settingsHeader}>
+            <button
+              type="button"
+              onClick={handleHideSettings}
+              className={styles.backButton}
+              aria-label="Back to main app"
+            >
+              ← 戻る
+            </button>
+          </div>
+          <GlobalSettings />
+        </div>
+      </div>
+    )
   }
 
   return (
-    <>
-      <div className={styles.app_root}>
-        {/* 入力 */}
-        <div className={styles.contents}>
-          <CommandBaseInput
-            basecommand={parameter.baseCommand}
-            setBaseCommand={(baseCommand) => updateBaseCommnad(baseCommand)}
-          ></CommandBaseInput>
-          <TargetPath
-            targetPath={parameter.targetPath}
-            setTargetPath={(targetPath) => updateTargetPath(targetPath)}
-          ></TargetPath>
-          <LanguageSelect
-            selectedItem={parameter.language}
-            setSelectedItem={(language) => setParameter({ ...parameter, ...{ language } })}
-          ></LanguageSelect>
-          <FormatSelect
-            format={parameter.format}
-            setFormat={(format) => setParameter({ ...parameter, ...{ format } })}
-          ></FormatSelect>
-          <OutputFileName
-            filename={parameter.outputFileName}
-            setFilename={(outputFileName) => updateOutputFilename(outputFileName)}
-          ></OutputFileName>
-          <ParameterInput
-            parameter={parameter.addParameter}
-            setParameter={(addParameter) => setParameter({ ...parameter, ...{ addParameter } })}
-          ></ParameterInput>
+    <div className={styles.app_root}>
+      <CollectionPanel
+        isVisible={showCollectionPanel}
+        onToggle={() => setShowCollectionPanel(!showCollectionPanel)}
+      />
+
+      <div className={`${styles.mainContent} ${showCollectionPanel ? styles.withSidebar : ''}`}>
+        <div className={styles.tabContainer}>
+          <TabBar
+            onShowSettings={handleShowSettings}
+            onToggleCollections={() => setShowCollectionPanel(!showCollectionPanel)}
+            onToggleSessions={() => setShowSessionManager(!showSessionManager)}
+            onToggleHistory={() => setShowExecutionHistory(!showExecutionHistory)}
+          />
         </div>
-        {/* 実行 */}
-        <div className={styles.bottom}>
-          <hr className="separator"></hr>
-          <div className={styles.action_root}>
-            <Action
-              enableExecute={enableExecute}
-              enableCancel={enableCancel}
-              onExecute={execute}
-              onCancel={cancel}
-            ></Action>
-          </div>
+        <div className={styles.contentContainer}>
+          <TabContent />
         </div>
       </div>
-    </>
+
+      <ExecutionHistory
+        isVisible={showExecutionHistory}
+        onToggle={() => setShowExecutionHistory(!showExecutionHistory)}
+      />
+
+      <SessionManager
+        isVisible={showSessionManager}
+        onToggle={() => setShowSessionManager(!showSessionManager)}
+      />
+    </div>
   )
 }
 

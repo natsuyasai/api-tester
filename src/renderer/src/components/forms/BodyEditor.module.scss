@@ -1,0 +1,215 @@
+.bodyEditor {
+  padding: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.bodyTypeSelect {
+  min-width: 150px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius);
+  background-color: var(--color-bg-primary);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-border-focus);
+    box-shadow: var(--shadow-focus);
+  }
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.inputModeToggle {
+  display: flex;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.modeButton {
+  padding: 6px 12px;
+  background-color: var(--color-bg-primary);
+  border: none;
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-base);
+  border-right: 1px solid var(--color-border-secondary);
+
+  &:last-child {
+    border-right: none;
+  }
+
+  &:hover {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+  }
+
+  &.active {
+    background-color: var(--color-bg-accent);
+    color: var(--color-text-inverse);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: inset var(--shadow-focus);
+  }
+}
+
+.jsonControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.toggleButton {
+  padding: 6px 12px;
+  background-color: var(--color-bg-secondary);
+  border: none;
+  font-size: var(--font-size-small);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: var(--transition-base);
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+  }
+
+  &.active {
+    background-color: var(--color-bg-accent);
+    color: var(--color-text-inverse);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: inset var(--shadow-focus);
+  }
+}
+
+.formatButton {
+  padding: 6px 12px;
+  background-color: var(--color-text-secondary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-small);
+  cursor: pointer;
+  transition: var(--transition-base);
+
+  &:hover {
+    background-color: var(--color-text-primary);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+}
+
+.editorContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.textarea {
+  flex: 1;
+  min-height: 200px;
+  padding: 12px;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: var(--font-size-code);
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-border-focus);
+    box-shadow: var(--shadow-focus);
+  }
+
+  &::placeholder {
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+}
+
+.formDataEditor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.graphqlEditor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.querySection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+.variablesSection {
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionHeader {
+  padding: 8px 12px;
+  background-color: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+.sectionLabel {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.keyValueContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius);
+  background-color: var(--color-bg-primary);
+}

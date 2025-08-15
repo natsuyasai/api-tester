@@ -1,0 +1,112 @@
+import { JSX, useState, useEffect, useRef, useCallback } from 'react'
+import { useTabStore } from '@renderer/stores/tabStore'
+import { RequestForm } from '../forms/RequestForm'
+import { ResponseView } from '../response/ResponseView'
+import styles from './TabContent.module.scss'
+
+interface TabContentProps {
+  className?: string
+}
+
+export const TabContent = ({ className }: TabContentProps): JSX.Element => {
+  const { getActiveTab } = useTabStore()
+  const [requestHeight, setRequestHeight] = useState(400)
+  const [isDragging, setIsDragging] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const startYRef = useRef<number>(0)
+  const startHeightRef = useRef<number>(0)
+
+  const activeTab = getActiveTab()
+
+  // マウスドラッグでリサイズ処理
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      setIsDragging(true)
+      startYRef.current = e.clientY
+      startHeightRef.current = requestHeight
+
+      const handleMouseMove = (e: MouseEvent) => {
+        if (!containerRef.current) return
+
+        const deltaY = e.clientY - startYRef.current
+        const newHeight = startHeightRef.current + deltaY
+        const containerHeight = containerRef.current.clientHeight
+
+        // 最小200px、最大コンテナ高さ-200pxの制約
+        const minHeight = 200
+        const maxHeight = Math.max(minHeight, containerHeight - 200)
+        const clampedHeight = Math.min(Math.max(newHeight, minHeight), maxHeight)
+
+        setRequestHeight(clampedHeight)
+      }
+
+      const handleMouseUp = () => {
+        setIsDragging(false)
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
+
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    },
+    [requestHeight]
+  )
+
+  // ウィンドウリサイズ時の調整
+  useEffect(() => {
+    const handleResize = () => {
+      if (!containerRef.current) return
+
+      const containerHeight = containerRef.current.clientHeight
+      const maxHeight = Math.max(200, containerHeight - 200)
+
+      if (requestHeight > maxHeight) {
+        setRequestHeight(maxHeight)
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [requestHeight])
+
+  if (!activeTab) {
+    return <div className={styles.noTab}>No active tab</div>
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className={`${styles.tabContent} ${className || ''}`}
+      style={{
+        gridTemplateRows: `${requestHeight}px 6px 1fr`
+      }}
+    >
+      <div className={styles.requestSection}>
+        <RequestForm tabId={activeTab.id} />
+      </div>
+
+      <button
+        className={`${styles.resizeHandle} ${isDragging ? styles.dragging : ''}`}
+        onMouseDown={handleMouseDown}
+        type="button"
+        aria-label="Resize panels"
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            e.preventDefault()
+            const delta = e.key === 'ArrowUp' ? -10 : 10
+            const newHeight = Math.max(
+              200,
+              Math.min(requestHeight + delta, (containerRef.current?.offsetHeight || 600) - 200)
+            )
+            setRequestHeight(newHeight)
+          }
+        }}
+      />
+
+      <div className={styles.responseSection}>
+        <ResponseView tabId={activeTab.id} />
+      </div>
+    </div>
+  )
+}
