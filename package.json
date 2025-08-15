@@ -1,6 +1,6 @@
 {
   "author": "natsuyasai",
-  "version": "0.0.1-alpha",
+  "version": "0.0.1-alpha1",
   "description": "WebAPI Test Tool.",
   "homepage": "https://electron-vite.org",
   "main": "./out/main/index.js",
